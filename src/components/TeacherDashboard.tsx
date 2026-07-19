@@ -4,6 +4,8 @@ import { TEACHER_CLASSES, TEACHER_SCHEDULE, TEACHER_ASSIGNMENTS, TEACHER_SUBMISS
 import { MarkAttendanceModal } from './modals/MarkAttendanceModal';
 import { UploadScoresModal } from './modals/UploadScoresModal';
 import { RecordRemarksModal } from './modals/RecordRemarksModal';
+import { db, syncStudentPerformance } from '../firebase';
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 
 interface TeacherDashboardProps {
   onNavigate: (view: ViewMode, studentId?: string) => void;
@@ -80,6 +82,91 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
     showToast(`Graded ${gradingModalSub.studentName}: ${scoreVal}/100 for ${gradingModalSub.assignment}`);
     onAddActivityLog('upload', 'Prof. Marcus Brody', 'graded submission:', `${gradingModalSub.studentName} (${scoreVal}/100)`);
+    
+    // Auto-sync back to Firestore transcripts and update student catalog
+    const syncGradeToFirestore = async () => {
+      try {
+        const transcriptsRef = collection(db, 'transcripts');
+        const q = query(transcriptsRef, where('fullName', '==', gradingModalSub.studentName));
+        const snap = await getDocs(q);
+        
+        let matchedDocId = '';
+        let matchedData: any = null;
+        snap.forEach((doc) => {
+          matchedDocId = doc.id;
+          matchedData = doc.data();
+        });
+
+        if (matchedDocId && matchedData) {
+          const asgTitle = gradingModalSub.assignment.toLowerCase();
+          let targetSubject = 'Mathematics';
+          if (asgTitle.includes('physics') || asgTitle.includes('mechanics') || asgTitle.includes('quantum')) {
+            targetSubject = matchedData.subjects.some((s: any) => s.subject === 'Quantum Physics') ? 'Quantum Physics' : 'Physics';
+          } else if (asgTitle.includes('chemistry')) {
+            targetSubject = matchedData.subjects.some((s: any) => s.subject === 'Organic Chemistry') ? 'Organic Chemistry' : 'Chemistry';
+          } else if (asgTitle.includes('history')) {
+            targetSubject = 'European History';
+          } else if (asgTitle.includes('computer') || asgTitle.includes('programming')) {
+            targetSubject = matchedData.subjects.some((s: any) => s.subject === 'Computer Programming') ? 'Computer Programming' : 'Computer Science';
+          } else if (asgTitle.includes('calculus')) {
+            targetSubject = matchedData.subjects.some((s: any) => s.subject === 'Advanced Calculus') ? 'Advanced Calculus' : 'Mathematics';
+          }
+
+          const updatedSubjects = matchedData.subjects.map((sub: any) => {
+            if (sub.subject === targetSubject) {
+              const examScore = Math.round(scoreVal * 0.7); // scale out of 70
+              const totalScore = sub.caScore + examScore;
+              
+              let grade = 'F';
+              let remarks = 'Needs Improvement';
+              let badgeClass = 'bg-red-500/10 text-red-500 border border-red-500/20';
+              if (totalScore >= 90) {
+                grade = 'A+'; remarks = 'Brilliant'; badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
+              } else if (totalScore >= 80) {
+                grade = 'A'; remarks = 'Outstanding'; badgeClass = 'bg-tertiary-fixed-dim text-on-tertiary-fixed-variant';
+              } else if (totalScore >= 70) {
+                grade = 'B+'; remarks = 'Very Good'; badgeClass = 'bg-secondary-fixed text-on-secondary-fixed-variant';
+              } else if (totalScore >= 60) {
+                grade = 'B'; remarks = 'Good'; badgeClass = 'bg-secondary-fixed text-on-secondary-fixed-variant';
+              } else if (totalScore >= 50) {
+                grade = 'C'; remarks = 'Satisfactory'; badgeClass = 'bg-surface-container-high';
+              }
+
+              return {
+                ...sub,
+                examScore,
+                totalScore,
+                grade,
+                remarks,
+                badgeClass
+              };
+            }
+            return sub;
+          });
+
+          const totalPoints = updatedSubjects.reduce((acc: number, sub: any) => {
+            if (sub.grade.startsWith('A')) return acc + 5;
+            if (sub.grade.startsWith('B')) return acc + 4;
+            if (sub.grade.startsWith('C')) return acc + 3;
+            if (sub.grade.startsWith('D')) return acc + 2;
+            return acc + 1;
+          }, 0);
+          const finalGpa = Number((totalPoints / updatedSubjects.length).toFixed(2));
+
+          await setDoc(doc(db, 'transcripts', matchedDocId), {
+            subjects: updatedSubjects,
+            finalGpa
+          }, { merge: true });
+
+          await syncStudentPerformance(matchedDocId);
+          console.log(`Automatically synchronized performance report for ${gradingModalSub.studentName}`);
+        }
+      } catch (err) {
+        console.error('Failed to auto-sync graded scores to student transcripts:', err);
+      }
+    };
+    syncGradeToFirestore();
+
     setGradingModalSub(null);
     setGradeInput('');
   };

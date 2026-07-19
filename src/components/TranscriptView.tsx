@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TranscriptData, SchoolProfile } from '../types';
 import { TRANSCRIPTS } from '../data/mockData';
 import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { db, auth, syncStudentPerformance } from '../firebase';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   ResponsiveContainer,
@@ -179,6 +179,7 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
 
     try {
       await setDoc(doc(db, 'transcripts', selectedId), updatedTranscriptData, { merge: true });
+      await syncStudentPerformance(selectedId);
       
       // If GPA is low, auto-push a critical alert to the school registry
       if (newGpa < 3.5) {

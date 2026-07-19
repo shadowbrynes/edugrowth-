@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase App
@@ -182,6 +182,93 @@ export async function createUserProfileIfNotExist(
   } catch (error) {
     console.error("Failed to ensure user profile:", error);
     throw error;
+  }
+}
+
+// Synchronize a student's GPA, rank, and status across the registry (transcripts, students, children collections)
+export async function syncStudentPerformance(transcriptDocId: string) {
+  try {
+    // 1. Fetch transcript doc
+    const transcriptRef = doc(db, 'transcripts', transcriptDocId);
+    const transcriptSnap = await getDoc(transcriptRef);
+    if (!transcriptSnap.exists()) return;
+    const transcriptData = transcriptSnap.data();
+
+    const finalGpa = Number(transcriptData.finalGpa);
+    const fullName = transcriptData.fullName;
+    const studentStatus = transcriptData.status === 'PROBATION' ? 'Academic Probation' : 
+                          (finalGpa >= 4.5 ? 'High Honor' : (finalGpa >= 3.8 ? 'Honor Roll' : 'Good Standing'));
+
+    // 2. Find and update corresponding student in 'students' collection
+    const studentsRef = collection(db, 'students');
+    const studentQuery = query(studentsRef, where('name', '==', fullName));
+    const studentSnap = await getDocs(studentQuery);
+    
+    let matchedStudentId = '';
+    studentSnap.forEach((doc) => {
+      matchedStudentId = doc.id;
+    });
+
+    if (matchedStudentId) {
+      await updateDoc(doc(db, 'students', matchedStudentId), {
+        gpa: finalGpa,
+        status: studentStatus
+      });
+    }
+
+    // 3. Find and update corresponding child record in 'children' collection (Parent Portal)
+    const childrenRef = collection(db, 'children');
+    const childrenQuery = query(childrenRef, where('name', '==', fullName));
+    const childrenSnap = await getDocs(childrenQuery);
+    
+    let matchedChildId = '';
+    childrenSnap.forEach((doc) => {
+      matchedChildId = doc.id;
+    });
+
+    if (matchedChildId) {
+      await updateDoc(doc(db, 'children', matchedChildId), {
+        currentGpa: finalGpa
+      });
+    }
+
+    // 4. Recalculate ranks across the 'students' collection
+    const allStudentsSnap = await getDocs(studentsRef);
+    const studentsList: { id: string; gpa: number; name: string }[] = [];
+    allStudentsSnap.forEach((doc) => {
+      const data = doc.data();
+      studentsList.push({
+        id: doc.id,
+        gpa: Number(data.gpa || 0),
+        name: data.name
+      });
+    });
+
+    // Sort students by GPA descending
+    studentsList.sort((a, b) => b.gpa - a.gpa);
+
+    // Update ranks in Firestore
+    for (let i = 0; i < studentsList.length; i++) {
+      const rank = i + 1;
+      const s = studentsList[i];
+      await updateDoc(doc(db, 'students', s.id), {
+        rank: rank,
+        totalStudents: studentsList.length
+      });
+
+      // If this student has a parent portal child record, also update their rank string
+      const cQuery = query(childrenRef, where('name', '==', s.name));
+      const cSnap = await getDocs(cQuery);
+      cSnap.forEach(async (cDoc) => {
+        await updateDoc(doc(db, 'children', cDoc.id), {
+          rank: `#${rank} / ${studentsList.length}`
+        });
+      });
+    }
+
+    console.log(`Successfully synchronized academic performance for ${fullName}`);
+  } catch (error) {
+    console.error("Failed to sync student performance:", error);
   }
 }
 
