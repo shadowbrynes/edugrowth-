@@ -1,0 +1,203 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definitions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    // Helper to get incoming map keys list
+    function incomingKeys(data) {
+      return data.keys();
+    }
+
+    // 2. Validation Blueprints (Anti-Update-Gap)
+    
+    // User Profile Schema Validator
+    function isValidUserProfile(data) {
+      return incomingKeys(data).hasAll(['uid', 'name', 'email', 'role'])
+        && incomingKeys(data).size() <= 9
+        && data.uid is string && data.uid.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && data.email is string && data.email.size() <= 128
+        && data.role is string && (data.role == 'admin' || data.role == 'teacher' || data.role == 'student' || data.role == 'parent')
+        && (!incomingKeys(data).contains('studentId') || (data.studentId is string && data.studentId.size() <= 64))
+        && (!incomingKeys(data).contains('employeeId') || (data.employeeId is string && data.employeeId.size() <= 64));
+    }
+
+    // Student Schema Validator
+    function isValidStudent(data) {
+      return incomingKeys(data).hasAll(['id', 'name', 'initials', 'gpa', 'status', 'rank', 'totalStudents', 'attendance', 'gradeLevel'])
+        && incomingKeys(data).size() <= 11 // Allows optional avatar
+        && data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && data.initials is string && data.initials.size() <= 10
+        && (data.gpa is float || data.gpa is int)
+        && data.status is string && data.status.size() <= 64
+        && data.rank is int
+        && data.totalStudents is int
+        && data.attendance is int
+        && data.gradeLevel is string && data.gradeLevel.size() <= 128;
+    }
+
+    // Critical Alert Schema Validator
+    function isValidAlert(data) {
+      return incomingKeys(data).hasAll(['id', 'studentId', 'studentName', 'initials', 'type', 'value', 'details', 'date', 'assignedAdvisor'])
+        && incomingKeys(data).size() == 9
+        && data.id is string && data.id.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.studentName is string && data.studentName.size() <= 128
+        && data.initials is string && data.initials.size() <= 10
+        && data.type is string && (data.type == 'attendance' || data.type == 'grade_drop' || data.type == 'behavioral')
+        && data.value is string && data.value.size() <= 64
+        && data.details is string && data.details.size() <= 512
+        && data.date is string && data.date.size() <= 64
+        && data.assignedAdvisor is string && data.assignedAdvisor.size() <= 128;
+    }
+
+    // System Activity Schema Validator
+    function isValidActivity(data) {
+      return incomingKeys(data).hasAll(['id', 'type', 'user', 'action', 'target', 'timeAgo', 'timestamp', 'icon', 'colorClass'])
+        && incomingKeys(data).size() == 9
+        && data.id is string && data.id.size() <= 128
+        && data.type is string && (data.type == 'upload' || data.type == 'user_add' || data.type == 'payroll' || data.type == 'alert' || data.type == 'meeting')
+        && data.user is string && data.user.size() <= 128
+        && data.action is string && data.action.size() <= 256
+        && data.target is string && data.target.size() <= 256
+        && data.timeAgo is string && data.timeAgo.size() <= 64
+        && data.timestamp is string && data.timestamp.size() <= 128
+        && data.icon is string && data.icon.size() <= 64
+        && data.colorClass is string && data.colorClass.size() <= 128;
+    }
+
+    // Child Record Validator (Parent Portal)
+    function isValidChild(data) {
+      return incomingKeys(data).hasAll(['id', 'name', 'grade', 'currentGpa', 'rank', 'targetGpa', 'gpaTrend', 'months', 'attendanceDays', 'remarks'])
+        && data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && data.grade is string && data.grade.size() <= 64
+        && (data.currentGpa is float || data.currentGpa is int)
+        && data.rank is string && data.rank.size() <= 32
+        && (data.targetGpa is float || data.targetGpa is int)
+        && data.gpaTrend is list && data.gpaTrend.size() <= 12
+        && data.months is list && data.months.size() <= 12
+        && data.attendanceDays is map
+        && data.remarks is list && data.remarks.size() <= 100;
+    }
+
+    // Transcript Data Validator
+    function isValidTranscript(data) {
+      return incomingKeys(data).hasAll([
+        'id', 'transcriptId', 'issueDate', 'fullName', 'studentId', 'academicClass', 'currentTerm',
+        'dob', 'gender', 'photoUrl', 'subjects', 'finalGpa', 'gpaScale', 'ranking', 'totalClassSize',
+        'attendancePercent', 'status', 'statusSub', 'classTeacherRemarks', 'classTeacherName',
+        'classTeacherSignUrl', 'principalRemarks', 'principalName', 'principalSignUrl', 'qrCodeUrl',
+        'promotionBannerText'
+      ])
+        && data.id is string && data.id.size() <= 128
+        && data.transcriptId is string && data.transcriptId.size() <= 64
+        && data.fullName is string && data.fullName.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && (data.finalGpa is float || data.finalGpa is int)
+        && data.subjects is list && data.subjects.size() <= 20;
+    }
+
+    // Transcript Access Schema Validator
+    function isValidTranscriptAccess(data) {
+      return incomingKeys(data).hasAll(['id', 'userId', 'userName', 'userEmail', 'userRole', 'studentId', 'studentName', 'timestamp'])
+        && incomingKeys(data).size() == 8
+        && data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.userName is string && data.userName.size() <= 128
+        && data.userEmail is string && data.userEmail.size() <= 128
+        && data.userRole is string && data.userRole.size() <= 32
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.studentName is string && data.studentName.size() <= 128
+        && data.timestamp is string && data.timestamp.size() <= 128;
+    }
+
+    // 3. Collection Match Blocks with Path Variable Hardening
+    
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidUserProfile(request.resource.data) && request.resource.data.role != 'admin';
+      allow update: if (isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidUserProfile(request.resource.data)
+                    && (request.resource.data.uid == resource.data.uid) && (request.resource.data.role == resource.data.role))
+                    || isAdmin();
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /students/{studentId} {
+      allow get: if isSignedIn() && isValidId(studentId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(studentId) && isValidStudent(request.resource.data);
+      allow update: if isSignedIn() && isValidId(studentId) && isValidStudent(request.resource.data)
+                    && (request.resource.data.id == resource.data.id);
+      allow delete: if isSignedIn() && isValidId(studentId);
+    }
+
+    match /alerts/{alertId} {
+      allow get: if isSignedIn() && isValidId(alertId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(alertId) && isValidAlert(request.resource.data);
+      allow update: if isSignedIn() && isValidId(alertId) && isValidAlert(request.resource.data)
+                    && (request.resource.data.id == resource.data.id);
+      allow delete: if isSignedIn() && isValidId(alertId);
+    }
+
+    match /activities/{activityId} {
+      allow get: if isSignedIn() && isValidId(activityId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(activityId) && isValidActivity(request.resource.data);
+      allow update: if isSignedIn() && isValidId(activityId) && isValidActivity(request.resource.data)
+                    && (request.resource.data.id == resource.data.id);
+      allow delete: if isSignedIn() && isValidId(activityId);
+    }
+
+    match /children/{childId} {
+      allow get: if isSignedIn() && isValidId(childId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(childId) && isValidChild(request.resource.data);
+      allow update: if isSignedIn() && isValidId(childId) && isValidChild(request.resource.data)
+                    && (request.resource.data.id == resource.data.id);
+      allow delete: if isSignedIn() && isValidId(childId);
+    }
+
+    match /transcripts/{transcriptId} {
+      allow get: if isSignedIn() && isValidId(transcriptId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(transcriptId) && isValidTranscript(request.resource.data);
+      allow update: if isSignedIn() && isValidId(transcriptId) && isValidTranscript(request.resource.data)
+                    && (request.resource.data.id == resource.data.id);
+      allow delete: if isSignedIn() && isValidId(transcriptId);
+    }
+
+    match /transcript_accesses/{logId} {
+      allow get: if isSignedIn() && isValidId(logId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId) && isValidTranscriptAccess(request.resource.data);
+      allow update: if false; // Audit logs are immutable
+      allow delete: if isAdmin();
+    }
+
+    match /school_profile/{profileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

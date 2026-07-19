@@ -1,0 +1,224 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with specific academic role mapping",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "teacher", "student", "parent"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "initials": { "type": "string" },
+        "gpa": { "type": "number" },
+        "status": { "type": "string" },
+        "rank": { "type": "number" },
+        "totalStudents": { "type": "number" },
+        "attendance": { "type": "number" },
+        "gradeLevel": { "type": "string" }
+      },
+      "required": ["id", "name", "initials", "gpa", "status", "rank", "totalStudents", "attendance", "gradeLevel"]
+    },
+    "CriticalAlert": {
+      "title": "CriticalAlert",
+      "description": "Academic critical alert for early intervention",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "initials": { "type": "string" },
+        "type": { "type": "string", "enum": ["attendance", "grade_drop", "behavioral"] },
+        "value": { "type": "string" },
+        "details": { "type": "string" },
+        "date": { "type": "string" },
+        "assignedAdvisor": { "type": "string" }
+      },
+      "required": ["id", "studentId", "studentName", "initials", "type", "value", "details", "date", "assignedAdvisor"]
+    },
+    "SystemActivity": {
+      "title": "SystemActivity",
+      "description": "Log of recent systems activities and operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["upload", "user_add", "payroll", "alert", "meeting"] },
+        "user": { "type": "string" },
+        "action": { "type": "string" },
+        "target": { "type": "string" },
+        "timeAgo": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "icon": { "type": "string" },
+        "colorClass": { "type": "string" }
+      },
+      "required": ["id", "type", "user", "action", "target", "timeAgo", "timestamp", "icon", "colorClass"]
+    },
+    "ChildRecord": {
+      "title": "ChildRecord",
+      "description": "Student information accessible via parent portal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "grade": { "type": "string" },
+        "currentGpa": { "type": "number" },
+        "rank": { "type": "string" },
+        "targetGpa": { "type": "number" },
+        "gpaTrend": { "type": "array" },
+        "months": { "type": "array" },
+        "attendanceDays": { "type": "object" },
+        "remarks": { "type": "array" }
+      },
+      "required": ["id", "name", "grade", "currentGpa", "rank", "targetGpa", "gpaTrend", "months", "attendanceDays", "remarks"]
+    },
+    "TranscriptData": {
+      "title": "TranscriptData",
+      "description": "Verifiable academic transcript definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "transcriptId": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "fullName": { "type": "string" },
+        "studentId": { "type": "string" },
+        "academicClass": { "type": "string" },
+        "currentTerm": { "type": "string" },
+        "dob": { "type": "string" },
+        "gender": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "subjects": { "type": "array" },
+        "finalGpa": { "type": "number" },
+        "gpaScale": { "type": "number" },
+        "ranking": { "type": "string" },
+        "totalClassSize": { "type": "number" },
+        "attendancePercent": { "type": "number" },
+        "status": { "type": "string" },
+        "statusSub": { "type": "string" },
+        "classTeacherRemarks": { "type": "string" },
+        "classTeacherName": { "type": "string" },
+        "classTeacherSignUrl": { "type": "string" },
+        "principalRemarks": { "type": "string" },
+        "principalName": { "type": "string" },
+        "principalSignUrl": { "type": "string" },
+        "qrCodeUrl": { "type": "string" },
+        "promotionBannerText": { "type": "string" }
+      },
+      "required": [
+        "id", "transcriptId", "issueDate", "fullName", "studentId", "academicClass", "currentTerm",
+        "dob", "gender", "photoUrl", "subjects", "finalGpa", "gpaScale", "ranking", "totalClassSize",
+        "attendancePercent", "status", "statusSub", "classTeacherRemarks", "classTeacherName",
+        "classTeacherSignUrl", "principalRemarks", "principalName", "principalSignUrl", "qrCodeUrl",
+        "promotionBannerText"
+      ]
+    },
+    "TranscriptAccess": {
+      "title": "TranscriptAccess",
+      "description": "Log of who accessed which student's digital transcript and when",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userRole": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "userEmail", "userRole", "studentId", "studentName", "timestamp"]
+    },
+    "SchoolProfile": {
+      "title": "SchoolProfile",
+      "description": "Institutional identity, contact, branding, administrative, and system configurations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "coverBannerUrl": { "type": "string" },
+        "motto": { "type": "string" },
+        "vision": { "type": "string" },
+        "mission": { "type": "string" },
+        "coreValues": { "type": "array" },
+        "description": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "country": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "website": { "type": "string" },
+        "socialLinks": { "type": "object" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "reportCardHeader": { "type": "string" },
+        "certificateHeader": { "type": "string" },
+        "digitalStampUrl": { "type": "string" },
+        "principalSignatureUrl": { "type": "string" },
+        "watermarkUrl": { "type": "string" },
+        "principal": { "type": "string" },
+        "vicePrincipal": { "type": "string" },
+        "registrar": { "type": "string" },
+        "bursar": { "type": "string" },
+        "schoolType": { "type": "string" },
+        "academicSession": { "type": "string" },
+        "academicCalendar": { "type": "string" },
+        "timezone": { "type": "string" },
+        "language": { "type": "string" },
+        "gradingSystem": { "type": "string" },
+        "attendanceMethod": { "type": "string" },
+        "currency": { "type": "string" },
+        "smsEmailSettings": { "type": "string" }
+      },
+      "required": ["id", "name", "motto"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "#/entities/UserProfile",
+      "description": "User profiles with explicit role constraints"
+    },
+    "students": {
+      "schema": "#/entities/Student",
+      "description": "Global student listings for admin & faculty workflows"
+    },
+    "alerts": {
+      "schema": "#/entities/CriticalAlert",
+      "description": "Active critical alerts and interventions logs"
+    },
+    "activities": {
+      "schema": "#/entities/SystemActivity",
+      "description": "Audit logs of system updates and logins"
+    },
+    "children": {
+      "schema": "#/entities/ChildRecord",
+      "description": "Parental portal linkages and evaluations records"
+    },
+    "transcripts": {
+      "schema": "#/entities/TranscriptData",
+      "description": "Encrypted digital transcripts for verifiable academic standing"
+    },
+    "transcript_accesses": {
+      "schema": "#/entities/TranscriptAccess",
+      "description": "Security logs of digital transcript access events"
+    },
+    "school_profile": {
+      "schema": "#/entities/SchoolProfile",
+      "description": "Institutional configuration and identity customization"
+    }
+  }
+}

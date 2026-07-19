@@ -1,0 +1,6 @@
+{
+  "name": "EduManage",
+  "description": "Comprehensive Institutional & Academic Management Portal featuring Admin Overview, Faculty Portal, Parent Dashboard, and Official Digital Transcripts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
