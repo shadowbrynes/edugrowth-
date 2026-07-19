@@ -11,11 +11,12 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { ParentPortal } from './components/ParentPortal';
 import { TranscriptView } from './components/TranscriptView';
+import { StudentPortal } from './components/StudentPortal';
 import { ShareAchievementModal } from './components/modals/ShareAchievementModal';
 import { TranscriptVerificationPortal } from './components/TranscriptVerificationPortal';
 
 // Firebase Integrations
-import { doc, setDoc, onSnapshot, collection, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, collection, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType, testConnection, getUserProfile, createUserProfileIfNotExist } from './firebase';
 import { AuthScreen } from './components/AuthScreen';
@@ -156,11 +157,47 @@ export default function App() {
     testConnection();
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      const resolveStudentIdAndNavigate = (profile: any) => {
+        setUserRole(profile.role);
+        if (profile.role === 'student') {
+          if (profile.studentId) {
+            const idMap: Record<string, string> = {
+              'ST-882-901': 'alexander',
+              'ST-701-442': 'alice',
+              'ST-905-118': 'leo'
+            };
+            const cleanId = profile.studentId.toUpperCase();
+            const localMatch = idMap[cleanId];
+            if (localMatch) {
+              setSelectedStudentId(localMatch);
+              setCurrentView('student');
+            } else {
+              const q = query(collection(db, 'transcripts'), where('studentId', '==', cleanId));
+              getDocs(q).then((snap) => {
+                let matchedDocId = '';
+                snap.forEach((d) => {
+                  matchedDocId = d.id;
+                });
+                setSelectedStudentId(matchedDocId || 'alexander');
+                setCurrentView('student');
+              }).catch(() => {
+                setSelectedStudentId('alexander');
+                setCurrentView('student');
+              });
+            }
+          } else {
+            setSelectedStudentId('alexander');
+            setCurrentView('student');
+          }
+        } else {
+          setCurrentView(profile.role);
+        }
+      };
+
       if (firebaseUser) {
         getUserProfile(firebaseUser.uid).then((profile) => {
           if (profile) {
-            setUserRole(profile.role);
-            setCurrentView(profile.role === 'student' ? 'transcript' : profile.role);
+            resolveStudentIdAndNavigate(profile);
           } else {
             // New user signed in via Google or first time login
             createUserProfileIfNotExist(
@@ -169,8 +206,7 @@ export default function App() {
               firebaseUser.email || '',
               'admin'
             ).then((newProfile) => {
-              setUserRole(newProfile.role);
-              setCurrentView(newProfile.role === 'student' ? 'transcript' : newProfile.role);
+              resolveStudentIdAndNavigate(newProfile);
             });
           }
           setUser(firebaseUser);
@@ -179,7 +215,8 @@ export default function App() {
           console.error('Error fetching profile, defaulting to student:', err);
           setUser(firebaseUser);
           setUserRole('student');
-          setCurrentView('transcript');
+          setSelectedStudentId('alexander');
+          setCurrentView('student');
           setAuthChecking(false);
         });
       } else {
@@ -645,6 +682,16 @@ export default function App() {
             onNavigate={handleNavigate}
             onSendMessage={handleSendMessage}
             schoolProfile={schoolProfile}
+          />
+        )}
+
+        {currentView === 'student' && (
+          <StudentPortal
+            studentId={selectedStudentId}
+            selectedSession={selectedSession}
+            schoolProfile={schoolProfile}
+            onNavigate={handleNavigate}
+            onOpenShareModal={handleOpenShareModal}
           />
         )}
 

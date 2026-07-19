@@ -1,4 +1,4 @@
-export type ViewMode = 'admin' | 'teacher' | 'parent' | 'transcript';
+export type ViewMode = 'admin' | 'teacher' | 'parent' | 'student' | 'transcript';
 
 export interface UserProfile {
   uid: string;

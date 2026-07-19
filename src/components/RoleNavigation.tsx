@@ -140,6 +140,16 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
               </button>
             )}
 
+            {(userRole === 'admin' || userRole === 'student') && (
+              <button
+                onClick={() => onViewChange('student')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${currentView === 'student' ? 'bg-secondary text-white shadow-md' : 'text-primary-fixed-dim hover:text-white hover:bg-white/5'}`}
+              >
+                <span className="material-symbols-outlined text-sm" style={currentView === 'student' ? { fontVariationSettings: "'FILL' 1" } : {}}>school</span>
+                Student Portal
+              </button>
+            )}
+
             {(userRole === 'admin' || userRole === 'student' || userRole === 'teacher') && (
               <button
                 onClick={() => onViewChange('transcript')}
