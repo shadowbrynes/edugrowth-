@@ -118,7 +118,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
       const firebaseUser = await signInWithGoogle();
       onAuthSuccess(firebaseUser);
     } catch (err: any) {
-      setError('Google Sign-In was cancelled or failed.');
+      console.error('Google Sign-In Error:', err);
+      const errMsg = err?.code ? `Google Sign-In failed: ${err.code} (${err.message})` : 'Google Sign-In was cancelled or failed.';
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
