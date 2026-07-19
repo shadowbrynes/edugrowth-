@@ -913,7 +913,7 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
 
       {/* Kinetic Footer */}
       <footer className="mt-auto pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[10px] tracking-[0.3em] uppercase opacity-50 gap-4 no-print">
-        <div>&copy; 2024 EduManage System / Kinetic Studio</div>
+        <div>&copy; 2024 EduGrowth System / Kinetic Studio</div>
         <div className="flex gap-8">
           <span>Security Protocol 4.2</span>
           <span>Encrypted Ledger</span>

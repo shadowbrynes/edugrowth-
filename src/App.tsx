@@ -76,21 +76,21 @@ export default function App() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('alexander');
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [institutionType, setInstitutionType] = useState<'Schools' | 'HigherEd'>(() => {
-    return (localStorage.getItem('eduManageEdition') as 'Schools' | 'HigherEd') || 'Schools';
+    return (localStorage.getItem('eduGrowthEdition') as 'Schools' | 'HigherEd') || 'Schools';
   });
   const [selectedSession, setSelectedSession] = useState<string>(() => {
-    return localStorage.getItem('eduManageSession') || '2023/2024 Fall';
+    return localStorage.getItem('eduGrowthSession') || '2023/2024 Fall';
   });
   const [schoolProfile, setSchoolProfile] = useState<SchoolProfile>(DEFAULT_SCHOOL_PROFILE);
 
   const handleInstitutionTypeChange = (type: 'Schools' | 'HigherEd') => {
     setInstitutionType(type);
-    localStorage.setItem('eduManageEdition', type);
+    localStorage.setItem('eduGrowthEdition', type);
   };
 
   const handleSessionChange = (session: string) => {
     setSelectedSession(session);
-    localStorage.setItem('eduManageSession', session);
+    localStorage.setItem('eduGrowthSession', session);
   };
 
   // Parse QR verification query parameters on mount
@@ -461,7 +461,7 @@ export default function App() {
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#ff3e00] border-t-transparent animate-spin rounded-full" />
           <div className="text-xs uppercase font-bold tracking-[0.3em] text-[#ff3e00]">
-            EduManage Workspace
+            EduGrowth Workspace
           </div>
           <div className="text-[10px] uppercase font-mono tracking-widest text-white/40">
             Initializing Encrypted Ledger...

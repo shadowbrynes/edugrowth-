@@ -58,7 +58,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
             'ST-882-901': { email: 'alexander@stjudesacademy.edu', role: 'student' },
             'ST-701-442': { email: 'alice@stjudesacademy.edu', role: 'student' },
             'ST-905-118': { email: 'leo@stjudesacademy.edu', role: 'student' },
-            'TCH-1001': { email: 'teacher@edumanage.com', role: 'teacher' },
+            'TCH-1001': { email: 'teacher@edugrowth.com', role: 'teacher' },
             'ADM-1001': { email: 'admin@stjudesacademy.edu', role: 'admin' }
           };
           
@@ -128,7 +128,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
   const handleDeveloperBypass = async () => {
     setError(null);
     setLoading(true);
-    const devEmail = 'developer@edumanage.com';
+    const devEmail = 'developer@edugrowth.com';
     const devPass = 'developer123';
     const devName = 'Naija Journal';
     try {
@@ -153,7 +153,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
     const mockUser = {
       uid: `mock-${role}-${Date.now()}`,
       displayName: fullName || (role === 'admin' ? 'Mock Administrator' : role === 'teacher' ? 'Mock Professor' : role === 'parent' ? 'Mock Guardian' : 'Mock Student'),
-      email: email || `${role}@mock-edumanage.com`,
+      email: email || `${role}@mock-edugrowth.com`,
       photoURL: null,
     };
     onAuthSuccess(mockUser, role, true);
@@ -188,7 +188,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
               {schoolProfile?.name || "Saint Jude's Academy of Sciences"}
             </div>
             <h1 className="text-3xl font-black uppercase tracking-tight text-white">
-              EduManage <span className="text-[#ff3e00]">Portal</span>
+              EduGrowth <span className="text-[#ff3e00]">Portal</span>
             </h1>
             <p className="text-xs text-white/50 tracking-wide mt-2 px-4 italic line-clamp-2" title={schoolProfile?.motto}>
               {schoolProfile?.motto || "Unified Academic Management Security Gate"}
@@ -380,7 +380,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
       </div>
 
       <footer className="py-6 border-t border-white/5 text-center text-[9px] uppercase tracking-[0.4em] text-white/30 relative z-10">
-        © 2026 EduManage Academic Workspace • Version 4.2.1-Prod
+        © 2026 EduGrowth Academic Workspace • Version 4.2.1-Prod
       </footer>
     </div>
   );

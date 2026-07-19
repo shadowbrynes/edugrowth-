@@ -56,7 +56,7 @@ export const TranscriptVerificationPortal: React.FC<TranscriptVerificationPortal
             className="px-4 py-2 bg-[#ff3e00] text-black hover:bg-[#ff3e00]/90 text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5 self-stretch md:self-auto justify-center"
           >
             <span className="material-symbols-outlined text-sm">login</span>
-            Enter EduManage Portal
+            Enter EduGrowth Portal
           </button>
         </div>
 

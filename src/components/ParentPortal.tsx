@@ -254,7 +254,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
           <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-white shadow-inner">
             <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
           </div>
-          <h1 className="text-xl font-bold text-primary tracking-tight">EduManage</h1>
+          <h1 className="text-xl font-bold text-primary tracking-tight">EduGrowth</h1>
           <span className="hidden sm:inline-block text-xs font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20 ml-2">
             Parent Portal • Saint Jude's Academy
           </span>
@@ -1314,7 +1314,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
               <div className="border-t border-outline-variant/50 pt-6 text-center space-y-2">
                 <div className="inline-flex items-center gap-1 text-[10px] text-on-surface-variant font-mono">
                   <span className="material-symbols-outlined text-[12px] text-emerald-600">lock</span>
-                  Secured by EduManage Billing Core
+                  Secured by EduGrowth Billing Core
                 </div>
                 <p className="text-[9px] text-on-surface-variant">This is a computer-generated transaction record and serves as official proof of payment.</p>
               </div>

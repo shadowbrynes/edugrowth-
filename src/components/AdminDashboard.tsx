@@ -237,7 +237,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(30, 41, 59); // deep slate (#1e293b)
-    doc.text("EduManage Academic Report", 14, 20);
+    doc.text("EduGrowth Academic Report", 14, 20);
     
     // Metadata/Timestamp info
     doc.setFont("helvetica", "normal");
@@ -390,7 +390,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184); // slate-400
       doc.text(`Page ${i} of ${pageCount}`, 14, 287);
-      doc.text("EduManage Academic Systems • Confidential Document", 115, 287);
+      doc.text("EduGrowth Academic Systems • Confidential Document", 115, 287);
     }
     
     // Save report file
@@ -433,7 +433,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `EduManage_Students_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `EduGrowth_Students_Export_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -692,7 +692,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="w-10 h-10 rounded-xl overflow-hidden bg-primary-container flex items-center justify-center shadow-inner">
             <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
           </div>
-          <h1 className="text-xl font-bold text-primary tracking-tight">EduManage</h1>
+          <h1 className="text-xl font-bold text-primary tracking-tight">EduGrowth</h1>
         </div>
 
         <div className="flex items-center gap-4">

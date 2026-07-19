@@ -97,7 +97,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div className="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center shadow-inner">
             <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
           </div>
-          <span className="text-xl font-bold text-primary tracking-tight">EduManage</span>
+          <span className="text-xl font-bold text-primary tracking-tight">EduGrowth</span>
         </div>
 
         <div className="px-3 py-4 flex flex-col gap-1.5">
@@ -157,7 +157,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <div className="lg:hidden w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white">
               <span className="material-symbols-outlined text-sm">school</span>
             </div>
-            <h1 className="text-xl font-bold text-primary lg:hidden">EduManage Faculty</h1>
+            <h1 className="text-xl font-bold text-primary lg:hidden">EduGrowth Faculty</h1>
             <span className="hidden lg:inline-block text-xs font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20">
               Active Faculty Session: Saint Jude's Academy
             </span>
