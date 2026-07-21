@@ -11,7 +11,9 @@ interface ShareAchievementModalProps {
 
 export const ShareAchievementModal: React.FC<ShareAchievementModalProps> = ({ isOpen, onClose, studentName, transcriptId, rankText }) => {
   const [copied, setCopied] = useState(false);
-  const shareUrl = `https://portal.edumanage.edu/verify/${transcriptId}`;
+  const shareUrl = window?.location?.origin 
+    ? `${window.location.origin}/verify/${transcriptId}` 
+    : `https://edugrowth-tawny.vercel.app/verify/${transcriptId}`;
 
   if (!isOpen) return null;
 
@@ -76,9 +78,9 @@ export const ShareAchievementModal: React.FC<ShareAchievementModalProps> = ({ is
         <div className="p-4 bg-surface-container-low border-t border-outline-variant flex justify-between items-center">
           <button
             onClick={() => {
-              const text = `Check out ${studentName}'s official academic achievement on EduManage! Rank: ${rankText} • ${shareUrl}`;
+              const text = `Check out ${studentName}'s official academic achievement on EduGrowth! Rank: ${rankText} • ${shareUrl}`;
               if (navigator.share) {
-                navigator.share({ title: 'EduManage Academic Achievement', text, url: shareUrl });
+                navigator.share({ title: 'EduGrowth Academic Achievement', text, url: shareUrl });
               } else {
                 handleCopy();
               }

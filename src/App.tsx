@@ -18,7 +18,7 @@ import { TranscriptVerificationPortal } from './components/TranscriptVerificatio
 // Firebase Integrations
 import { doc, setDoc, onSnapshot, collection, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType, testConnection, getUserProfile, createUserProfileIfNotExist } from './firebase';
+import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType, testConnection, getUserProfile, createUserProfileIfNotExist, syncStudentPerformance } from './firebase';
 import { AuthScreen } from './components/AuthScreen';
 
 const DEFAULT_SCHOOL_PROFILE: SchoolProfile = {
@@ -395,6 +395,31 @@ export default function App() {
       };
       try {
         await setDoc(doc(db, 'students', newStudent.id), newStudent);
+
+        // Also generate transcript document so student has an immediate digital report card
+        const transcriptDocId = name.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+        const newTranscript = {
+          id: transcriptDocId,
+          studentId: `ST-${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}`,
+          fullName: name,
+          session: selectedSession,
+          gradeLevel: 'Grade 10 - Alpha',
+          issueDate: new Date().toISOString().split('T')[0],
+          verificationCode: `EDUGROWTH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          subjects: [
+            { subject: 'Mathematics', caScore: 28, examScore: 65, totalScore: 93, grade: 'A+', remarks: 'Excellent performance', badgeClass: 'bg-tertiary-fixed text-on-tertiary-fixed' },
+            { subject: 'Physics', caScore: 25, examScore: 60, totalScore: 85, grade: 'A', remarks: 'Strong analytical skills', badgeClass: 'bg-tertiary-fixed-dim text-on-tertiary-fixed-variant' },
+            { subject: 'English Language', caScore: 26, examScore: 62, totalScore: 88, grade: 'A', remarks: 'Good written expression', badgeClass: 'bg-secondary text-white' }
+          ],
+          finalGpa: parseFloat(detail) || 3.80,
+          status: 'GOOD STANDING',
+          statusSub: 'Maintained required GPA thresholds.',
+          promotionBannerText: 'PROMOTED TO NEXT ACADEMIC TIER',
+          classTeacherRemark: `${name} has shown commendable dedication to studies.`,
+          principalRemark: 'Promoted with academic honors.'
+        };
+        await setDoc(doc(db, 'transcripts', transcriptDocId), newTranscript);
+        await syncStudentPerformance(transcriptDocId);
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `students/${newStudent.id}`);
       }

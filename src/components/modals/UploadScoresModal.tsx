@@ -87,7 +87,7 @@ export const UploadScoresModal: React.FC<UploadScoresModalProps> = ({ isOpen, on
               <p className="text-xs font-bold text-on-surface">
                 {fileUploaded ? 'scores_batch_oct24.csv Ready to Import' : 'Click to select or drag & drop grade sheet'}
               </p>
-              <p className="text-[11px] text-on-surface-variant mt-0.5">Supports .CSV, .XLSX, and EduManage JSON formats</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">Supports .CSV, .XLSX, and EduGrowth JSON formats</p>
             </div>
           </div>
 
