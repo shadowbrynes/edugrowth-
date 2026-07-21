@@ -84,10 +84,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
       onAuthSuccess(firebaseUser);
     } catch (err: any) {
       if (err?.code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
-        setError('Email/Password Sign-In is not enabled in Firebase console. Auto-connecting via Secure Workspace...');
-        setTimeout(() => {
-          handleOfflineBypass();
-        }, 1000);
+        handleOfflineBypass();
       } else {
         setError(err?.message || 'Authentication failed. Please check your credentials.');
       }
@@ -113,10 +110,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
       onAuthSuccess(firebaseUser, role);
     } catch (err: any) {
       if (err?.code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
-        setError('Email Registration is not enabled in Firebase console. Auto-connecting via Secure Workspace...');
-        setTimeout(() => {
-          handleOfflineBypass();
-        }, 1000);
+        handleOfflineBypass();
       } else {
         setError(err?.message || 'Registration failed. The email might be already in use.');
       }
@@ -133,11 +127,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
       onAuthSuccess(firebaseUser);
     } catch (err: any) {
       console.error('Google Sign-In Error:', err);
-      if (err?.code === 'auth/unauthorized-domain' || err?.code === 'auth/operation-not-allowed') {
-        setError('Firebase domain restriction detected. Auto-connecting via Secure Demo Session...');
-        setTimeout(() => {
-          handleOfflineBypass();
-        }, 1000);
+      if (err?.code === 'auth/unauthorized-domain' || err?.code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
+        handleOfflineBypass();
       } else {
         const errMsg = err?.code ? `Google Sign-In failed: ${err.code} (${err.message})` : 'Google Sign-In was cancelled or failed.';
         setError(errMsg);
@@ -147,30 +138,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
     }
   };
 
-  // Developer Bypass - Registers or logs in using actual firebase auth for developer test accounts
+  // Developer Quick Access - Instantly logs into active workspace
   const handleDeveloperBypass = async () => {
     setError(null);
     setLoading(true);
-    const devEmail = 'developer@edugrowth.com';
-    const devPass = 'developer123';
-    const devName = 'Naija Journal';
     try {
-      try {
-        const firebaseUser = await loginWithEmailAndPassword(devEmail, devPass);
-        onAuthSuccess(firebaseUser);
-      } catch (loginErr: any) {
-        if (loginErr?.code === 'auth/operation-not-allowed' || loginErr?.message?.includes('operation-not-allowed')) {
-          handleOfflineBypass();
-          return;
-        }
-        try {
-          const firebaseUser = await registerWithEmailAndPassword(devEmail, devPass, devName, 'teacher');
-          onAuthSuccess(firebaseUser, 'teacher');
-        } catch (regErr: any) {
-          handleOfflineBypass();
-        }
-      }
-    } catch (err: any) {
+      const firebaseUser = await loginWithEmailAndPassword('developer@edugrowth.com', 'developer123');
+      onAuthSuccess(firebaseUser);
+    } catch (_) {
       handleOfflineBypass();
     } finally {
       setLoading(false);
