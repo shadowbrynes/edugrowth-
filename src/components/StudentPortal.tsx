@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TranscriptData, SchoolProfile, ViewMode } from '../types';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import { TRANSCRIPTS } from '../data/mockData';
 import {
   ResponsiveContainer,
   LineChart,
@@ -63,11 +64,14 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
       if (docSnap.exists()) {
         setTranscript(docSnap.data() as TranscriptData);
       } else {
-        setTranscript(null);
+        const fallback = TRANSCRIPTS[studentId] || TRANSCRIPTS['alexander'] || Object.values(TRANSCRIPTS)[0];
+        setTranscript(fallback);
       }
       setLoading(false);
     }, (err) => {
-      console.error('Error fetching student transcript:', err);
+      console.error('Error fetching student transcript, falling back to mock:', err);
+      const fallback = TRANSCRIPTS[studentId] || TRANSCRIPTS['alexander'] || Object.values(TRANSCRIPTS)[0];
+      setTranscript(fallback);
       setLoading(false);
     });
     return () => unsubscribe();
