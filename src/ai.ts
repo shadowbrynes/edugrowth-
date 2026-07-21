@@ -204,3 +204,52 @@ Academic Advising Department`;
 
   return callGemini(prompt, fallback);
 }
+
+/**
+ * AI Academic Assistant: Generate personalized student learning insights & study recommendations.
+ */
+export async function generatePersonalizedLearningInsights(
+  studentName: string,
+  gpa: number,
+  subjects: { subject: string; grade: string; totalScore: number }[]
+): Promise<string> {
+  const subjectListText = subjects.map(s => `${s.subject}: ${s.grade} (${s.totalScore}%)`).join(', ');
+  const prompt = `You are an AI Academic Learning Coach analyzing a student's term performance.
+Student: ${studentName}
+Cumulative GPA: ${gpa}
+Subject Breakdown: ${subjectListText}
+
+Write 3 bullet points:
+1. Core Academic Strength (praise the top performing subject)
+2. Primary Growth Opportunity (identify subject needing focus)
+3. Actionable Study Strategy (specific study habit recommendation)
+
+Keep output friendly, highly encouraging, and under 120 words. Do not use generic placeholders.`;
+
+  const fallback = `• **Core Strength**: ${studentName} exhibits exceptional analytical mastery in Mathematics and Science, maintaining top-tier grades.\n• **Growth Focus**: Focus additional study time on writing and essay revisions to balance overall term performance.\n• **Recommended Strategy**: Implement 25-minute pomodoro study blocks for literature reviews prior to weekly quizzes.`;
+
+  return callGemini(prompt, fallback);
+}
+
+/**
+ * AI Financial Assistant: Summarize institutional fee collections & revenue metrics.
+ */
+export async function generateFinancialReportSummary(
+  totalBilled: number,
+  totalCollected: number,
+  overdueAmount: number
+): Promise<string> {
+  const collectionRate = Math.round((totalCollected / (totalBilled || 1)) * 100);
+  const prompt = `You are a Chief Financial Officer summarizing school fee collections.
+Total Fees Billed: ₦${totalBilled.toLocaleString()}
+Total Fees Collected: ₦${totalCollected.toLocaleString()}
+Overdue Balance: ₦${overdueAmount.toLocaleString()}
+Current Collection Rate: ${collectionRate}%
+
+Write a brief 2-sentence executive financial summary and cashflow recommendation.`;
+
+  const fallback = `School fee collection rate currently stands at **${collectionRate}%** (₦${totalCollected.toLocaleString()} collected out of ₦${totalBilled.toLocaleString()} billed). We recommend sending automated WhatsApp payment reminders for overdue balances totaling ₦${overdueAmount.toLocaleString()}.`;
+
+  return callGemini(prompt, fallback);
+}
+

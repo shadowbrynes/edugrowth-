@@ -191,3 +191,64 @@ export interface SchoolProfile {
   currency: string;
   smsEmailSettings: string;
 }
+
+// 1. Fee Payment & Financial Management
+export interface FeeInvoice {
+  id: string;
+  studentId: string;
+  studentName: string;
+  term: string;
+  title: string;
+  amount: number;
+  paidAmount: number;
+  dueDate: string;
+  status: 'PAID' | 'PARTIAL' | 'OVERDUE' | 'UNPAID';
+  paymentReference?: string;
+  paymentDate?: string;
+}
+
+// 2. Predictive Analytics & Risk Model
+export interface PredictiveStudentAnalytics {
+  studentId: string;
+  name: string;
+  predictedGpa: number;
+  riskLevel: 'LOW_RISK' | 'MODERATE_RISK' | 'HIGH_RISK_INTERVENTION';
+  earlyWarningTriggers: string[];
+  recommendedStudyHours: number;
+}
+
+// 3. Admission Application
+export interface AdmissionApplication {
+  id: string;
+  applicantName: string;
+  guardianName: string;
+  contactEmail: string;
+  contactPhone: string;
+  appliedGrade: string;
+  submissionDate: string;
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED';
+}
+
+// 4. Staff Record & Faculty Payroll
+export interface StaffRecord {
+  id: string;
+  name: string;
+  roleTitle: string;
+  department: string;
+  email: string;
+  phone: string;
+  salary: number;
+  status: 'ACTIVE' | 'ON_LEAVE';
+}
+
+// 5. Timetable Entry & Exam Schedule
+export interface TimetableEntry {
+  id: string;
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+  time: string;
+  subject: string;
+  teacher: string;
+  room: string;
+  type: 'Lecture' | 'Lab' | 'Exam';
+}
+

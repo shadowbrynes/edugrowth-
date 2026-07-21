@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChildRecord, ViewMode, SchoolProfile } from '../types';
-import { ASSETS } from '../data/mockData';
+import { ASSETS, INITIAL_FEE_INVOICES } from '../data/mockData';
 import { ContactTeacherModal } from './modals/ContactTeacherModal';
 
 interface ParentPortalProps {
@@ -23,6 +23,10 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'billing'>('dashboard');
+  const [feeInvoices, setFeeInvoices] = useState(INITIAL_FEE_INVOICES);
+  const [payingInvoice, setPayingInvoice] = useState<any | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [viewReceipt, setViewReceipt] = useState<any | null>(null);
 
   // Local Billing & Transactions State
   const [billingSummary, setBillingSummary] = useState<Record<string, { total: number; paid: number; status: 'Paid' | 'Partial' | 'Overdue' }>>({
@@ -867,17 +871,22 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                             )}
                           </div>
 
-                          <div className="text-right">
-                            {inv.status === 'Paid' ? (
-                              <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg shadow-sm">
-                                Fully Paid
-                              </span>
+                          <div className="text-right flex justify-end gap-2">
+                            {inv.status === 'Paid' || (feeInvoices.find(f => f.id === inv.id || f.studentId === (activeChild.name.includes('Leo') ? 'leo' : 'alexander'))?.status === 'PAID') ? (
+                              <button
+                                onClick={() => setViewReceipt({ ...inv, title: inv.title, amount: inv.amount, paidAmount: inv.amount, paymentReference: 'PAY-NG-889102', paymentDate: new Date().toLocaleDateString() })}
+                                className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg shadow-sm flex items-center gap-1 hover:bg-emerald-200 border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-sm">receipt_long</span>
+                                <span>Paid (View Receipt)</span>
+                              </button>
                             ) : (
                               <button
-                                onClick={() => handleOpenPayModal(inv)}
-                                className="bg-secondary text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition-opacity border-none cursor-pointer"
+                                onClick={() => setPayingInvoice({ id: inv.id, title: inv.title, amount: inv.amount * 100 })}
+                                className="px-4 py-2 bg-secondary text-white text-xs font-bold rounded-lg shadow-sm hover:bg-secondary/90 flex items-center justify-center gap-1 cursor-pointer border-none"
                               >
-                                Pay Now
+                                <span className="material-symbols-outlined text-sm">payments</span>
+                                <span>Pay Tuition via Paystack</span>
                               </button>
                             )}
                           </div>
@@ -985,6 +994,160 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                 >
                   <span className="material-symbols-outlined text-sm">local_activity</span>
                   Reserve Tickets Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Payment Checkout Modal (Paystack / Flutterwave Simulation) */}
+      {payingInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl border border-outline-variant shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 bg-secondary text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl font-bold">payments</span>
+                <div>
+                  <h3 className="text-lg font-bold">Secure School Fee Checkout</h3>
+                  <p className="text-xs text-secondary-fixed">Paystack & Flutterwave Payment Gateway</p>
+                </div>
+              </div>
+              <button onClick={() => setPayingInvoice(null)} className="text-white/80 hover:text-white p-1 rounded-full border-none bg-transparent">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant/60 space-y-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant block">Fee Details</span>
+                <h4 className="text-base font-bold text-on-surface">{payingInvoice.title}</h4>
+                <div className="flex justify-between items-center pt-2 border-t border-outline-variant/40">
+                  <span className="text-xs text-on-surface-variant">Amount Payable:</span>
+                  <span className="text-xl font-bold font-mono text-secondary">₦{payingInvoice.amount.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Select Payment Method</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 border-2 border-secondary bg-secondary/5 rounded-xl text-center cursor-pointer">
+                    <span className="material-symbols-outlined text-secondary block mb-1">credit_card</span>
+                    <span className="text-[11px] font-bold text-on-surface">Card</span>
+                  </div>
+                  <div className="p-3 border border-outline-variant bg-surface rounded-xl text-center cursor-pointer opacity-70 hover:opacity-100">
+                    <span className="material-symbols-outlined text-on-surface-variant block mb-1">account_balance</span>
+                    <span className="text-[11px] font-bold text-on-surface">Transfer</span>
+                  </div>
+                  <div className="p-3 border border-outline-variant bg-surface rounded-xl text-center cursor-pointer opacity-70 hover:opacity-100">
+                    <span className="material-symbols-outlined text-on-surface-variant block mb-1">phone_iphone</span>
+                    <span className="text-[11px] font-bold text-on-surface">USSD</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-600">lock</span>
+                <span className="text-xs text-emerald-800 font-medium">256-bit SSL Bank Grade Encrypted Payment</span>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPayingInvoice(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border border-outline-variant hover:bg-surface"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isProcessingPayment}
+                  onClick={() => {
+                    setIsProcessingPayment(true);
+                    setTimeout(() => {
+                      setIsProcessingPayment(false);
+                      const paidRef = `PAY-NG-${Math.floor(100000 + Math.random() * 900000)}`;
+                      const updated = feeInvoices.map(inv => inv.id === payingInvoice.id ? { ...inv, status: 'PAID' as const, paidAmount: inv.amount, paymentReference: paidRef, paymentDate: new Date().toISOString().split('T')[0] } : inv);
+                      setFeeInvoices(updated);
+                      setViewReceipt({
+                        ...payingInvoice,
+                        status: 'PAID',
+                        paidAmount: payingInvoice.amount,
+                        paymentReference: paidRef,
+                        paymentDate: new Date().toLocaleDateString()
+                      });
+                      setPayingInvoice(null);
+                    }, 1200);
+                  }}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-secondary text-white shadow-md hover:bg-secondary/90 flex items-center justify-center gap-2 border-none cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">{isProcessingPayment ? 'sync' : 'lock'}</span>
+                  <span>{isProcessingPayment ? 'Processing...' : `Pay ₦${payingInvoice.amount.toLocaleString()} Now`}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Digital Fee Receipt Viewer */}
+      {viewReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl border border-outline-variant shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 bg-tertiary-container text-tertiary-fixed flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl font-bold">verified</span>
+                <div>
+                  <h3 className="text-lg font-bold">Official Digital Receipt</h3>
+                  <p className="text-xs text-white/80">Ref: {viewReceipt.paymentReference || 'PAY-OFFICIAL'}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewReceipt(null)} className="text-white/80 hover:text-white p-1 rounded-full border-none bg-transparent">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 font-mono text-xs">
+              <div className="text-center pb-4 border-b border-dashed border-outline-variant">
+                <h4 className="text-base font-bold font-sans text-on-surface">EDUGROWTH ACADEMY</h4>
+                <p className="text-[11px] text-on-surface-variant font-sans">Official Institutional Finance Receipt</p>
+                <p className="text-[10px] text-on-surface-variant mt-1">Date: {viewReceipt.paymentDate || new Date().toLocaleDateString()}</p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Student Name:</span>
+                  <span className="font-bold text-on-surface">{viewReceipt.studentName || activeChild.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Payment Title:</span>
+                  <span className="font-bold text-on-surface">{viewReceipt.title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Term:</span>
+                  <span className="font-bold text-on-surface">{viewReceipt.term}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-outline-variant">
+                  <span className="font-bold text-on-surface">Total Paid:</span>
+                  <span className="font-bold text-base text-emerald-700">₦{(viewReceipt.paidAmount || viewReceipt.amount).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Payment Method:</span>
+                  <span className="font-bold text-emerald-700">SUCCESSFUL (PAYSTACK)</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-surface-container-low rounded-xl text-center text-[10px] text-on-surface-variant font-sans border border-outline-variant/60">
+                This digital receipt is cryptographically signed by EduGrowth Bursary Dept.
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3 font-sans">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="w-full py-2.5 bg-secondary text-white rounded-xl font-bold text-xs shadow-md hover:bg-secondary/90 flex items-center justify-center gap-2 border-none cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">print</span>
+                  <span>Print / Download PDF Receipt</span>
                 </button>
               </div>
             </div>

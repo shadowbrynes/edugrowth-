@@ -397,3 +397,150 @@ export const INITIAL_TRANSCRIPT_ACCESSES = [
     timestamp: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString() // 3 days ago
   }
 ];
+
+export const INITIAL_FEE_INVOICES = [
+  {
+    id: 'INV-2023-089',
+    studentId: 'alexander',
+    studentName: 'Alexander J. Sterling',
+    term: '1st Term 2023/2024',
+    title: 'Tuition, Lab Facilities & Technology Levy',
+    amount: 450000,
+    paidAmount: 450000,
+    dueDate: '2023-11-15',
+    status: 'PAID' as const,
+    paymentReference: 'PAY-ST-998124',
+    paymentDate: '2023-10-10'
+  },
+  {
+    id: 'INV-2023-090',
+    studentId: 'leo',
+    studentName: 'Leo Vance',
+    term: '1st Term 2023/2024',
+    title: 'Tuition & Athletics Membership',
+    amount: 380000,
+    paidAmount: 200000,
+    dueDate: '2023-11-01',
+    status: 'PARTIAL' as const,
+    paymentReference: 'PAY-ST-441209',
+    paymentDate: '2023-10-14'
+  },
+  {
+    id: 'INV-2023-091',
+    studentId: 'maya',
+    studentName: 'Maya Vance',
+    term: '1st Term 2023/2024',
+    title: 'STEM Robotics & Honors Tuition',
+    amount: 420000,
+    paidAmount: 420000,
+    dueDate: '2023-11-10',
+    status: 'PAID' as const,
+    paymentReference: 'PAY-ST-771822',
+    paymentDate: '2023-10-05'
+  },
+  {
+    id: 'INV-2023-092',
+    studentId: 'alice',
+    studentName: 'Alice Cooper',
+    term: '1st Term 2023/2024',
+    title: 'Tuition & Boarding Facilities',
+    amount: 510000,
+    paidAmount: 0,
+    dueDate: '2023-10-20',
+    status: 'OVERDUE' as const
+  }
+];
+
+export const INITIAL_PREDICTIVE_ANALYTICS = [
+  {
+    studentId: 'alexander',
+    name: 'Alexander J. Sterling',
+    predictedGpa: 3.92,
+    riskLevel: 'LOW_RISK' as const,
+    earlyWarningTriggers: ['Consistent High Assessment Scores', '98% Attendance Rate'],
+    recommendedStudyHours: 12
+  },
+  {
+    studentId: 'leo',
+    name: 'Leo Vance',
+    predictedGpa: 3.88,
+    riskLevel: 'LOW_RISK' as const,
+    earlyWarningTriggers: ['Slight Drop in Physics Quiz 4', 'Active Sports Schedule'],
+    recommendedStudyHours: 14
+  },
+  {
+    studentId: 'alice',
+    name: 'Alice Cooper',
+    predictedGpa: 2.75,
+    riskLevel: 'HIGH_RISK_INTERVENTION' as const,
+    earlyWarningTriggers: ['Calculus Midterm Below Target', '82% Attendance Rate', 'Overdue Assessment'],
+    recommendedStudyHours: 20
+  }
+];
+
+export const INITIAL_ADMISSION_APPLICATIONS = [
+  {
+    id: 'ADM-2023-001',
+    applicantName: 'Daniel Okafor',
+    guardianName: 'Dr. Chidi Okafor',
+    contactEmail: 'chidi.okafor@yahoo.com',
+    contactPhone: '+2348023456789',
+    appliedGrade: 'Grade 9 - Science Track',
+    submissionDate: '2023-10-22',
+    status: 'SUBMITTED' as const
+  },
+  {
+    id: 'ADM-2023-002',
+    applicantName: 'Sophia Adeleke',
+    guardianName: 'Engr. Folake Adeleke',
+    contactEmail: 'f.adeleke@gmail.com',
+    contactPhone: '+2348034567890',
+    appliedGrade: 'Grade 10 - STEM Honors',
+    submissionDate: '2023-10-20',
+    status: 'UNDER_REVIEW' as const
+  },
+  {
+    id: 'ADM-2023-003',
+    applicantName: 'Tariq Al-Mansoor',
+    guardianName: 'Mr. Tariq Al-Mansoor Sr.',
+    contactEmail: 't.almansoor@outlook.com',
+    contactPhone: '+2348045678901',
+    appliedGrade: 'Grade 11 - Commercial Alpha',
+    submissionDate: '2023-10-18',
+    status: 'ACCEPTED' as const
+  }
+];
+
+export const INITIAL_STAFF_RECORDS = [
+  {
+    id: 'STF-01',
+    name: 'Prof. Marcus Brody',
+    roleTitle: 'Dean of Faculty & Senior Physics Lecturer',
+    department: 'Sciences & Technology',
+    email: 'marcus.brody@edugrowth.edu',
+    phone: '+2348011223344',
+    salary: 850000,
+    status: 'ACTIVE' as const
+  },
+  {
+    id: 'STF-02',
+    name: 'Ms. Sarah Jenkins',
+    roleTitle: 'Head of Mathematics Department',
+    department: 'Mathematics',
+    email: 's.jenkins@edugrowth.edu',
+    phone: '+2348012345678',
+    salary: 780000,
+    status: 'ACTIVE' as const
+  },
+  {
+    id: 'STF-03',
+    name: 'Dr. Elena Rostova',
+    roleTitle: 'STEM & Robotics Coordinator',
+    department: 'Sciences & Engineering',
+    email: 'e.rostova@edugrowth.edu',
+    phone: '+2348123456789',
+    salary: 820000,
+    status: 'ACTIVE' as const
+  }
+];
+

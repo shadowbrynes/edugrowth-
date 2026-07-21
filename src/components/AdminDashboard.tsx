@@ -57,7 +57,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'staff' | 'audit' | 'records' | 'logs' | 'settings' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'staff' | 'audit' | 'records' | 'logs' | 'settings' | 'profile' | 'finance' | 'admissions' | 'analytics' | 'timetable'>('dashboard');
   const [auditSearch, setAuditSearch] = useState('');
   const [auditRoleFilter, setAuditRoleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -880,6 +880,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <span className="material-symbols-outlined text-lg">description</span>
             <span className="text-xs uppercase tracking-wider font-semibold">Academic Records</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('finance')}
+            className={`font-bold rounded-full px-4 py-2 flex items-center gap-4 transition-all w-full text-left ${activeTab === 'finance' ? 'bg-secondary-container text-on-secondary-container sidebar-active shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+          >
+            <span className="material-symbols-outlined text-lg">payments</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Fee Bursary</span>
+            <span className="ml-auto text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono font-bold">PAYSTACK</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`font-bold rounded-full px-4 py-2 flex items-center gap-4 transition-all w-full text-left ${activeTab === 'analytics' ? 'bg-secondary-container text-on-secondary-container sidebar-active shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+          >
+            <span className="material-symbols-outlined text-lg">auto_awesome</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">AI Risk Analytics</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('admissions')}
+            className={`font-bold rounded-full px-4 py-2 flex items-center gap-4 transition-all w-full text-left ${activeTab === 'admissions' ? 'bg-secondary-container text-on-secondary-container sidebar-active shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+          >
+            <span className="material-symbols-outlined text-lg">person_add</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Admissions</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('timetable')}
+            className={`font-bold rounded-full px-4 py-2 flex items-center gap-4 transition-all w-full text-left ${activeTab === 'timetable' ? 'bg-secondary-container text-on-secondary-container sidebar-active shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+          >
+            <span className="material-symbols-outlined text-lg">calendar_month</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Timetables</span>
           </button>
 
           <button
@@ -2881,6 +2914,257 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fee Bursary & Financial Management Tab */}
+          {activeTab === 'finance' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-on-surface">Institutional Bursary & Financial Management</h3>
+                  <p className="text-xs text-on-surface-variant">Fee tracking, Paystack payment receipts, and revenue summaries</p>
+                </div>
+                <button
+                  onClick={() => alert("Generating Bursary Financial Excel Export...")}
+                  className="px-4 py-2 bg-secondary text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 border-none cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  Export Financial Ledger
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-surface p-5 rounded-xl border border-outline-variant shadow-sm">
+                  <span className="text-xs text-on-surface-variant font-bold uppercase tracking-wider block">Total Fees Billed</span>
+                  <span className="text-2xl font-bold font-mono text-on-surface mt-2 block">₦1,760,000</span>
+                  <span className="text-[10px] text-on-surface-variant">1st Term 2023/2024</span>
+                </div>
+                <div className="bg-surface p-5 rounded-xl border border-outline-variant shadow-sm">
+                  <span className="text-xs text-on-surface-variant font-bold uppercase tracking-wider block">Fees Collected</span>
+                  <span className="text-2xl font-bold font-mono text-emerald-600 mt-2 block">₦1,070,000</span>
+                  <span className="text-[10px] text-emerald-600 font-bold">61% Collection Rate</span>
+                </div>
+                <div className="bg-surface p-5 rounded-xl border border-outline-variant shadow-sm">
+                  <span className="text-xs text-on-surface-variant font-bold uppercase tracking-wider block">Overdue Balances</span>
+                  <span className="text-2xl font-bold font-mono text-rose-500 mt-2 block">₦510,000</span>
+                  <span className="text-[10px] text-rose-500 font-bold">Requires Action</span>
+                </div>
+                <div className="bg-surface p-5 rounded-xl border border-outline-variant shadow-sm">
+                  <span className="text-xs text-on-surface-variant font-bold uppercase tracking-wider block">Payment Gateway</span>
+                  <span className="text-2xl font-bold font-mono text-secondary mt-2 block">ACTIVE</span>
+                  <span className="text-[10px] text-secondary font-bold">Paystack / Flutterwave</span>
+                </div>
+              </div>
+
+              <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+                <h4 className="text-base font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary">receipt</span>
+                  Active Fee Invoices
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-surface-container-low text-on-surface-variant font-bold uppercase tracking-wider border-b border-outline-variant">
+                        <th className="p-3">Invoice ID</th>
+                        <th className="p-3">Student Name</th>
+                        <th className="p-3">Title</th>
+                        <th className="p-3">Amount</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/60">
+                      <tr>
+                        <td className="p-3 font-mono">INV-2023-089</td>
+                        <td className="p-3 font-bold">Alexander J. Sterling</td>
+                        <td className="p-3">Tuition, Lab Facilities & Tech Levy</td>
+                        <td className="p-3 font-mono font-bold">₦450,000</td>
+                        <td className="p-3"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600">PAID</span></td>
+                        <td className="p-3 text-right"><button onClick={() => alert("Receipt PAY-ST-998124 printed")} className="text-secondary font-bold text-xs hover:underline border-none bg-transparent cursor-pointer">Print Receipt</button></td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-mono">INV-2023-090</td>
+                        <td className="p-3 font-bold">Leo Vance</td>
+                        <td className="p-3">Tuition & Athletics Membership</td>
+                        <td className="p-3 font-mono font-bold">₦380,000</td>
+                        <td className="p-3"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600">PARTIAL (₦200k)</span></td>
+                        <td className="p-3 text-right"><button onClick={() => alert("WhatsApp Payment Reminder sent to parent of Leo Vance")} className="text-emerald-600 font-bold text-xs hover:underline border-none bg-transparent cursor-pointer">WhatsApp Reminder</button></td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-mono">INV-2023-092</td>
+                        <td className="p-3 font-bold">Alice Cooper</td>
+                        <td className="p-3">Tuition & Boarding Facilities</td>
+                        <td className="p-3 font-mono font-bold">₦510,000</td>
+                        <td className="p-3"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500">OVERDUE</span></td>
+                        <td className="p-3 text-right"><button onClick={() => alert("WhatsApp Payment Notice sent to guardian of Alice Cooper")} className="text-rose-500 font-bold text-xs hover:underline border-none bg-transparent cursor-pointer">Send Notice</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Predictive Analytics & Risk Radar Tab */}
+          {activeTab === 'analytics' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div>
+                <h3 className="text-xl font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-tertiary-fixed">auto_awesome</span>
+                  AI Predictive Academic Analytics & Early Warning Radar
+                </h3>
+                <p className="text-xs text-on-surface-variant">Machine learning forecasting, early interventions, and academic risk modeling</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-rose-500 uppercase tracking-wider">High Risk Intervention</span>
+                    <span className="material-symbols-outlined text-rose-500">warning</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-on-surface">Alice Cooper (Grade 11)</h4>
+                  <div className="text-xs text-on-surface-variant space-y-1">
+                    <p>• Predicted End-of-Term GPA: <strong className="text-rose-500 font-mono">2.75 / 4.0</strong></p>
+                    <p>• Early Warning Triggers: Calculus midterm drop, 82% attendance</p>
+                    <p>• Recommended Support: 20 hrs/week structured peer tutoring</p>
+                  </div>
+                  <button onClick={() => alert("Intervention meeting scheduled with Alice's advisor")} className="w-full mt-2 py-2 bg-rose-500 text-white font-bold text-xs rounded-lg border-none cursor-pointer">Schedule Intervention</button>
+                </div>
+
+                <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Top Academic Velocity</span>
+                    <span className="material-symbols-outlined text-emerald-500">trending_up</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-on-surface">Alexander J. Sterling</h4>
+                  <div className="text-xs text-on-surface-variant space-y-1">
+                    <p>• Predicted End-of-Term GPA: <strong className="text-emerald-500 font-mono">3.92 / 4.0</strong></p>
+                    <p>• Honor Standing: Valedictorian Candidate</p>
+                    <p>• 98% Attendance Rate across Science & Math</p>
+                  </div>
+                  <button onClick={() => alert("Nominated for National STEM Honor Society")} className="w-full mt-2 py-2 bg-secondary text-white font-bold text-xs rounded-lg border-none cursor-pointer">Nominate Honor Society</button>
+                </div>
+
+                <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-secondary uppercase tracking-wider">On-Track Steady</span>
+                    <span className="material-symbols-outlined text-secondary">check_circle</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-on-surface">Leo Vance (Grade 10)</h4>
+                  <div className="text-xs text-on-surface-variant space-y-1">
+                    <p>• Predicted End-of-Term GPA: <strong className="text-secondary font-mono">3.88 / 4.0</strong></p>
+                    <p>• Steady progress in Mathematics and Physics</p>
+                    <p>• Sports Leadership distinction</p>
+                  </div>
+                  <button onClick={() => alert("Commendation logged for Leo Vance")} className="w-full mt-2 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-lg border border-outline-variant cursor-pointer">Log Commendation</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Admissions Enrolment Tab */}
+          {activeTab === 'admissions' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-on-surface">Admissions & Student Application Hub</h3>
+                  <p className="text-xs text-on-surface-variant">Review new applicants, parent submissions, and enrolment status</p>
+                </div>
+                <button onClick={() => alert("Admissions portal configuration active.")} className="px-4 py-2 bg-secondary text-white text-xs font-bold rounded-xl border-none cursor-pointer">New Enrolment Form</button>
+              </div>
+
+              <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-surface-container-low text-on-surface-variant font-bold uppercase border-b border-outline-variant">
+                      <th className="p-3">Application ID</th>
+                      <th className="p-3">Applicant Name</th>
+                      <th className="p-3">Guardian Name</th>
+                      <th className="p-3">Applied Grade</th>
+                      <th className="p-3">Submission Date</th>
+                      <th className="p-3 text-right">Status Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant">
+                    <tr>
+                      <td className="p-3 font-mono">ADM-2023-001</td>
+                      <td className="p-3 font-bold">Daniel Okafor</td>
+                      <td className="p-3">Dr. Chidi Okafor</td>
+                      <td className="p-3">Grade 9 - Science Track</td>
+                      <td className="p-3 font-mono">2023-10-22</td>
+                      <td className="p-3 text-right"><button onClick={() => alert("Daniel Okafor's application approved!")} className="px-3 py-1 bg-emerald-600 text-white font-bold text-[10px] rounded-md border-none cursor-pointer">Approve Application</button></td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono">ADM-2023-002</td>
+                      <td className="p-3 font-bold">Sophia Adeleke</td>
+                      <td className="p-3">Engr. Folake Adeleke</td>
+                      <td className="p-3">Grade 10 - STEM Honors</td>
+                      <td className="p-3 font-mono">2023-10-20</td>
+                      <td className="p-3 text-right"><button onClick={() => alert("Interview scheduled for Sophia Adeleke")} className="px-3 py-1 bg-secondary text-white font-bold text-[10px] rounded-md border-none cursor-pointer">Schedule Interview</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Timetables & Examination Schedule Tab */}
+          {activeTab === 'timetable' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div>
+                <h3 className="text-xl font-bold text-on-surface">Institutional Timetables & Examination Schedule</h3>
+                <p className="text-xs text-on-surface-variant">Master weekly schedule, lecture rooms, and exam timetables</p>
+              </div>
+
+              <div className="bg-surface p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-outline-variant">
+                  <h4 className="text-base font-bold text-on-surface">Grade 11 Master Lecture Timetable</h4>
+                  <span className="text-xs font-mono bg-surface-container-high px-3 py-1 rounded-lg">Fall Session 2023/2024</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-2">
+                    <span className="font-bold text-secondary uppercase block text-center border-b border-outline-variant pb-1">Monday</span>
+                    <div className="p-2 bg-surface rounded-lg">
+                      <span className="font-bold text-on-surface block">08:00 - 09:30 AM</span>
+                      <span className="text-on-surface-variant font-medium">Mathematics 301</span>
+                      <span className="text-[10px] text-secondary block mt-1">Room 204 • Ms. Jenkins</span>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-2">
+                    <span className="font-bold text-secondary uppercase block text-center border-b border-outline-variant pb-1">Tuesday</span>
+                    <div className="p-2 bg-surface rounded-lg">
+                      <span className="font-bold text-on-surface block">10:00 - 11:30 AM</span>
+                      <span className="text-on-surface-variant font-medium">Physics & Mechanics Lab</span>
+                      <span className="text-[10px] text-secondary block mt-1">Lab B • Prof. Brody</span>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-2">
+                    <span className="font-bold text-secondary uppercase block text-center border-b border-outline-variant pb-1">Wednesday</span>
+                    <div className="p-2 bg-surface rounded-lg">
+                      <span className="font-bold text-on-surface block">01:00 - 02:30 PM</span>
+                      <span className="text-on-surface-variant font-medium">Robotics & Coding</span>
+                      <span className="text-[10px] text-secondary block mt-1">Tech Hub • Dr. Rostova</span>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-2">
+                    <span className="font-bold text-secondary uppercase block text-center border-b border-outline-variant pb-1">Thursday</span>
+                    <div className="p-2 bg-surface rounded-lg">
+                      <span className="font-bold text-on-surface block">09:00 - 10:30 AM</span>
+                      <span className="text-on-surface-variant font-medium">World Literature</span>
+                      <span className="text-[10px] text-secondary block mt-1">Hall A • Prof. Pendelton</span>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-2">
+                    <span className="font-bold text-secondary uppercase block text-center border-b border-outline-variant pb-1">Friday</span>
+                    <div className="p-2 bg-surface rounded-lg">
+                      <span className="font-bold text-on-surface block">11:00 - 12:30 PM</span>
+                      <span className="text-on-surface-variant font-medium">Chemistry & Bio Lab</span>
+                      <span className="text-[10px] text-secondary block mt-1">Science Wing</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

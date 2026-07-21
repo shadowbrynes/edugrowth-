@@ -183,8 +183,17 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
             )}
             
             <button
+              onClick={() => alert("📱 EduGrowth Mobile App APK & PWA installation link sent! Install directly on Android or iOS via Chrome 'Add to Home Screen'.")}
+              className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer rounded-lg"
+              title="Download Android & iOS App"
+            >
+              <span className="material-symbols-outlined text-sm">phone_iphone</span>
+              <span className="hidden sm:inline">Mobile App</span>
+            </button>
+
+            <button
               onClick={onSignOut}
-              className="px-3 py-1.5 border border-white/20 text-white/80 hover:text-[#ff3e00] hover:border-[#ff3e00]/50 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer bg-black/20"
+              className="px-3 py-1.5 border border-white/20 text-white/80 hover:text-[#ff3e00] hover:border-[#ff3e00]/50 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer bg-black/20 rounded-lg"
               title="Sign Out of Workspace"
             >
               <span className="material-symbols-outlined text-sm">logout</span>

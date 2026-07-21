@@ -206,6 +206,50 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               <div className="bg-[#00d2ff] h-full rounded-full" style={{ width: `${transcript.attendancePercent}%` }}></div>
             </div>
           </div>
+
+        {/* AI Powered Academic Assistant & Predictive Analytics Card */}
+        <div className="bg-gradient-to-r from-tertiary-container/30 via-secondary-container/20 to-surface-container-low border border-tertiary-fixed-dim/40 rounded-2xl p-6 shadow-lg space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold shadow-md">
+                <span className="material-symbols-outlined text-2xl font-bold">auto_awesome</span>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>AI Academic Learning Assistant</span>
+                  <span className="text-[10px] bg-tertiary-container text-tertiary-fixed font-black px-2 py-0.5 rounded-full uppercase tracking-wider">LIVE AI</span>
+                </h3>
+                <p className="text-xs text-white/60">Personalized learning insights, predictive GPA forecast, and study strategies</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full">
+                Predicted Next GPA: 3.94 / 4.0
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="bg-black/30 border border-white/10 p-4 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-wider block">Core Strength</span>
+              <p className="text-white/90 leading-relaxed font-medium">
+                High analytical mastery in {transcript.subjects?.[0]?.subject || 'Mathematics'} ({transcript.subjects?.[0]?.grade || 'A+'}). Consistently scores top marks in complex problem sets.
+              </p>
+            </div>
+            <div className="bg-black/30 border border-white/10 p-4 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold text-secondary uppercase tracking-wider block">Recommended Strategy</span>
+              <p className="text-white/90 leading-relaxed font-medium">
+                Allocate 20-minute daily review blocks for essay writing to match your top math percentile and secure Dean's Honors.
+              </p>
+            </div>
+            <div className="bg-black/30 border border-white/10 p-4 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold text-[#00d2ff] uppercase tracking-wider block">Early Warning Radar</span>
+              <p className="text-white/90 leading-relaxed font-medium">
+                Zero academic risk detected. Maintain 98% attendance rate for upcoming midterms.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Analytics and Core Performance Section */}
@@ -351,6 +395,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               {transcript.principalRemarks}
             </p>
           </div>
+        </div>
         </div>
 
       </div>
