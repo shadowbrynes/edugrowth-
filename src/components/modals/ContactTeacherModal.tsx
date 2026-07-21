@@ -23,11 +23,26 @@ export const ContactTeacherModal: React.FC<ContactTeacherModalProps> = ({ isOpen
     'Dr. Richard Vance (School Principal)': '+2348198765432'
   };
 
+  const teacherEmails: Record<string, string> = {
+    'Ms. Sarah Jenkins (Mathematics)': 's.jenkins@edugrowth.edu',
+    'Mr. David Roth (Physical Education)': 'd.roth@edugrowth.edu',
+    'Dr. Elena Rostova (Robotics & Science)': 'e.rostova@edugrowth.edu',
+    'Prof. Arthur Pendelton (World Literature)': 'a.pendelton@edugrowth.edu',
+    'Dr. Richard Vance (School Principal)': 'principal@edugrowth.edu'
+  };
+
+  const handleEmailChat = () => {
+    const email = teacherEmails[selectedTeacher] || 'faculty@edugrowth.edu';
+    const emailSubject = `EduGrowth Inquiry: ${subject}`;
+    const emailBody = `Hello ${selectedTeacher},\n\nI am contacting you regarding ${studentName}.\n\nMessage:\n${message || 'Please reach out to me regarding academic progress.'}\n\nThank you.`;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`, '_blank');
+  };
+
   const handleWhatsAppChat = () => {
     const phoneNumber = teacherPhoneNumbers[selectedTeacher];
     if (!phoneNumber) return;
     
-    const messageText = `Hello, I am the parent of ${studentName}. I would like to inquire about their progress in school.`;
+    const messageText = `Hello, I am contacting you via EduGrowth regarding ${studentName}. ${message ? `Message: ${message}` : ''}`;
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(messageText)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -52,7 +67,7 @@ export const ContactTeacherModal: React.FC<ContactTeacherModalProps> = ({ isOpen
             <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
             <div>
               <h3 className="text-lg font-bold">Contact Faculty Member</h3>
-              <p className="text-xs text-secondary-fixed">Student: {studentName} • Direct Portal Communication</p>
+              <p className="text-xs text-secondary-fixed">Student: {studentName} • Direct WhatsApp & Email Communication</p>
             </div>
           </div>
           <button onClick={onClose} className="text-white/80 hover:text-white p-1 rounded-full">
@@ -67,7 +82,7 @@ export const ContactTeacherModal: React.FC<ContactTeacherModalProps> = ({ isOpen
             </div>
             <h4 className="text-lg font-bold text-on-surface">Message Sent Successfully!</h4>
             <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
-              Your inquiry has been routed to {selectedTeacher}. Expect an official response via the Parent Portal within 24 business hours.
+              Your inquiry has been routed to {selectedTeacher}. Expect a response via WhatsApp or Email within 24 business hours.
             </p>
           </div>
         ) : (
@@ -110,21 +125,31 @@ export const ContactTeacherModal: React.FC<ContactTeacherModalProps> = ({ isOpen
               />
             </div>
 
-            {/* Direct WhatsApp Option */}
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
-              <span className="material-symbols-outlined text-emerald-600 text-2xl font-bold">chat</span>
-              <div className="flex-1">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Direct WhatsApp Chat</span>
-                <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                  Want to chat instantly? Open a direct conversation with the faculty member on WhatsApp.
-                </p>
+            {/* Direct Instant Channels */}
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Direct Communication Points</span>
+                <span className="text-[10px] font-bold bg-emerald-200/60 text-emerald-900 px-2 py-0.5 rounded-full">INSTANT</span>
+              </div>
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                Connect directly with {selectedTeacher.split(' ')[1] || 'Faculty'} via WhatsApp or official Email:
+              </p>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleWhatsAppChat}
-                  className="mt-2 px-4 py-2 bg-[#25d366] hover:bg-[#20ba5a] text-white font-bold text-xs rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer border-none"
+                  className="flex-1 py-2 px-3 bg-[#25d366] hover:bg-[#20ba5a] text-white font-bold text-xs rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none"
                 >
                   <span className="material-symbols-outlined text-sm">call</span>
-                  <span>Chat on WhatsApp</span>
+                  <span>WhatsApp Chat</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEmailChat}
+                  className="flex-1 py-2 px-3 bg-secondary hover:bg-secondary/90 text-white font-bold text-xs rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none"
+                >
+                  <span className="material-symbols-outlined text-sm">mail</span>
+                  <span>Send Direct Email</span>
                 </button>
               </div>
             </div>

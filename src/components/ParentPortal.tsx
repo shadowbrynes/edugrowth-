@@ -505,6 +505,27 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                   <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">mail</span>
                   <span>Contact Class Teacher</span>
                 </button>
+
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <a
+                    href={`https://wa.me/2348012345678?text=${encodeURIComponent(`Hello Ms. Sarah Jenkins, I am inquiring about ${activeChild.name}'s progress on EduGrowth.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2.5 px-3 bg-[#25d366] hover:bg-[#20ba5a] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm no-underline"
+                  >
+                    <span className="material-symbols-outlined text-sm">call</span>
+                    <span>WhatsApp Teacher</span>
+                  </a>
+                  <a
+                    href={`mailto:s.jenkins@edugrowth.edu?subject=${encodeURIComponent(`Inquiry regarding ${activeChild.name}`)}&body=${encodeURIComponent(`Hello Ms. Jenkins,\n\nI would like to inquire about ${activeChild.name}'s recent performance appraisals.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2.5 px-3 bg-secondary hover:bg-secondary/90 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm no-underline"
+                  >
+                    <span className="material-symbols-outlined text-sm">mail</span>
+                    <span>Email Teacher</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

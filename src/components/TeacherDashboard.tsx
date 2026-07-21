@@ -366,6 +366,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <span className="text-[11px] text-on-surface-variant mt-0.5 block">Report card observations</span>
                 </div>
               </button>
+
+              <button
+                onClick={() => setIsScoresModalOpen(true)}
+                className="flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-br from-tertiary-container/20 to-secondary-container/20 border border-tertiary-fixed-dim/40 rounded-xl hover:shadow-lg transition-all group text-center"
+              >
+                <div className="w-14 h-14 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                  <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                </div>
+                <div>
+                  <span className="text-base font-bold text-on-surface block">Automate Appraisals</span>
+                  <span className="text-[11px] text-on-surface-variant mt-0.5 block">Daily / Weekly report cards</span>
+                </div>
+              </button>
             </div>
 
             {/* Today's Schedule */}
@@ -498,9 +511,62 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <span className="text-[11px] text-on-surface-variant">Class average performance is <strong className="text-tertiary-fixed-dim">+4.2% higher</strong> than department target.</span>
               </div>
             </div>
+
+            {/* Direct Parent Contact Points */}
+            <div className="md:col-span-12 bg-white border border-outline-variant rounded-xl p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-on-surface">Direct Parent Contact Points</h3>
+                  <p className="text-xs text-on-surface-variant">Instant WhatsApp & Email communication channels with student parents</p>
+                </div>
+                <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">chat</span>
+                  <span>WhatsApp & Email Active</span>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { name: 'Alexander J. Sterling', parent: 'Dr. Marcus Sterling', phone: '+2348031234567', email: 'parent.sterling@gmail.com', grade: 'Grade 10 - Alpha' },
+                  { name: 'Alice M. Sterling', parent: 'Dr. Marcus Sterling', phone: '+2348031234567', email: 'parent.sterling@gmail.com', grade: 'Grade 8 - Beta' },
+                  { name: 'Leo Sterling', parent: 'Mrs. Eleanor Sterling', phone: '+2348098765432', email: 'eleanor.sterling@yahoo.com', grade: 'Grade 10 - Alpha' }
+                ].map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-outline-variant bg-surface-container-low flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-sm font-bold text-on-surface">{item.name}</h4>
+                        <span className="text-[10px] font-mono text-on-surface-variant">{item.grade}</span>
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-0.5">Parent: <span className="font-semibold text-on-surface">{item.parent}</span></p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/50">
+                      <a
+                        href={`https://wa.me/${item.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${item.parent}, I am reaching out from EduGrowth regarding ${item.name}'s performance appraisal.`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 py-2 bg-[#25d366] hover:bg-[#20ba5a] text-white font-bold text-[11px] rounded-lg text-center shadow-sm flex items-center justify-center gap-1 no-underline"
+                      >
+                        <span className="material-symbols-outlined text-xs">call</span>
+                        <span>WhatsApp Parent</span>
+                      </a>
+                      <a
+                        href={`mailto:${item.email}?subject=${encodeURIComponent(`EduGrowth Appraisal Notice: ${item.name}`)}&body=${encodeURIComponent(`Dear ${item.parent},\n\nI am writing to share recent performance updates for ${item.name}.\n\nKind regards,\nFaculty Member`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 py-2 bg-secondary hover:bg-secondary/90 text-white font-bold text-[11px] rounded-lg text-center shadow-sm flex items-center justify-center gap-1 no-underline"
+                      >
+                        <span className="material-symbols-outlined text-xs">mail</span>
+                        <span>Email Parent</span>
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Recent Student Submissions Table (Mobile-Responsive Card Pattern) */}
+          {/* Recent Student Submissions Table */}
           <section className="space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
