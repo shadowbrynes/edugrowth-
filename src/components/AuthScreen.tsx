@@ -155,17 +155,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
     const devPass = 'developer123';
     const devName = 'Naija Journal';
     try {
-      // Attempt login first
       try {
         const firebaseUser = await loginWithEmailAndPassword(devEmail, devPass);
         onAuthSuccess(firebaseUser);
-      } catch (loginErr) {
-        // If login failed, register the dev account with Faculty Professor privileges
-        const firebaseUser = await registerWithEmailAndPassword(devEmail, devPass, devName, 'teacher');
-        onAuthSuccess(firebaseUser, 'teacher');
+      } catch (loginErr: any) {
+        if (loginErr?.code === 'auth/operation-not-allowed' || loginErr?.message?.includes('operation-not-allowed')) {
+          handleOfflineBypass();
+          return;
+        }
+        try {
+          const firebaseUser = await registerWithEmailAndPassword(devEmail, devPass, devName, 'teacher');
+          onAuthSuccess(firebaseUser, 'teacher');
+        } catch (regErr: any) {
+          handleOfflineBypass();
+        }
       }
     } catch (err: any) {
-      setError('Developer Quick Access failed. Please try standard sign up/in.');
+      handleOfflineBypass();
     } finally {
       setLoading(false);
     }
