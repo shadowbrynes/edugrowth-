@@ -296,9 +296,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-2">
               <span className="text-xs uppercase font-bold tracking-wider text-secondary-container bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20 inline-block">
-                Welcome back, Professor
+                Welcome back, Form & Subject Teacher
               </span>
-              <h2 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight">Faculty Dashboard</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight">Secondary School Teachers Portal</h2>
             </div>
 
             <div className="relative group w-full md:w-72">

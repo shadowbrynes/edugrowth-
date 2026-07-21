@@ -31,7 +31,7 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
   const displayRoleLabel = () => {
     switch(userRole) {
       case 'admin': return '🏛️ Institutional Admin';
-      case 'teacher': return '👩‍🏫 Faculty Professor';
+      case 'teacher': return '👩‍🏫 Form & Subject Teacher';
       case 'parent': return '👨‍👩‍👦 Guardian & Parent';
       case 'student': return '🎓 Registered Student';
       default: return '👤 System User';
@@ -126,7 +126,7 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${currentView === 'teacher' ? 'bg-secondary text-white shadow-md' : 'text-primary-fixed-dim hover:text-white hover:bg-white/5'}`}
               >
                 <span className="material-symbols-outlined text-sm" style={currentView === 'teacher' ? { fontVariationSettings: "'FILL' 1" } : {}}>school</span>
-                Faculty Portal
+                Teachers Portal
               </button>
             )}
 

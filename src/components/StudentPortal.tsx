@@ -166,10 +166,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-surface-container-low border border-white/5 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
             <span className="material-symbols-outlined text-white/5 text-6xl absolute top-2 right-2 select-none pointer-events-none">grade</span>
-            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Cumulative GPA</span>
+            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Overall Average Score</span>
             <div className="mt-3">
-              <span className="text-3xl font-black text-[#ff3e00]">{transcript.finalGpa.toFixed(2)}</span>
-              <span className="text-xs text-white/40 ml-1">/ {transcript.gpaScale.toFixed(1)}</span>
+              <span className="text-3xl font-black text-[#ff3e00]">{(transcript.finalGpa * 22.5).toFixed(1)}%</span>
+              <span className="text-xs text-white/40 ml-1">Overall Term Mark</span>
             </div>
             <span className="text-[10px] text-emerald-500 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full mt-2 self-start flex items-center gap-1">
               <span className="material-symbols-outlined text-[10px]">trending_up</span> Top Tier Academic
@@ -178,21 +178,21 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
 
           <div className="bg-surface-container-low border border-white/5 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
             <span className="material-symbols-outlined text-white/5 text-6xl absolute top-2 right-2 select-none pointer-events-none">award_star</span>
-            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Honor Status</span>
+            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Academic Honor Status</span>
             <div className="mt-3">
-              <span className="text-xl font-bold block truncate">{transcript.statusSub || 'Honor Roll'}</span>
+              <span className="text-xl font-bold block truncate">{transcript.statusSub || 'Distinction Standing'}</span>
               <span className="text-xs text-[#00d2ff] font-bold mt-1 block uppercase font-mono tracking-wider">{transcript.status}</span>
             </div>
           </div>
 
           <div className="bg-surface-container-low border border-white/5 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
             <span className="material-symbols-outlined text-white/5 text-6xl absolute top-2 right-2 select-none pointer-events-none">format_list_numbered</span>
-            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Class Standing</span>
+            <span className="text-xs text-white/50 font-bold uppercase tracking-wider">Class Position / Rank</span>
             <div className="mt-3">
               <span className="text-3xl font-black text-white">{transcript.ranking}</span>
-              <span className="text-xs text-white/40 ml-1">of {transcript.totalClassSize} students</span>
+              <span className="text-xs text-white/40 ml-1">in class of {transcript.totalClassSize}</span>
             </div>
-            <span className="text-[10px] text-white/50 mt-2 block">Rank calculated dynamically</span>
+            <span className="text-[10px] text-white/50 mt-2 block">Position calculated dynamically</span>
           </div>
 
           <div className="bg-surface-container-low border border-white/5 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
@@ -206,6 +206,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               <div className="bg-[#00d2ff] h-full rounded-full" style={{ width: `${transcript.attendancePercent}%` }}></div>
             </div>
           </div>
+        </div>
 
         {/* AI Powered Academic Assistant & Predictive Analytics Card */}
         <div className="bg-gradient-to-r from-tertiary-container/30 via-secondary-container/20 to-surface-container-low border border-tertiary-fixed-dim/40 rounded-2xl p-6 shadow-lg space-y-4">
@@ -219,13 +220,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                   <span>AI Academic Learning Assistant</span>
                   <span className="text-[10px] bg-tertiary-container text-tertiary-fixed font-black px-2 py-0.5 rounded-full uppercase tracking-wider">LIVE AI</span>
                 </h3>
-                <p className="text-xs text-white/60">Personalized learning insights, predictive GPA forecast, and study strategies</p>
+                <p className="text-xs text-white/60">Personalized learning insights, score forecasts, and study strategies</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full">
-                Predicted Next GPA: 3.94 / 4.0
+                Predicted Next Average: 88.5%
               </span>
             </div>
           </div>
@@ -389,13 +390,12 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           </div>
 
           <div className="bg-surface-container-low border border-white/5 rounded-2xl p-6">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#00d2ff] block mb-1">Dean Endorsement</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#00d2ff] block mb-1">Principal Endorsement</span>
             <h3 className="text-xs font-bold text-white mb-2">Office of the Principal Remarks:</h3>
             <p className="text-xs text-white/60 italic leading-relaxed">
               {transcript.principalRemarks}
             </p>
           </div>
-        </div>
         </div>
 
       </div>

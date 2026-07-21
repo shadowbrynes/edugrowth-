@@ -35,10 +35,16 @@ export const UploadScoresModal: React.FC<UploadScoresModalProps> = ({ isOpen, on
           const newCa = Math.min(30, (sub.caScore || 25) + Math.floor(Math.random() * 3) - 1);
           const newExam = Math.min(70, (sub.examScore || 60) + Math.floor(Math.random() * 4) - 1);
           const total = newCa + newExam;
-          let grade = 'B';
-          if (total >= 90) grade = 'A+';
-          else if (total >= 80) grade = 'A';
-          else if (total >= 70) grade = 'B';
+          let grade = 'C4';
+          if (total >= 90) grade = 'A1';
+          else if (total >= 80) grade = 'B2';
+          else if (total >= 70) grade = 'B3';
+          else if (total >= 65) grade = 'C4';
+          else if (total >= 60) grade = 'C5';
+          else if (total >= 50) grade = 'C6';
+          else if (total >= 45) grade = 'D7';
+          else if (total >= 40) grade = 'E8';
+          else grade = 'F9';
 
           return {
             ...sub,

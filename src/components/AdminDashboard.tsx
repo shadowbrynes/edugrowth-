@@ -980,7 +980,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <h2 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight">Institutional Overview</h2>
                   <p className="text-sm text-on-surface-variant mt-1">Real-time performance and operational metrics for Academic Term {currentAcademicYearDash}.</p>
                 </div>
-                <div className="flex gap-2.5">
+                <div className="flex gap-2.5 flex-wrap">
+                  <button
+                    onClick={() => setIsNewRecordModalOpen(true)}
+                    className="px-4 py-2.5 bg-secondary text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-secondary/90 transition-all flex items-center gap-2 border-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                    <span>Register New Student</span>
+                  </button>
+                  <button
+                    onClick={() => setIsNewRecordModalOpen(true)}
+                    className="px-4 py-2.5 bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-container-highest font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    <span>Add Record</span>
+                  </button>
                   <button
                     onClick={downloadPDF}
                     className="px-4 py-2 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 text-secondary rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 hover:scale-[1.02]"
