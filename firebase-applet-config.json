@@ -3,7 +3,7 @@
   "appId": "1:938417593202:web:e25a9a029062ba20c99beb",
   "apiKey": "AIzaSyDrbLaWkhqCp7ZXu3cCPLWUHbLzCIc3T0Q",
   "authDomain": "edumanage-68b8b.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-edumanage-e18d20c2-4379-45e5-9cd3-83036bea20b6",
+  "firestoreDatabaseId": "(default)",
   "storageBucket": "edumanage-68b8b.firebasestorage.app",
   "messagingSenderId": "938417593202",
   "measurementId": ""
