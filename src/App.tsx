@@ -409,7 +409,8 @@ export default function App() {
       setStudents(prev => [newStudent, ...prev.filter(s => s.id !== newStudent.id)]);
 
       try {
-        await setDoc(doc(db, 'students', newStudent.id), newStudent);
+        const { isNew, ...studentPayload } = newStudent;
+        await setDoc(doc(db, 'students', newStudent.id), studentPayload);
 
         // Also generate transcript document so student has an immediate digital report card
         const transcriptDocId = name.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
