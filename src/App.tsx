@@ -99,12 +99,34 @@ export default function App() {
     }
   }, []);
   
-  // Real-time Database state
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  // Real-time Database state with localStorage persistence
+  const [students, setStudents] = useState<Student[]>(() => {
+    try {
+      const saved = localStorage.getItem('eduGrowth_students');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error reading students from localStorage:", e);
+    }
+    return INITIAL_STUDENTS;
+  });
   const [alerts, setAlerts] = useState<CriticalAlert[]>(INITIAL_CRITICAL_ALERTS);
   const [activities, setActivities] = useState<SystemActivity[]>(INITIAL_ACTIVITIES);
   const [childrenRecords, setChildrenRecords] = useState<ChildRecord[]>(PARENT_CHILDREN);
   const [transcriptAccesses, setTranscriptAccesses] = useState<any[]>(INITIAL_TRANSCRIPT_ACCESSES);
+
+  // Automatically sync students array to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('eduGrowth_students', JSON.stringify(students));
+    } catch (e) {
+      console.error("Error saving students to localStorage:", e);
+    }
+  }, [students]);
 
   // Authentication State
   const [user, setUser] = useState<any>(null);
@@ -242,14 +264,18 @@ export default function App() {
         snapshot.forEach((doc) => {
           list.push(doc.data() as Student);
         });
-        setStudents(list.sort((a, b) => {
-          if (a.isNew) return -1;
-          if (b.isNew) return 1;
-          return a.rank - b.rank;
-        }));
+        setStudents(prev => {
+          const localNew = prev.filter(p => p.isNew && !list.some(l => l.id === p.id));
+          const merged = [...localNew, ...list];
+          return merged.sort((a, b) => {
+            if (a.isNew) return -1;
+            if (b.isNew) return 1;
+            return a.rank - b.rank;
+          });
+        });
       }
     }, (err) => {
-      handleFirestoreError(err, OperationType.LIST, 'students');
+      console.warn("Firestore students listener offline/fallback:", err);
     });
 
     // B. Listen and synchronize alerts
