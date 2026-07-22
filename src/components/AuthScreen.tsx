@@ -174,6 +174,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, schoolPro
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff3e00] to-transparent" />
           
           <div className="text-center">
+            {/* One-Click Direct Launch Button */}
+            <button
+              onClick={handleOfflineBypass}
+              disabled={loading}
+              className="w-full mb-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xl border-2 border-emerald-300 animate-pulse"
+            >
+              <span className="material-symbols-outlined text-lg">groups</span>
+              ⚡ ONE-CLICK ACCESS: OPEN ALL STUDENTS ROSTER
+            </button>
             {schoolProfile?.logoUrl ? (
               <img
                 src={schoolProfile.logoUrl}
