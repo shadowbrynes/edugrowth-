@@ -58,7 +58,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [recentRegisteredName, setRecentRegisteredName] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'staff' | 'audit' | 'records' | 'logs' | 'settings' | 'profile' | 'finance' | 'admissions' | 'analytics' | 'timetable'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'all_students' | 'staff' | 'audit' | 'records' | 'logs' | 'settings' | 'profile' | 'finance' | 'admissions' | 'analytics' | 'timetable' | 'schools_admissions' | 'schools_classes' | 'schools_assessment' | 'schools_fees' | 'highered_faculties' | 'highered_courses' | 'highered_gpa' | 'highered_graduation'>('dashboard');
+  const [studentViewFormat, setStudentViewFormat] = useState<'table' | 'grid'>('table');
+  const [studentStatusFilter, setStudentStatusFilter] = useState<'all' | 'High Honor' | 'Honor Roll' | 'Good Standing' | 'Academic Probation'>('all');
   const [auditSearch, setAuditSearch] = useState('');
   const [auditRoleFilter, setAuditRoleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -458,6 +460,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const allStudentsFiltered = students.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.gradeLevel.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = studentStatusFilter === 'all' || s.status === studentStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   // Compute average student GPA based on selected grade filter
   const filteredStudentsForGpa = students.filter(st => {
@@ -871,6 +881,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <div className="border-t border-outline-variant/60 my-2 mx-4"></div>
           <div className="px-4 py-1 text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Academic registry</div>
+
+          <button
+            onClick={() => setActiveTab('all_students')}
+            className={`font-bold rounded-full px-4 py-2 flex items-center gap-4 transition-all w-full text-left ${activeTab === 'all_students' ? 'bg-secondary-container text-on-secondary-container sidebar-active shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+          >
+            <span className="material-symbols-outlined text-lg">groups</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">All Students Roster</span>
+            <span className="ml-auto text-[10px] bg-secondary text-white font-mono px-2 py-0.5 rounded-full font-bold">
+              {students.length}
+            </span>
+          </button>
 
           <button
             onClick={() => {
@@ -1628,6 +1649,220 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </div>
             </>
+          ) : activeTab === 'all_students' ? (
+            <div className="space-y-6 animate-fadeIn text-on-surface">
+              {/* Page Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight flex items-center gap-3">
+                    <span className="material-symbols-outlined text-secondary text-3xl">groups</span>
+                    All Students Registry & Roster
+                  </h2>
+                  <p className="text-sm text-on-surface-variant mt-1">
+                    Complete institutional roster of all {students.length} registered students, GPA rankings, and academic transcripts.
+                  </p>
+                </div>
+                <div className="flex gap-2.5 flex-wrap">
+                  <button
+                    onClick={() => setIsNewRecordModalOpen(true)}
+                    className="px-4 py-2.5 bg-secondary text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-secondary/90 transition-all flex items-center gap-2 border-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">person_add</span>
+                    <span>Register New Student</span>
+                  </button>
+                  <button
+                    onClick={exportToCSV}
+                    className="px-4 py-2.5 bg-surface-container-high border border-outline-variant rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={downloadPDF}
+                    className="px-4 py-2.5 bg-secondary/15 border border-secondary/20 text-secondary rounded-xl text-xs font-bold hover:bg-secondary/25 transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter & View Controls */}
+              <div className="bg-surface p-4 rounded-xl border border-outline-variant shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="relative w-full md:w-96">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search all students by name, ID, or grade..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-surface-container-low pl-11 pr-10 py-2.5 rounded-xl border border-outline-variant/60 focus:border-secondary focus:outline-none text-xs text-on-surface transition-all"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface">
+                      <span className="material-symbols-outlined text-base">close</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                  <select
+                    value={studentStatusFilter}
+                    onChange={(e) => setStudentStatusFilter(e.target.value as any)}
+                    className="px-3 py-2 rounded-xl bg-surface-container-low border border-outline-variant text-xs font-semibold text-on-surface focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    <option value="all">All Academic Statuses</option>
+                    <option value="High Honor">High Honor</option>
+                    <option value="Honor Roll">Honor Roll</option>
+                    <option value="Good Standing">Good Standing</option>
+                    <option value="Academic Probation">Academic Probation</option>
+                  </select>
+
+                  <div className="flex bg-surface-container-high p-1 rounded-xl border border-outline-variant">
+                    <button
+                      onClick={() => setStudentViewFormat('table')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        studentViewFormat === 'table' ? 'bg-secondary text-white shadow-sm' : 'text-on-surface-variant hover:text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">table_rows</span>
+                      Table View
+                    </button>
+                    <button
+                      onClick={() => setStudentViewFormat('grid')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        studentViewFormat === 'grid' ? 'bg-secondary text-white shadow-sm' : 'text-on-surface-variant hover:text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">grid_view</span>
+                      Card View
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Roster Output */}
+              {studentViewFormat === 'table' ? (
+                <div className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-surface-container-low text-on-surface-variant border-b border-outline-variant/60">
+                        <tr>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Rank</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Student Name</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Class / Grade</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">GPA</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Attendance</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant/60">
+                        {allStudentsFiltered.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-12 text-center text-on-surface-variant">
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                <span className="material-symbols-outlined text-4xl text-outline">search_off</span>
+                                <p className="text-sm font-semibold">No student records match the specified filters.</p>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          allStudentsFiltered.map((st, index) => (
+                            <tr key={st.id} className="hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+                              <td className="px-6 py-4 text-sm font-mono font-bold text-secondary">
+                                #{index + 1}
+                              </td>
+                              <td className="px-6 py-4 flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-surface-container-highest text-secondary flex items-center justify-center font-bold text-xs ring-1 ring-secondary/20">
+                                  {st.initials}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-on-surface group-hover:text-secondary transition-colors">
+                                      {st.name}
+                                    </span>
+                                    {st.isNew && (
+                                      <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-500 text-white rounded-full animate-pulse shadow-sm">
+                                        NEW
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-on-surface-variant font-mono">{st.id}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-xs font-semibold text-on-surface">{st.gradeLevel}</td>
+                              <td className="px-6 py-4 font-mono font-bold text-sm text-on-surface">{st.gpa.toFixed(2)}</td>
+                              <td className="px-6 py-4 text-xs font-mono font-semibold text-on-surface-variant">{st.attendance}%</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${st.status === 'High Honor' ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant' : 'bg-secondary-fixed text-on-secondary-fixed-variant'}`}>
+                                  {st.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  onClick={() => onNavigate('transcript', 'alexander')}
+                                  className="px-3.5 py-1.5 bg-secondary text-white rounded-lg text-xs font-bold hover:bg-secondary/90 transition-all shadow-sm"
+                                >
+                                  View Transcript
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allStudentsFiltered.map((st, index) => (
+                    <div key={st.id} className="bg-surface border border-outline-variant rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-sm ring-2 ring-secondary/20">
+                            {st.initials}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-sm text-on-surface flex items-center gap-2">
+                              {st.name}
+                              {st.isNew && <span className="px-1.5 py-0.5 text-[8px] bg-emerald-500 text-white rounded-full">NEW</span>}
+                            </h4>
+                            <p className="text-xs text-on-surface-variant">{st.gradeLevel}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-md">
+                          #{index + 1}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 bg-surface-container-low p-3 rounded-lg text-center border border-outline-variant/50">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-on-surface-variant block">GPA</span>
+                          <span className="text-base font-extrabold text-on-surface font-mono">{st.gpa.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Attendance</span>
+                          <span className="text-base font-extrabold text-secondary font-mono">{st.attendance}%</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${st.status === 'High Honor' ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant' : 'bg-secondary-fixed text-on-secondary-fixed-variant'}`}>
+                          {st.status}
+                        </span>
+                        <button
+                          onClick={() => onNavigate('transcript', 'alexander')}
+                          className="px-3.5 py-1.5 bg-secondary text-white rounded-lg text-xs font-bold hover:bg-secondary/90 transition-all shadow-sm"
+                        >
+                          View Transcript
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ) : activeTab === 'schools_admissions' ? (
             <div className="space-y-6 animate-fadeIn text-on-surface">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
