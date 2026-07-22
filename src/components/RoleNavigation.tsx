@@ -120,6 +120,16 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
               </button>
             )}
 
+            {(userRole === 'admin') && (
+              <button
+                onClick={() => onViewChange('admin')}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap bg-emerald-600/30 hover:bg-emerald-600/50 text-white border border-emerald-500/40 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">groups</span>
+                All Students Roster
+              </button>
+            )}
+
             {(userRole === 'admin' || userRole === 'teacher') && (
               <button
                 onClick={() => onViewChange('teacher')}

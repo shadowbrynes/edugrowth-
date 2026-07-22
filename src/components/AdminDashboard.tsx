@@ -1021,6 +1021,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div className="flex gap-2.5 flex-wrap">
                   <button
+                    onClick={() => setActiveTab('all_students')}
+                    className="px-4 py-2.5 bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-emerald-500 transition-all flex items-center gap-2 border-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">groups</span>
+                    <span>All Students Roster ({students.length})</span>
+                  </button>
+                  <button
                     onClick={() => setIsNewRecordModalOpen(true)}
                     className="px-4 py-2.5 bg-secondary text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-secondary/90 transition-all flex items-center gap-2 border-none cursor-pointer"
                   >
