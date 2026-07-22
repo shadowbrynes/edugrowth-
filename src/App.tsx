@@ -381,18 +381,28 @@ export default function App() {
 
   const handleAddRecord = async (type: string, name: string, detail: string) => {
     if (type === 'student') {
+      const match = detail.match(/Avg:\s*([\d.]+)/i);
+      let parsedGpa = 3.80;
+      if (match && match[1]) {
+        const val = parseFloat(match[1]);
+        parsedGpa = val > 5 ? Number((val / 20).toFixed(2)) : val;
+      }
+
       const newStudent: Student = {
         id: `st-${Date.now()}`,
         name: name,
         initials: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-        gpa: parseFloat(detail) || 3.80,
-        status: 'Good Standing',
-        rank: students.length + 1,
-        totalStudents: 1240,
+        gpa: parsedGpa,
+        status: parsedGpa >= 3.8 ? 'High Honor' : 'Good Standing',
+        rank: 1,
+        totalStudents: students.length + 1,
         attendance: 98,
-        gradeLevel: 'Grade 10 - Alpha',
-        sessions: [selectedSession]
+        gradeLevel: 'Grade 10 - Alpha'
       };
+
+      // Immediately update local state so UI updates instantly
+      setStudents(prev => [newStudent, ...prev.map(s => ({ ...s, rank: s.rank + 1 }))]);
+
       try {
         await setDoc(doc(db, 'students', newStudent.id), newStudent);
 
@@ -400,28 +410,40 @@ export default function App() {
         const transcriptDocId = name.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
         const newTranscript = {
           id: transcriptDocId,
-          studentId: `ST-${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}`,
-          fullName: name,
-          session: selectedSession,
-          gradeLevel: 'Grade 10 - Alpha',
+          transcriptId: `TX-2023-${Math.floor(10000 + Math.random() * 90000)}`,
           issueDate: new Date().toISOString().split('T')[0],
-          verificationCode: `EDUGROWTH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          fullName: name,
+          studentId: `ST-${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}`,
+          academicClass: 'Grade 10 - Alpha',
+          currentTerm: 'Second Term (Fall 2023)',
+          dob: '2008-04-12',
+          gender: 'Unspecified',
+          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
           subjects: [
             { subject: 'Mathematics', caScore: 28, examScore: 65, totalScore: 93, grade: 'A+', remarks: 'Excellent performance', badgeClass: 'bg-tertiary-fixed text-on-tertiary-fixed' },
             { subject: 'Physics', caScore: 25, examScore: 60, totalScore: 85, grade: 'A', remarks: 'Strong analytical skills', badgeClass: 'bg-tertiary-fixed-dim text-on-tertiary-fixed-variant' },
             { subject: 'English Language', caScore: 26, examScore: 62, totalScore: 88, grade: 'A', remarks: 'Good written expression', badgeClass: 'bg-secondary text-white' }
           ],
-          finalGpa: parseFloat(detail) || 3.80,
+          finalGpa: parsedGpa,
+          gpaScale: 4.0,
+          ranking: `Ranked #1 of ${students.length + 1}`,
+          totalClassSize: students.length + 1,
+          attendancePercent: 98,
           status: 'GOOD STANDING',
           statusSub: 'Maintained required GPA thresholds.',
-          promotionBannerText: 'PROMOTED TO NEXT ACADEMIC TIER',
-          classTeacherRemark: `${name} has shown commendable dedication to studies.`,
-          principalRemark: 'Promoted with academic honors.'
+          classTeacherRemarks: `${name} has shown commendable dedication to studies.`,
+          classTeacherName: 'Mrs. Sarah Jenkins',
+          classTeacherSignUrl: '',
+          principalRemarks: 'Promoted with academic honors.',
+          principalName: 'Professor Alexander Sterling',
+          principalSignUrl: '',
+          qrCodeUrl: '',
+          promotionBannerText: 'PROMOTED TO NEXT ACADEMIC TIER'
         };
         await setDoc(doc(db, 'transcripts', transcriptDocId), newTranscript);
         await syncStudentPerformance(transcriptDocId);
       } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, `students/${newStudent.id}`);
+        console.error("Firestore write failed, using local state:", err);
       }
     }
     const newAct: SystemActivity = {

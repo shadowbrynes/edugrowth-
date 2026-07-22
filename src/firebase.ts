@@ -125,6 +125,24 @@ export async function registerWithEmailAndPassword(
     // Save user profile in Firestore under the 'users' collection using UID
     await setDoc(doc(db, 'users', user.uid), profileData);
     
+    // If role is student, also create an academic record entry in the 'students' collection
+    if (role === 'student') {
+      const studentRecord = {
+        id: `st-${user.uid.slice(0, 10)}`,
+        name: name,
+        initials: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+        gpa: 3.85,
+        status: 'Good Standing',
+        rank: 1,
+        totalStudents: 1240,
+        attendance: 98,
+        gradeLevel: 'Grade 10 - Alpha'
+      };
+      await setDoc(doc(db, 'students', studentRecord.id), studentRecord).catch(err => {
+        console.error("Auto-creating student academic record failed:", err);
+      });
+    }
+
     return user;
   } catch (error) {
     console.error("Failed to register user:", error);
