@@ -1511,9 +1511,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     {st.initials}
                                   </div>
                                   <div>
-                                    <span className="text-sm font-bold text-on-surface group-hover:text-secondary transition-colors">
-                                      {st.name}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-bold text-on-surface group-hover:text-secondary transition-colors">
+                                        {st.name}
+                                      </span>
+                                      {st.isNew && (
+                                        <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-500 text-white rounded-full animate-pulse shadow-sm">
+                                          NEW
+                                        </span>
+                                      )}
+                                    </div>
                                     <p className="text-[11px] text-on-surface-variant">{st.gradeLevel}</p>
                                   </div>
                                 </td>

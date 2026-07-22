@@ -242,7 +242,11 @@ export default function App() {
         snapshot.forEach((doc) => {
           list.push(doc.data() as Student);
         });
-        setStudents(list.sort((a, b) => a.rank - b.rank));
+        setStudents(list.sort((a, b) => {
+          if (a.isNew) return -1;
+          if (b.isNew) return 1;
+          return a.rank - b.rank;
+        }));
       }
     }, (err) => {
       handleFirestoreError(err, OperationType.LIST, 'students');
@@ -397,11 +401,12 @@ export default function App() {
         rank: 1,
         totalStudents: students.length + 1,
         attendance: 98,
-        gradeLevel: 'Grade 10 - Alpha'
+        gradeLevel: 'Grade 10 - Alpha',
+        isNew: true
       };
 
-      // Immediately update local state so UI updates instantly
-      setStudents(prev => [newStudent, ...prev.map(s => ({ ...s, rank: s.rank + 1 }))]);
+      // Immediately update local state placing new student at index 0 so UI displays it at the top
+      setStudents(prev => [newStudent, ...prev.filter(s => s.id !== newStudent.id)]);
 
       try {
         await setDoc(doc(db, 'students', newStudent.id), newStudent);

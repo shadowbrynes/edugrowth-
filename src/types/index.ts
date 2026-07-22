@@ -20,6 +20,7 @@ export interface Student {
   attendance: number;
   gradeLevel: string;
   sessions?: string[];
+  isNew?: boolean;
 }
 
 export interface CriticalAlert {
