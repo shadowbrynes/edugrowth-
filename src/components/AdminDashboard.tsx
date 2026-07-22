@@ -57,6 +57,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [recentRegisteredName, setRecentRegisteredName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'staff' | 'audit' | 'records' | 'logs' | 'settings' | 'profile' | 'finance' | 'admissions' | 'analytics' | 'timetable'>('dashboard');
   const [auditSearch, setAuditSearch] = useState('');
   const [auditRoleFilter, setAuditRoleFilter] = useState<string>('all');
@@ -969,6 +970,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   </div>
                   <button onClick={() => setExportSuccess(false)} className="text-white hover:opacity-80">
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              )}
+              {/* Registration Success Notification */}
+              {recentRegisteredName && (
+                <div className="bg-emerald-600 text-white p-4 rounded-xl shadow-lg flex items-center justify-between animate-fadeIn mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <div>
+                      <h4 className="font-bold text-sm">Student Successfully Registered!</h4>
+                      <p className="text-xs text-white/90">
+                        <strong>{recentRegisteredName}</strong> has been saved and placed at <strong>Rank #1</strong> on your Top Academic Performers table below.
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => setRecentRegisteredName(null)} className="text-white hover:opacity-80">
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
@@ -3264,7 +3282,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <NewRecordModal
         isOpen={isNewRecordModalOpen}
         onClose={() => setIsNewRecordModalOpen(false)}
-        onAddRecord={onAddRecord}
+        onAddRecord={(type, name, detail) => {
+          setRecentRegisteredName(name);
+          setActiveTab('dashboard');
+          onAddRecord(type, name, detail);
+        }}
       />
     </div>
   );
