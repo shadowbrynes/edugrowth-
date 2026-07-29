@@ -24,16 +24,6 @@ export interface PoliceOfficer {
   qualifications: string[];
 }
 
-export interface AuditLog {
-  timestamp: string;
-  admin: string;
-  action: string;
-  officer: string;
-  prevValue: string;
-  newValue: string;
-  reason: string;
-}
-
 const RANK_HIERARCHY: Record<string, number> = {
   'CP': 1, 'DCP': 2, 'ACP': 3,
   'CSP': 4, 'SP': 5, 'DSP': 6,
@@ -332,12 +322,11 @@ const INITIAL_OFFICERS: PoliceOfficer[] = [
 ];
 
 export const PoliceMasterRoll: React.FC = () => {
-  const [officers, setOfficers] = useState<PoliceOfficer[]>(INITIAL_OFFICERS);
+  const [officers] = useState<PoliceOfficer[]>(INITIAL_OFFICERS);
   const [currentTab, setCurrentTab] = useState<string>('MASTER_ROLL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [rankFilter, setRankFilter] = useState<string>('ALL');
   const [zoneFilter, setZoneFilter] = useState<string>('ALL');
-  const [stateFilter, setStateFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<string>('SENIORITY');
   const [selectedOfficer, setSelectedOfficer] = useState<PoliceOfficer | null>(null);
@@ -368,7 +357,6 @@ export const PoliceMasterRoll: React.FC = () => {
 
     const matchRank = rankFilter === 'ALL' || off.rank === rankFilter;
     const matchZone = zoneFilter === 'ALL' || off.zone === zoneFilter;
-    const matchState = stateFilter === 'ALL' || off.state === stateFilter;
     const matchStatus = statusFilter === 'ALL' || off.status === statusFilter;
 
     const q = searchQuery.toLowerCase();
@@ -380,7 +368,7 @@ export const PoliceMasterRoll: React.FC = () => {
       off.zone.toLowerCase().includes(q) ||
       off.location.toLowerCase().includes(q);
 
-    return matchTab && matchRank && matchZone && matchState && matchStatus && matchSearch;
+    return matchTab && matchRank && matchZone && matchStatus && matchSearch;
   });
 
   // Sort
@@ -395,7 +383,7 @@ export const PoliceMasterRoll: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 p-4 md:p-6 space-y-6 font-sans">
       
-      <!-- Top Title Header -->
+      {/* Top Title Header */}
       <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div>
           <div className="flex items-center gap-2 text-emerald-400 text-xs font-black tracking-widest uppercase">
@@ -404,66 +392,66 @@ export const PoliceMasterRoll: React.FC = () => {
           <h1 className="text-xl md:text-2xl font-black text-white uppercase mt-1">
             AUTHORISED PERSONNEL & COMMAND DIRECTORY
           </h1>
-          <p class="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Complete dynamic database of police personnel across all 17 Zonal Commands, Seaports, Airports, and Counter-IED Frontlines.
           </p>
         </div>
 
-        <button onClick={() => window.print()} class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2">
+        <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2">
           <span>🖨️ PRINT DIRECTORY</span>
         </button>
       </div>
 
-      <!-- Dynamic Summary Cards Bar -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-11 gap-2 text-xs">
-        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-          <span class="text-[9px] text-slate-400 font-bold uppercase block">TOTAL OFFICERS</span>
-          <span class="text-xl font-black text-white font-mono">{totalCount}</span>
+      {/* Dynamic Summary Cards Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-11 gap-2 text-xs">
+        <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <span className="text-[9px] text-slate-400 font-bold uppercase block">TOTAL OFFICERS</span>
+          <span className="text-xl font-black text-white font-mono">{totalCount}</span>
         </div>
-        <div class="bg-slate-900 border border-amber-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-amber-400 font-bold uppercase block">STRATEGIC COMMAND</span>
-          <span class="text-xl font-black text-amber-400 font-mono">{acpCpCount}</span>
+        <div className="bg-slate-900 border border-amber-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-amber-400 font-bold uppercase block">STRATEGIC COMMAND</span>
+          <span className="text-xl font-black text-amber-400 font-mono">{acpCpCount}</span>
         </div>
-        <div class="bg-slate-900 border border-sky-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-sky-400 font-bold uppercase block">SENIOR OFFICERS</span>
-          <span class="text-xl font-black text-sky-400 font-mono">{dspCspCount}</span>
+        <div className="bg-slate-900 border border-sky-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-sky-400 font-bold uppercase block">SENIOR OFFICERS</span>
+          <span className="text-xl font-black text-sky-400 font-mono">{dspCspCount}</span>
         </div>
-        <div class="bg-slate-900 border border-emerald-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-emerald-400 font-bold uppercase block">ASSISTANT SUPTS</span>
-          <span class="text-xl font-black text-emerald-400 font-mono">{aspCount}</span>
+        <div className="bg-slate-900 border border-emerald-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-emerald-400 font-bold uppercase block">ASSISTANT SUPTS</span>
+          <span className="text-xl font-black text-emerald-400 font-mono">{aspCount}</span>
         </div>
-        <div class="bg-slate-900 border border-purple-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-purple-400 font-bold uppercase block">INSPECTORS</span>
-          <span class="text-xl font-black text-purple-400 font-mono">{insprCount}</span>
+        <div className="bg-slate-900 border border-purple-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-purple-400 font-bold uppercase block">INSPECTORS</span>
+          <span className="text-xl font-black text-purple-400 font-mono">{insprCount}</span>
         </div>
-        <div class="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-indigo-400 font-bold uppercase block">SERGEANTS</span>
-          <span class="text-xl font-black text-indigo-400 font-mono">{sgtCount}</span>
+        <div className="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-indigo-400 font-bold uppercase block">SERGEANTS</span>
+          <span className="text-xl font-black text-indigo-400 font-mono">{sgtCount}</span>
         </div>
-        <div class="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-indigo-400 font-bold uppercase block">CORPORALS</span>
-          <span class="text-xl font-black text-indigo-300 font-mono">{cplCount}</span>
+        <div className="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-indigo-400 font-bold uppercase block">CORPORALS</span>
+          <span className="text-xl font-black text-indigo-300 font-mono">{cplCount}</span>
         </div>
-        <div class="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
-          <span class="text-[9px] text-indigo-400 font-bold uppercase block">CONSTABLES</span>
-          <span class="text-xl font-black text-indigo-200 font-mono">{pcCount}</span>
+        <div className="bg-slate-900 border border-indigo-500/30 p-2.5 rounded-xl">
+          <span className="text-[9px] text-indigo-400 font-bold uppercase block">CONSTABLES</span>
+          <span className="text-xl font-black text-indigo-200 font-mono">{pcCount}</span>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-          <span class="text-[9px] text-slate-400 font-bold uppercase block">COMMANDS</span>
-          <span class="text-xl font-black text-teal-400 font-mono">{uniqueCommands}</span>
+        <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <span className="text-[9px] text-slate-400 font-bold uppercase block">COMMANDS</span>
+          <span className="text-xl font-black text-teal-400 font-mono">{uniqueCommands}</span>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-          <span class="text-[9px] text-slate-400 font-bold uppercase block">ZONES</span>
-          <span class="text-xl font-black text-teal-400 font-mono">{uniqueZones}</span>
+        <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <span className="text-[9px] text-slate-400 font-bold uppercase block">ZONES</span>
+          <span className="text-xl font-black text-teal-400 font-mono">{uniqueZones}</span>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-          <span class="text-[9px] text-slate-400 font-bold uppercase block">FORMATIONS</span>
-          <span class="text-xl font-black text-teal-400 font-mono">{uniqueFormations}</span>
+        <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <span className="text-[9px] text-slate-400 font-bold uppercase block">FORMATIONS</span>
+          <span className="text-xl font-black text-teal-400 font-mono">{uniqueFormations}</span>
         </div>
       </div>
 
-      <!-- Module Navigation Tabs -->
-      <div class="flex gap-2 overflow-x-auto text-xs pb-1 border-b border-slate-800">
+      {/* Module Navigation Tabs */}
+      <div className="flex gap-2 overflow-x-auto text-xs pb-1 border-b border-slate-800">
         {[
           { id: 'MASTER_ROLL', label: '1. MASTER ROLL' },
           { id: 'ACP-CP', label: '2. 👑 STRATEGIC COMMAND' },
@@ -488,9 +476,9 @@ export const PoliceMasterRoll: React.FC = () => {
       </div>
 
       {currentTab !== 'BASES' && (
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
           <div>
-            <label class="text-[10px] text-emerald-400 font-black block mb-1 uppercase">GLOBAL PROMINENT SEARCH BAR:</label>
+            <label className="text-[10px] text-emerald-400 font-black block mb-1 uppercase">GLOBAL PROMINENT SEARCH BAR:</label>
             <input
               type="text"
               value={searchQuery}
@@ -500,10 +488,10 @@ export const PoliceMasterRoll: React.FC = () => {
             />
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
             <div>
-              <label class="text-[9px] text-slate-400 block mb-1 font-bold">RANK:</label>
-              <select value={rankFilter} onChange={e => setRankFilter(e.target.value)} class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1 font-mono">
+              <label className="text-[9px] text-slate-400 block mb-1 font-bold">RANK:</label>
+              <select value={rankFilter} onChange={e => setRankFilter(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1 font-mono">
                 <option value="ALL">ALL RANKS</option>
                 <option value="CP">CP</option>
                 <option value="DCP">DCP</option>
@@ -521,8 +509,8 @@ export const PoliceMasterRoll: React.FC = () => {
             </div>
 
             <div>
-              <label class="text-[9px] text-slate-400 block mb-1 font-bold">ZONE:</label>
-              <select value={zoneFilter} onChange={e => setZoneFilter(e.target.value)} class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
+              <label className="text-[9px] text-slate-400 block mb-1 font-bold">ZONE:</label>
+              <select value={zoneFilter} onChange={e => setZoneFilter(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
                 <option value="ALL">ALL ZONES</option>
                 <option value="Zone 1 Kano">Zone 1 (Kano)</option>
                 <option value="Zone 2 Lagos">Zone 2 (Lagos)</option>
@@ -533,8 +521,8 @@ export const PoliceMasterRoll: React.FC = () => {
             </div>
 
             <div>
-              <label class="text-[9px] text-slate-400 block mb-1 font-bold">STATUS:</label>
-              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
+              <label className="text-[9px] text-slate-400 block mb-1 font-bold">STATUS:</label>
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
                 <option value="ALL">ALL STATUSES</option>
                 <option value="ACTIVE_READY">ACTIVE & READY</option>
                 <option value="FIELD_DEPLOYED">FIELD DEPLOYED</option>
@@ -543,16 +531,16 @@ export const PoliceMasterRoll: React.FC = () => {
             </div>
 
             <div>
-              <label class="text-[9px] text-slate-400 block mb-1 font-bold">SORT BY:</label>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)} class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
+              <label className="text-[9px] text-slate-400 block mb-1 font-bold">SORT BY:</label>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded px-2 py-1">
                 <option value="SENIORITY">SENIORITY (RANK HIERARCHY)</option>
                 <option value="NAME_ASC">ALPHABETICAL (A-Z)</option>
                 <option value="APPOINTMENT_DATE">APPOINTMENT DATE</option>
               </select>
             </div>
 
-            <div class="flex items-end">
-              <button onClick={() => { setSearchQuery(''); setRankFilter('ALL'); setZoneFilter('ALL'); setStatusFilter('ALL'); setSortBy('SENIORITY'); }} class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1 rounded text-xs">
+            <div className="flex items-end">
+              <button onClick={() => { setSearchQuery(''); setRankFilter('ALL'); setZoneFilter('ALL'); setStatusFilter('ALL'); setSortBy('SENIORITY'); }} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1 rounded text-xs">
                 RESET FILTERS
               </button>
             </div>
@@ -560,54 +548,54 @@ export const PoliceMasterRoll: React.FC = () => {
         </div>
       )}
 
-      <!-- Master Roll Table -->
+      {/* Master Roll Table */}
       {currentTab !== 'BASES' ? (
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-950 text-slate-400 uppercase text-[11px] border-b border-slate-800 font-mono">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[11px] border-b border-slate-800 font-mono">
                 <tr>
-                  <th class="p-3.5 w-12 text-center">S/N</th>
-                  <th class="p-3.5">Photo & Officer Name</th>
-                  <th class="p-3.5">Service No</th>
-                  <th class="p-3.5">Rank & Tier</th>
-                  <th class="p-3.5">Command & Formation</th>
-                  <th class="p-3.5">Duty Location</th>
-                  <th class="p-3.5">Status</th>
-                  <th class="p-3.5 text-right">Action</th>
+                  <th className="p-3.5 w-12 text-center">S/N</th>
+                  <th className="p-3.5">Photo & Officer Name</th>
+                  <th className="p-3.5">Service No</th>
+                  <th className="p-3.5">Rank & Tier</th>
+                  <th className="p-3.5">Command & Formation</th>
+                  <th className="p-3.5">Duty Location</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-800/80 font-mono">
+              <tbody className="divide-y divide-slate-800/80 font-mono">
                 {filtered.map((off, idx) => (
-                  <tr key={off.id} class="hover:bg-slate-800/50 transition">
-                    <td class="p-3.5 text-center text-slate-500 font-bold">{idx + 1}</td>
-                    <td class="p-3.5">
-                      <div class="flex items-center gap-3">
-                        <img src={off.photo} alt={off.name} class="w-9 h-9 rounded-full object-cover border border-slate-700" />
+                  <tr key={off.id} className="hover:bg-slate-800/50 transition">
+                    <td className="p-3.5 text-center text-slate-500 font-bold">{idx + 1}</td>
+                    <td className="p-3.5">
+                      <div className="flex items-center gap-3">
+                        <img src={off.photo} alt={off.name} className="w-9 h-9 rounded-full object-cover border border-slate-700" />
                         <div>
-                          <div class="font-extrabold text-white text-xs font-sans">{off.name}</div>
-                          <div class="text-[10px] text-slate-400 font-sans">{off.role}</div>
+                          <div className="font-extrabold text-white text-xs font-sans">{off.name}</div>
+                          <div className="text-[10px] text-slate-400 font-sans">{off.role}</div>
                         </div>
                       </div>
                     </td>
-                    <td class="p-3.5 font-bold text-sky-400">{off.serviceNo}</td>
-                    <td class="p-3.5">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <td className="p-3.5 font-bold text-sky-400">{off.serviceNo}</td>
+                    <td className="p-3.5">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                         {off.rank} ({deriveCategory(off.rank)})
                       </span>
                     </td>
-                    <td class="p-3.5">
-                      <div class="font-bold text-emerald-400 text-xs font-sans">{off.command}</div>
-                      <div class="text-[9px] text-slate-400 font-sans">{off.formation}</div>
+                    <td className="p-3.5">
+                      <div className="font-bold text-emerald-400 text-xs font-sans">{off.command}</div>
+                      <div className="text-[9px] text-slate-400 font-sans">{off.formation}</div>
                     </td>
-                    <td class="p-3.5 text-slate-300 font-sans">{off.location}</td>
-                    <td class="p-3.5">
-                      <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[9px] font-bold">
+                    <td className="p-3.5 text-slate-300 font-sans">{off.location}</td>
+                    <td className="p-3.5">
+                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[9px] font-bold">
                         {off.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td class="p-3.5 text-right">
-                      <button onClick={() => setSelectedOfficer(off)} class="bg-slate-800 hover:bg-slate-700 text-sky-400 px-3 py-1 rounded text-[11px] font-extrabold border border-slate-700">
+                    <td className="p-3.5 text-right">
+                      <button onClick={() => setSelectedOfficer(off)} className="bg-slate-800 hover:bg-slate-700 text-sky-400 px-3 py-1 rounded text-[11px] font-extrabold border border-slate-700">
                         VIEW PROFILE
                       </button>
                     </td>
@@ -618,38 +606,38 @@ export const PoliceMasterRoll: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
-            <h3 class="text-sm font-bold text-emerald-400">17 ZONAL COMMAND HEADQUARTERS</h3>
-            <p class="text-xs text-slate-400">Zones 1 to 17 covering Kano, Lagos, Calabar, Abuja, Awka, Maiduguri, etc.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+            <h3 className="text-sm font-bold text-emerald-400">17 ZONAL COMMAND HEADQUARTERS</h3>
+            <p className="text-xs text-slate-400">Zones 1 to 17 covering Kano, Lagos, Calabar, Abuja, Awka, Maiduguri, etc.</p>
           </div>
-          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
-            <h3 class="text-sm font-bold text-sky-400">SEAPORT & AVIATION FORMATIONS</h3>
-            <p class="text-xs text-slate-400">Apapa Sea Port, Tin Can Island Port, Onne Deep Sea Port, MMIA Lagos, NAIA Abuja.</p>
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+            <h3 className="text-sm font-bold text-sky-400">SEAPORT & AVIATION FORMATIONS</h3>
+            <p className="text-xs text-slate-400">Apapa Sea Port, Tin Can Island Port, Onne Deep Sea Port, MMIA Lagos, NAIA Abuja.</p>
           </div>
         </div>
       )}
 
-      <!-- Profile Modal -->
+      {/* Profile Modal */}
       {selectedOfficer && (
-        <div class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
-          <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 class="text-base font-black text-white">{selectedOfficer.name} ({selectedOfficer.serviceNo})</h3>
-              <button onClick={() => setSelectedOfficer(null)} class="bg-emerald-600 hover:bg-emerald-500 text-black font-extrabold px-3 py-1 rounded text-xs">
+        <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white">{selectedOfficer.name} ({selectedOfficer.serviceNo})</h3>
+              <button onClick={() => setSelectedOfficer(null)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-extrabold px-3 py-1 rounded text-xs">
                 BACK TO MASTER ROLL
               </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 text-xs">
-              <div><span class="text-slate-400">Rank:</span> <span class="font-bold text-white">{selectedOfficer.rank}</span></div>
-              <div><span class="text-slate-400">Command:</span> <span class="font-bold text-emerald-400">{selectedOfficer.command}</span></div>
-              <div><span class="text-slate-400">Duty Location:</span> <span class="font-bold text-sky-400">{selectedOfficer.location}</span></div>
-              <div><span class="text-slate-400">Specialisation:</span> <span class="font-bold text-amber-400">{selectedOfficer.specialisation}</span></div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div><span className="text-slate-400">Rank:</span> <span className="font-bold text-white">{selectedOfficer.rank}</span></div>
+              <div><span className="text-slate-400">Command:</span> <span className="font-bold text-emerald-400">{selectedOfficer.command}</span></div>
+              <div><span className="text-slate-400">Duty Location:</span> <span className="font-bold text-sky-400">{selectedOfficer.location}</span></div>
+              <div><span className="text-slate-400">Specialisation:</span> <span className="font-bold text-amber-400">{selectedOfficer.specialisation}</span></div>
             </div>
 
-            <div class="pt-3 border-t border-slate-800 flex justify-end">
-              <button onClick={() => setSelectedOfficer(null)} class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded text-xs">
+            <div className="pt-3 border-t border-slate-800 flex justify-end">
+              <button onClick={() => setSelectedOfficer(null)} className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded text-xs">
                 CLOSE
               </button>
             </div>
