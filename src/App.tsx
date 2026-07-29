@@ -14,6 +14,7 @@ import { TranscriptView } from './components/TranscriptView';
 import { StudentPortal } from './components/StudentPortal';
 import { ShareAchievementModal } from './components/modals/ShareAchievementModal';
 import { TranscriptVerificationPortal } from './components/TranscriptVerificationPortal';
+import { PoliceMasterRoll } from './components/PoliceMasterRoll';
 
 // Firebase Integrations
 import { doc, setDoc, onSnapshot, collection, deleteDoc, query, where, getDocs } from 'firebase/firestore';
@@ -782,6 +783,10 @@ export default function App() {
             selectedSession={selectedSession}
             schoolProfile={schoolProfile}
           />
+        )}
+
+        {currentView === 'police_master_roll' && (
+          <PoliceMasterRoll />
         )}
       </main>
 
