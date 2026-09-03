@@ -10,6 +10,7 @@ interface ExcelMindHeaderProps {
   onToggleDarkMode: () => void;
   onOpenMobileMenu: () => void;
   unreadCount?: number;
+  onSignOut?: () => void;
 }
 
 export const ExcelMindHeader: React.FC<ExcelMindHeaderProps> = ({
@@ -20,7 +21,8 @@ export const ExcelMindHeader: React.FC<ExcelMindHeaderProps> = ({
   isDarkMode,
   onToggleDarkMode,
   onOpenMobileMenu,
-  unreadCount = 3
+  unreadCount = 3,
+  onSignOut
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -252,6 +254,17 @@ export const ExcelMindHeader: React.FC<ExcelMindHeaderProps> = ({
                 </div>
               </div>
             </div>
+
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="px-2.5 py-1.5 rounded-lg text-indigo-200 hover:text-white hover:bg-white/10 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                title="Sign Out / Switch Account"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                <span className="hidden xl:inline text-[11px]">Sign Out</span>
+              </button>
+            )}
 
           </div>
 

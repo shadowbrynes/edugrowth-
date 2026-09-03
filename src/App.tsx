@@ -26,9 +26,15 @@ import { ParentPortalView } from './components/excelmind/ParentPortalView';
 import { AdminPortalView } from './components/excelmind/AdminPortalView';
 import { ProfileSettingsView } from './components/excelmind/ProfileSettingsView';
 
+// Authentication Pages
+import { Login } from './pages/Login';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { clearAuthToken } from './services/api';
+
 export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
+  const [authScreen, setAuthScreen] = useState<'login' | 'forgot_password' | null>(null);
   const [selectedSession, setSelectedSession] = useState<string>('2025/2026 Term 1');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('excelmind_theme') === 'dark';
@@ -72,31 +78,55 @@ export default function App() {
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+        onSignOut={() => {
+          clearAuthToken();
+          setAuthScreen('login');
+        }}
       />
 
       {/* 2. Main Layout Container: Sidebar + Content Canvas */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
         
-        {/* Left Responsive Navigation Sidebar */}
-        <ExcelMindSidebar
-          activeModule={activeModule}
-          onSelectModule={(mod) => {
-            setActiveModule(mod);
-            setIsMobileMenuOpen(false);
-          }}
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          currentRole={currentRole}
-        />
+        {/* Left Responsive Navigation Sidebar (Hidden during Auth Screens) */}
+        {!authScreen && (
+          <ExcelMindSidebar
+            activeModule={activeModule}
+            onSelectModule={(mod) => {
+              setActiveModule(mod);
+              setIsMobileMenuOpen(false);
+            }}
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            currentRole={currentRole}
+          />
+        )}
 
         {/* Center Main Stage Content Canvas */}
         <main className="flex-1 min-w-0 px-3 sm:px-6 lg:px-8 py-6">
           
-          {/* TEACHER ROLE VIEW */}
-          {currentRole === 'teacher' && <TeacherPortalView />}
+          {/* AUTHENTICATION SCREENS */}
+          {authScreen === 'login' && (
+            <Login
+              onLoginSuccess={(user, role) => {
+                setCurrentRole(role);
+                setAuthScreen(null);
+              }}
+              onNavigateForgotPassword={() => setAuthScreen('forgot_password')}
+            />
+          )}
 
-          {/* PARENT ROLE VIEW */}
-          {currentRole === 'parent' && (
+          {authScreen === 'forgot_password' && (
+            <ForgotPassword onBackToLogin={() => setAuthScreen('login')} />
+          )}
+
+          {/* MAIN PLATFORM WORKSPACES */}
+          {!authScreen && (
+            <>
+              {/* TEACHER ROLE VIEW */}
+              {currentRole === 'teacher' && <TeacherPortalView />}
+
+              {/* PARENT ROLE VIEW */}
+              {currentRole === 'parent' && (
             <ParentPortalView
               student={CURRENT_STUDENT}
               onNavigateToMessages={() => {
@@ -157,6 +187,8 @@ export default function App() {
                 />
               )}
             </>
+          )}
+          </>
           )}
 
         </main>
