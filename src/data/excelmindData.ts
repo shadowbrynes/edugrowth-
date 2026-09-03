@@ -15,7 +15,8 @@ export const CURRENT_STUDENT: StudentProfile = {
   name: 'John Doe',
   email: 'john.doe@excelmind.edu.ng',
   class: 'SSS 3 Gold',
-  department: 'Science & Technology',
+  academicLevel: 'SS3',
+  department: 'Science',
   parent_id: 'PRT-9021',
   parentName: 'Engr. Michael Doe',
   avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80',
@@ -28,7 +29,9 @@ export const CURRENT_STUDENT: StudentProfile = {
   cbtAverageScore: 78,
   rank: 3,
   totalInClass: 42,
-  conduct: 'Exemplary discipline, high intellectual curiosity, and outstanding peer leadership.'
+  conduct: 'Exemplary discipline, high intellectual curiosity, and outstanding peer leadership.',
+  studyStreakDays: 14,
+  rewardPoints: 1250
 };
 
 export const TIMETABLE_DATA: TimetableSlot[] = [
@@ -829,3 +832,412 @@ export const FORUM_TOPICS_DATA: ForumTopic[] = [
     content: 'Remember: the alkyl group attached to oxygen comes first (e.g. ethyl), followed by the alkanoate chain derived from the carboxylic acid parent.'
   }
 ];
+
+// =============================================================================
+// NIGERIAN CURRICULUM FRAMEWORK & AUTOMATION DATA (NERDC / WAEC / JAMB / BECE)
+// =============================================================================
+
+export const NERDC_CURRICULUM_FRAMEWORK = {
+  basicEducation: {
+    name: 'Basic Education Curriculum (BEC)',
+    levels: ['JSS1', 'JSS2', 'JSS3'],
+    targetExam: 'BECE (Basic Education Certificate Examination)',
+    compulsoryCore: [
+      'English Studies',
+      'General Mathematics',
+      'Basic Science & Technology',
+      'Social Studies',
+      'Civic Education',
+      'Cultural & Creative Arts (CCA)',
+      'Christian Religious Studies (CRS) / Islamic Religious Studies (IRS)',
+      'Physical & Health Education (PHE)',
+      'Computer Studies / ICT',
+      'French / Nigerian Languages'
+    ]
+  },
+  seniorSecondary: {
+    name: 'Senior Secondary Education Curriculum',
+    levels: ['SS1', 'SS2', 'SS3'],
+    targetExams: ['WAEC WASSCE', 'NECO SSCE', 'JAMB UTME'],
+    crossCuttingCore: [
+      'English Language',
+      'General Mathematics',
+      'Civic Education',
+      'Trade / Entrepreneurship Subject'
+    ]
+  }
+};
+
+export const DEPARTMENT_SUBJECT_COMBINATIONS = {
+  Science: {
+    departmentName: 'Science & Technology',
+    focus: 'Engineering, Medicine, Computing, Physical & Biological Sciences',
+    recommendedSubjects: [
+      { name: 'English Language', code: 'ENG 301', compulsory: true, board: 'WAEC' },
+      { name: 'General Mathematics', code: 'MTH 301', compulsory: true, board: 'WAEC' },
+      { name: 'Physics', code: 'PHY 302', compulsory: true, board: 'WAEC' },
+      { name: 'Chemistry', code: 'CHM 303', compulsory: true, board: 'WAEC' },
+      { name: 'Biology', code: 'BIO 304', compulsory: true, board: 'WAEC' },
+      { name: 'Further Mathematics', code: 'FMTH 305', compulsory: false, board: 'WAEC' },
+      { name: 'Computer Studies', code: 'CSC 306', compulsory: false, board: 'WAEC' },
+      { name: 'Agricultural Science', code: 'AGR 307', compulsory: false, board: 'WAEC' },
+      { name: 'Civic Education', code: 'CIV 308', compulsory: true, board: 'WAEC' }
+    ]
+  },
+  Commercial: {
+    departmentName: 'Business & Commercial Studies',
+    focus: 'Accounting, Banking, Finance, Business Administration, Marketing',
+    recommendedSubjects: [
+      { name: 'English Language', code: 'ENG 301', compulsory: true, board: 'WAEC' },
+      { name: 'General Mathematics', code: 'MTH 301', compulsory: true, board: 'WAEC' },
+      { name: 'Financial Accounting', code: 'ACC 301', compulsory: true, board: 'WAEC' },
+      { name: 'Commerce', code: 'COM 302', compulsory: true, board: 'WAEC' },
+      { name: 'Economics', code: 'ECO 303', compulsory: true, board: 'WAEC' },
+      { name: 'Marketing', code: 'MKT 304', compulsory: false, board: 'WAEC' },
+      { name: 'Government', code: 'GOV 305', compulsory: false, board: 'WAEC' },
+      { name: 'Civic Education', code: 'CIV 308', compulsory: true, board: 'WAEC' }
+    ]
+  },
+  Arts: {
+    departmentName: 'Humanities & Social Sciences',
+    focus: 'Law, International Relations, Mass Communication, Political Science',
+    recommendedSubjects: [
+      { name: 'English Language', code: 'ENG 301', compulsory: true, board: 'WAEC' },
+      { name: 'General Mathematics', code: 'MTH 301', compulsory: true, board: 'WAEC' },
+      { name: 'Literature in English', code: 'LIT 301', compulsory: true, board: 'WAEC' },
+      { name: 'Government', code: 'GOV 305', compulsory: true, board: 'WAEC' },
+      { name: 'Christian Religious Studies (CRS)', code: 'CRS 302', compulsory: false, board: 'WAEC' },
+      { name: 'History', code: 'HIS 303', compulsory: false, board: 'WAEC' },
+      { name: 'Economics', code: 'ECO 303', compulsory: false, board: 'WAEC' },
+      { name: 'Geography', code: 'GEO 304', compulsory: false, board: 'WAEC' },
+      { name: 'Civic Education', code: 'CIV 308', compulsory: true, board: 'WAEC' }
+    ]
+  }
+};
+
+export const CURRICULUM_TOPICS_DATA = [
+  // SS2 / SS3 Physics
+  {
+    id: 'ct-phy-01',
+    subject: 'Physics',
+    academicLevel: 'SS2' as const,
+    department: 'Science' as const,
+    term: 'Term 1' as const,
+    week: 1,
+    title: 'Kinematics & Rectilinear Acceleration',
+    nerdcCode: 'NERDC-SS2-PHY-001',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Equations of uniformly accelerated motion', 'Velocity-time graphs', 'Projectiles at an angle', 'Maximum height and range']
+  },
+  {
+    id: 'ct-phy-02',
+    subject: 'Physics',
+    academicLevel: 'SS3' as const,
+    department: 'Science' as const,
+    term: 'Term 1' as const,
+    week: 2,
+    title: 'Electromagnetic Induction & Transformers',
+    nerdcCode: 'NERDC-SS3-PHY-004',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Faradays Law', 'Lenzs Law', 'Eddy Currents', 'Step-up and step-down transformers', 'Power transmission efficiency']
+  },
+  // SS2 / SS3 Mathematics
+  {
+    id: 'ct-mth-01',
+    subject: 'General Mathematics',
+    academicLevel: 'SS2' as const,
+    department: 'Science' as const,
+    term: 'Term 1' as const,
+    week: 3,
+    title: 'Quadratic Equations & Parabolic Functions',
+    nerdcCode: 'NERDC-SS2-MTH-003',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Factorization', 'Completing the square method', 'Quadratic formula', 'Roots of quadratic equations', 'Graph of parabola']
+  },
+  {
+    id: 'ct-mth-02',
+    subject: 'General Mathematics',
+    academicLevel: 'SS3' as const,
+    department: 'Science' as const,
+    term: 'Term 1' as const,
+    week: 4,
+    title: 'Matrices and Determinants in Simultaneous Linear Systems',
+    nerdcCode: 'NERDC-SS3-MTH-006',
+    examWeight: 'High' as const,
+    targetExam: 'JAMB' as const,
+    subtopics: ['2x2 and 3x3 matrices', 'Determinants via minors', 'Inverse matrix', 'Cramers Rule for systems of equations']
+  },
+  // SS2 Chemistry
+  {
+    id: 'ct-chm-01',
+    subject: 'Chemistry',
+    academicLevel: 'SS2' as const,
+    department: 'Science' as const,
+    term: 'Term 1' as const,
+    week: 5,
+    title: 'Atomic Structure, Periodic Trends & Chemical Bonding',
+    nerdcCode: 'NERDC-SS2-CHM-002',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Aufbau Principle and Hunds rule', 'Ionization energy trends', 'Electronegativity', 'Ionic vs Covalent bonds', 'Hybridization sp, sp2, sp3']
+  },
+  // Commercial
+  {
+    id: 'ct-acc-01',
+    subject: 'Financial Accounting',
+    academicLevel: 'SS2' as const,
+    department: 'Commercial' as const,
+    term: 'Term 1' as const,
+    week: 2,
+    title: 'Bank Reconciliation Statements',
+    nerdcCode: 'NERDC-SS2-ACC-004',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Cash book adjustments', 'Unpresented cheques', 'Direct credits and debits', 'Bank statement reconciliation']
+  },
+  // Arts
+  {
+    id: 'ct-lit-01',
+    subject: 'Literature in English',
+    academicLevel: 'SS3' as const,
+    department: 'Arts' as const,
+    term: 'Term 1' as const,
+    week: 3,
+    title: 'African Drama: Analysis of Selected Playwright Texts',
+    nerdcCode: 'NERDC-SS3-LIT-001',
+    examWeight: 'High' as const,
+    targetExam: 'WAEC' as const,
+    subtopics: ['Characterization and themes', 'Dramatic techniques and irony', 'Contextual analysis of historical settings']
+  }
+];
+
+export const GENERATED_LESSONS_DATA = [
+  {
+    id: 'gen-les-101',
+    classLevel: 'SS2' as const,
+    subject: 'Physics',
+    topic: 'Motion & Kinematics',
+    duration: '40 minutes',
+    status: 'Approved' as const,
+    author: 'Dr. Kenneth Okon (Form Tutor)',
+    reviewedBy: 'Vice Principal Academic',
+    aiConfidenceScore: 96,
+    learningObjectives: [
+      'Derive the three fundamental equations of uniformly accelerated motion',
+      'Interpret slope and area under velocity-time graphs',
+      'Solve two-dimensional projectile problems including maximum height and range'
+    ],
+    lessonPlan: '1. Introduction (5 mins) -> 2. Velocity-Time Graph Analysis (12 mins) -> 3. Equation Derivations (10 mins) -> 4. Worked Problem (8 mins) -> 5. Formative Quiz (5 mins)',
+    teacherNotes: 'Emphasize that the negative sign in acceleration denotes deceleration or retarding force against gravitational field g = 9.8 m/s².',
+    studentNotes: 'Key formulas: v = u + at, s = ut + 0.5at², v² = u² + 2as. Remember area under velocity-time curve equals displacement s.',
+    examples: [
+      {
+        problem: 'A car travelling at 20 m/s decelerates uniformly to rest in 5 seconds. Calculate the distance covered before stopping.',
+        solution: 'u = 20 m/s, v = 0 m/s, t = 5 s. Using s = ((u + v) / 2) * t = ((20 + 0) / 2) * 5 = 10 * 5 = 50 metres.'
+      }
+    ],
+    classActivities: [
+      'In pairs, calculate your reaction time using a falling ruler experiment',
+      'Plot the velocity-time graph for a football kicked into the air'
+    ],
+    homework: 'Complete Exercises 4.1 to 4.5 in Senior Secondary Physics by P.N. Okeke, Page 82.',
+    quizQuestions: [
+      { question: 'What does the gradient of a displacement-time graph represent?', options: ['Acceleration', 'Velocity', 'Force', 'Momentum'], answer: 'Velocity' },
+      { question: 'A body dropped from rest falls under gravity for 3 seconds (g = 10 m/s²). What is its final velocity?', options: ['15 m/s', '30 m/s', '45 m/s', '60 m/s'], answer: '30 m/s' }
+    ],
+    cbtQuestions: [
+      {
+        question: 'Which of the following is true for a projectile launched at an angle of 45 degrees to the horizontal?',
+        options: ['Range is maximum', 'Height is maximum', 'Flight time is zero', 'Horizontal velocity is zero at peak'],
+        answer: 'Range is maximum',
+        rationale: 'Sin(2θ) is maximized at θ = 45° where sin(90°) = 1.'
+      }
+    ],
+    revisionSummary: 'Uniform acceleration implies constant rate of change of velocity. Graph slope = acceleration, Area = displacement.',
+    createdAt: '2025-09-20'
+  },
+  {
+    id: 'gen-les-102',
+    classLevel: 'SS3' as const,
+    subject: 'General Mathematics',
+    topic: 'Quadratic Equations & Parabolic Roots',
+    duration: '40 minutes',
+    status: 'Published' as const,
+    author: 'Mrs. Folashade Adeleke',
+    reviewedBy: 'Curriculum Director',
+    aiConfidenceScore: 98,
+    learningObjectives: [
+      'Demonstrate factorization and completing the square for ax² + bx + c = 0',
+      'Examine the discriminant b² - 4ac to determine nature of roots',
+      'Solve practical word problems involving parabolic trajectories'
+    ],
+    lessonPlan: '1. Warm-up expansion (5 mins) -> 2. Quadratic formula derivation (15 mins) -> 3. Nature of roots analysis (10 mins) -> 4. Practical exercises (10 mins)',
+    teacherNotes: 'Guide students to verify roots by calculating sum (α + β = -b/a) and product (αβ = c/a).',
+    studentNotes: 'Formula: x = (-b ± √(b² - 4ac)) / 2a. If b² - 4ac > 0 (two real distinct roots), = 0 (two equal roots), < 0 (complex roots).',
+    examples: [
+      {
+        problem: 'Solve 2x² - 5x + 2 = 0.',
+        solution: 'a = 2, b = -5, c = 2. Factors of 4 that sum to -5 are -4 and -1. 2x² - 4x - x + 2 = 0 => 2x(x - 2) - 1(x - 2) = 0 => (2x - 1)(x - 2) = 0 => x = 1/2 or x = 2.'
+      }
+    ],
+    classActivities: ['Formulate quadratic equations given roots 3 and -7 in groups of 3'],
+    homework: 'Solve WAEC Past Questions 2018-2023 Section B on Quadratic Theory.',
+    quizQuestions: [
+      { question: 'If b² - 4ac = 0 in ax² + bx + c = 0, what can be said about the roots?', options: ['Real and equal', 'Real and unequal', 'Imaginary', 'Undefined'], answer: 'Real and equal' }
+    ],
+    cbtQuestions: [
+      {
+        question: 'Find the quadratic equation whose roots are 2 and -3.',
+        options: ['x² + x - 6 = 0', 'x² - x - 6 = 0', 'x² - 5x + 6 = 0', 'x² + 5x + 6 = 0'],
+        answer: 'x² + x - 6 = 0',
+        rationale: 'x² - (sum of roots)x + (product of roots) = 0 => x² - (2 + (-3))x + (2 * -3) = x² + x - 6 = 0.'
+      }
+    ],
+    revisionSummary: 'The discriminant determines root reality. Memorize the quadratic formula and sum/product rules for instant WAEC marks.',
+    createdAt: '2025-09-22'
+  }
+];
+
+export const AI_LEARNING_COACH_RECOMMENDATIONS = [
+  {
+    id: 'alc-01',
+    subject: 'Chemistry',
+    topic: 'Chemical Bonding & Hybridization',
+    studentCompletion: 30,
+    diagnosis: 'Student has completed only 30% of Chemistry lessons and scored 58% on covalent bonding quiz.',
+    actionPlan: 'Complete Atomic Structure & Electron Configuration Module before proceeding to Complex Hybridization.',
+    priority: 'high' as const,
+    suggestedAction: 'Start 15-min Remedial Video on sp, sp², sp³ orbital geometry'
+  },
+  {
+    id: 'alc-02',
+    subject: 'Physics',
+    topic: 'Alternating Current (A.C.) Circuits',
+    studentCompletion: 65,
+    diagnosis: 'Strong theoretical comprehension, but frequent errors on capacitive reactance Xc = 1/(2πfC) calculations.',
+    actionPlan: 'Review 5 worked numerical solutions on series R-L-C resonance before the mock examination.',
+    priority: 'medium' as const,
+    suggestedAction: 'Launch Worked Examples in Learning Hub'
+  },
+  {
+    id: 'alc-03',
+    subject: 'General Mathematics',
+    topic: 'Probability & Permutation',
+    studentCompletion: 88,
+    diagnosis: 'Consistently excelling (89% average). Recommended for National Mathematical Olympiad accelerated stream.',
+    actionPlan: 'Tackle advanced 3-set Venn diagrams and conditional Bayes Theorem problems.',
+    priority: 'normal' as const,
+    suggestedAction: 'Access Olympiad Challenge Bank'
+  }
+];
+
+export const REVISION_PLAN_DATA = {
+  examName: 'WAEC May/June Senior School Certificate Examination',
+  examDate: '15 May 2027',
+  daysLeft: 248,
+  targetAggregate: '8 Distinctions (A1/B2)',
+  weeks: [
+    {
+      weekNumber: 1,
+      weekRange: 'Oct 06 - Oct 12',
+      focus: 'Algebra, Mechanics & Stoichiometry',
+      subjects: [
+        { name: 'General Mathematics', topic: 'Quadratic Curves & Polynomials', hours: 4, completed: true },
+        { name: 'Physics', topic: 'Vectors & Equations of Motion', hours: 4, completed: true },
+        { name: 'Chemistry', topic: 'Periodic Trends & Mole Concept', hours: 3, completed: false }
+      ]
+    },
+    {
+      weekNumber: 2,
+      weekRange: 'Oct 13 - Oct 19',
+      focus: 'Calculus, Electromagnetism & Organic Chemistry',
+      subjects: [
+        { name: 'Further Mathematics', topic: 'Differentiation from First Principles', hours: 4, completed: false },
+        { name: 'Physics', topic: 'Faradays Induction & Transformers', hours: 4, completed: false },
+        { name: 'Chemistry', topic: 'Alkanes, Alkenes & Functional Groups', hours: 4, completed: false }
+      ]
+    },
+    {
+      weekNumber: 3,
+      weekRange: 'Oct 20 - Oct 26',
+      focus: 'Genetics, Trigonometry & ICT Systems',
+      subjects: [
+        { name: 'Biology', topic: 'Mendelian Genetics & Monohybrid Crosses', hours: 3, completed: false },
+        { name: 'General Mathematics', topic: 'Sine & Cosine Rules in 3D Problems', hours: 4, completed: false },
+        { name: 'Computer Studies', topic: 'Computer Networks & OSI Model Layers', hours: 3, completed: false }
+      ]
+    }
+  ]
+};
+
+export const STUDENT_REWARDS_DATA = [
+  {
+    id: 'rew-01',
+    title: '🏆 Mathematics Master',
+    icon: 'calculate',
+    description: 'Solved over 100 General Mathematics questions with 85%+ accuracy.',
+    category: 'mastery' as const,
+    points: 300,
+    isUnlocked: true,
+    unlockedDate: 'Sept 28, 2025',
+    currentProgress: 100,
+    targetProgress: 100
+  },
+  {
+    id: 'rew-02',
+    title: '⚡ 14-Day Study Streak',
+    icon: 'local_fire_department',
+    description: 'Maintained consecutive daily learning activity in Learning Hub for 14 days.',
+    category: 'streak' as const,
+    points: 250,
+    isUnlocked: true,
+    unlockedDate: 'Oct 02, 2025',
+    currentProgress: 14,
+    targetProgress: 14
+  },
+  {
+    id: 'rew-03',
+    title: '🎯 CBT Sharpshooter',
+    icon: 'check_circle',
+    description: 'Score 90% or higher on a full-length WAEC Standard Mock Exam.',
+    category: 'cbt' as const,
+    points: 400,
+    isUnlocked: false,
+    currentProgress: 78,
+    targetProgress: 90
+  },
+  {
+    id: 'rew-04',
+    title: '📚 Physics Prodigy',
+    icon: 'bolt',
+    description: 'Completed all Electromagnetic Induction and Mechanics masterclasses.',
+    category: 'mastery' as const,
+    points: 300,
+    isUnlocked: true,
+    unlockedDate: 'Sept 15, 2025',
+    currentProgress: 100,
+    targetProgress: 100
+  }
+];
+
+export const PARENT_AI_REPORT_DATA = {
+  studentName: 'John Doe',
+  month: 'September 2025',
+  academicScore: 82,
+  attendanceRate: 94,
+  strengths: [
+    'Superior grasp of Mathematical proofs & Matrix Determinants (89%)',
+    'Exemplary attendance record (47/50 school days certified)',
+    'High CBT time management efficiency (answers submitted in 68% of allotted time)'
+  ],
+  improvementAreas: [
+    'Chemistry Chemical Bonding & Hybridization requires remedial reinforcement',
+    'Periodic assessment homework completion speed can be accelerated'
+  ],
+  aiActionAdvice: 'Encourage John to allocate an extra 30 minutes daily to Organic Chemistry & Chemical Bonding. His projected WAEC grade is on track for 7 A1 distinctions.',
+  pacingSummary: 'Currently pacing 2.4 weeks ahead of the standard national NERDC syllabus schedule.'
+};
+

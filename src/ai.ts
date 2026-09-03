@@ -253,3 +253,13 @@ Write a brief 2-sentence executive financial summary and cashflow recommendation
   return callGemini(prompt, fallback);
 }
 
+/**
+ * Generic Gemini content generator for curriculum plans and academic questions.
+ */
+export async function generateGeminiResponse(
+  prompt: string,
+  fallbackResponse: string = ''
+): Promise<string> {
+  return callGemini(prompt, fallbackResponse);
+}
+

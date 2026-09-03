@@ -19,6 +19,8 @@ import { CbtExamView } from './components/excelmind/CbtExamView';
 import { PerformanceAnalyticsView } from './components/excelmind/PerformanceAnalyticsView';
 import { AcademicCommunicationView } from './components/excelmind/AcademicCommunicationView';
 import { AiTutorView } from './components/excelmind/AiTutorView';
+import { CurriculumAutomationView } from './components/excelmind/CurriculumAutomationView';
+import { AiLearningCoachView } from './components/excelmind/AiLearningCoachView';
 
 // Faculty, Parent & Admin Role Portals
 import { TeacherPortalView } from './components/excelmind/TeacherPortalView';
@@ -177,6 +179,14 @@ export default function App() {
 
               {activeModule === 'ai_tutor' && (
                 <AiTutorView />
+              )}
+
+              {activeModule === 'curriculum' && (
+                <CurriculumAutomationView />
+              )}
+
+              {activeModule === 'coach' && (
+                <AiLearningCoachView />
               )}
 
               {(activeModule === 'profile' || activeModule === 'settings') && (

@@ -79,8 +79,24 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
           <div className="flex flex-wrap items-center gap-2.5 sm:self-center">
             <button
+              onClick={() => onNavigate('curriculum')}
+              className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs shadow-lg shadow-purple-600/25 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">auto_stories</span>
+              <span>Curriculum Engine</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('coach')}
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">neurology</span>
+              <span>AI Coach & Streak ({student.studyStreakDays}d 🔥)</span>
+            </button>
+
+            <button
               onClick={() => onNavigate('cbt')}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">timer</span>
               <span>Take CBT Exam</span>
@@ -88,7 +104,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
             <button
               onClick={() => onNavigate('ai_tutor')}
-              className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm text-blue-300">smart_toy</span>
               <span>Ask AI Tutor</span>

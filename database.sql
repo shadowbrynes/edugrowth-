@@ -282,6 +282,181 @@ CREATE TABLE `password_reset_tokens` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- -----------------------------------------------------------------------------
+-- 17. Table: curriculum_framework
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `curriculum_framework`;
+CREATE TABLE `curriculum_framework` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `standard_name` VARCHAR(100) NOT NULL COMMENT 'e.g. NERDC, WAEC, NECO, JAMB, BECE',
+  `level_category` ENUM('Basic Education', 'Senior Secondary') NOT NULL,
+  `academic_level` VARCHAR(20) NOT NULL COMMENT 'e.g. JSS1, JSS2, JSS3, SS1, SS2, SS3',
+  `subject_name` VARCHAR(150) NOT NULL,
+  `nerdc_code` VARCHAR(50) NOT NULL,
+  `is_compulsory` BOOLEAN NOT NULL DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 18. Table: student_subjects
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `student_subjects`;
+CREATE TABLE `student_subjects` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `subject_id` INT NOT NULL,
+  `compulsory_or_elective` ENUM('compulsory', 'elective') NOT NULL DEFAULT 'compulsory',
+  `status` ENUM('active', 'pending', 'dropped') NOT NULL DEFAULT 'active',
+  `assigned_date` DATE NOT NULL DEFAULT (CURRENT_DATE),
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 19. Table: topics
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `topics`;
+CREATE TABLE `topics` (
+  `topic_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `subject_id` INT NOT NULL,
+  `academic_level` VARCHAR(20) NOT NULL,
+  `term` VARCHAR(50) NOT NULL DEFAULT 'Term 1',
+  `week_number` INT NOT NULL,
+  `topic_name` VARCHAR(255) NOT NULL,
+  `learning_objectives` TEXT NOT NULL,
+  `exam_frequency` ENUM('High', 'Medium', 'Low') NOT NULL DEFAULT 'High',
+  FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 20. Table: lessons
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `lessons`;
+CREATE TABLE `lessons` (
+  `lesson_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `topic_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `duration_minutes` INT NOT NULL DEFAULT 40,
+  `author_id` INT NOT NULL,
+  `status` ENUM('Draft', 'Pending Review', 'Approved', 'Published', 'Archived') NOT NULL DEFAULT 'Draft',
+  `ai_confidence_score` DECIMAL(5,2) NULL,
+  `lesson_plan` TEXT NOT NULL,
+  `teacher_notes` TEXT NOT NULL,
+  `student_notes` LONGTEXT NOT NULL,
+  `homework` TEXT NULL,
+  `revision_summary` TEXT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`topic_id`) REFERENCES `topics`(`topic_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`author_id`) REFERENCES `teachers`(`teacher_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 21. Table: lesson_progress
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `lesson_progress`;
+CREATE TABLE `lesson_progress` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `lesson_id` INT NOT NULL,
+  `is_completed` BOOLEAN NOT NULL DEFAULT FALSE,
+  `time_spent_seconds` INT NOT NULL DEFAULT 0,
+  `completed_at` TIMESTAMP NULL,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`lesson_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 22. Table: quiz_attempts
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `quiz_attempts`;
+CREATE TABLE `quiz_attempts` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `lesson_id` INT NOT NULL,
+  `score` DECIMAL(5,2) NOT NULL,
+  `total` INT NOT NULL,
+  `attempt_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`lesson_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 23. Table: ai_recommendations
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `ai_recommendations`;
+CREATE TABLE `ai_recommendations` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `subject_id` INT NOT NULL,
+  `diagnosis` TEXT NOT NULL,
+  `action_plan` TEXT NOT NULL,
+  `priority` ENUM('high', 'medium', 'normal') NOT NULL DEFAULT 'normal',
+  `status` ENUM('active', 'completed', 'dismissed') NOT NULL DEFAULT 'active',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 24. Table: revision_plans
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `revision_plans`;
+CREATE TABLE `revision_plans` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `exam_target` VARCHAR(100) NOT NULL COMMENT 'e.g. WAEC May/June 2027',
+  `exam_date` DATE NOT NULL,
+  `target_grade` VARCHAR(50) NOT NULL,
+  `weekly_json_schedule` JSON NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 25. Table: student_rewards
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `student_rewards`;
+CREATE TABLE `student_rewards` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `points` INT NOT NULL DEFAULT 0,
+  `badges` VARCHAR(255) NOT NULL,
+  `achievement` VARCHAR(255) NOT NULL,
+  `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 26. Table: learning_analytics
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `learning_analytics`;
+CREATE TABLE `learning_analytics` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `student_id` INT NOT NULL,
+  `learning_hours` DECIMAL(6,2) NOT NULL DEFAULT 0.00,
+  `completed_lessons_count` INT NOT NULL DEFAULT 0,
+  `average_quiz_score` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  `study_streak_days` INT NOT NULL DEFAULT 1,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 27. Table: content_reviews
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `content_reviews`;
+CREATE TABLE `content_reviews` (
+  `review_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `lesson_id` INT NOT NULL,
+  `reviewer_id` INT NOT NULL,
+  `review_stage` ENUM('AI_Audit', 'Admin_Approval', 'Final_Publish') NOT NULL,
+  `feedback` TEXT NULL,
+  `decision` ENUM('Approved', 'Rejected', 'Needs_Revision') NOT NULL,
+  `review_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`lesson_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`reviewer_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 

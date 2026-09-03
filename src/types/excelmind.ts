@@ -1,5 +1,5 @@
 /**
- * ExcelMind Academic Companion - Core Type Definitions
+ * ExcelMind Academic Companion - Core Type Definitions & Curriculum System
  */
 
 export type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
@@ -14,15 +14,22 @@ export type ActiveModule =
   | 'results'
   | 'messages'
   | 'ai_tutor'
+  | 'curriculum'
+  | 'coach'
   | 'profile'
   | 'settings';
+
+export type AcademicLevel = 'JSS1' | 'JSS2' | 'JSS3' | 'SS1' | 'SS2' | 'SS3';
+export type DepartmentCategory = 'Science' | 'Commercial' | 'Arts' | 'Basic Education';
+export type ExamBoard = 'NERDC' | 'WAEC' | 'NECO' | 'JAMB' | 'BECE';
 
 export interface StudentProfile {
   student_id: string;
   name: string;
   email: string;
   class: string;
-  department: string;
+  academicLevel: AcademicLevel;
+  department: DepartmentCategory;
   parent_id: string;
   parentName: string;
   avatar: string;
@@ -36,6 +43,8 @@ export interface StudentProfile {
   rank: number;
   totalInClass: number;
   conduct: string;
+  studyStreakDays: number;
+  rewardPoints: number;
 }
 
 export interface Lesson {
@@ -46,6 +55,7 @@ export interface Lesson {
   completed: boolean;
   contentUrl?: string;
   description: string;
+  offlineAvailable?: boolean;
 }
 
 export interface Course {
@@ -66,6 +76,7 @@ export interface Course {
   bannerColor: string;
   description: string;
   lessons: Lesson[];
+  curriculumStandard?: ExamBoard;
 }
 
 export interface Assignment {
@@ -92,31 +103,32 @@ export interface CbtQuestion {
   explanation: string;
   subject: string;
   topic?: string;
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
 }
 
 export interface CbtExam {
   exam_id: string;
   subject: string;
-  examBody: 'WAEC' | 'NECO' | 'JAMB' | 'School';
+  examBody: 'WAEC' | 'NECO' | 'JAMB' | 'BECE' | 'School';
   title: string;
   year: string;
   durationMinutes: number;
   totalQuestions: number;
-  difficulty: 'Standard' | 'Advanced' | 'Mock';
+  difficulty: 'Standard' | 'Advanced' | 'Mock' | 'Adaptive';
   questions: CbtQuestion[];
 }
 
 export interface SubjectResult {
   subject: string;
-  caScore: number; // Continuous Assessment out of 30
-  examScore: number; // Examination out of 70
-  totalScore: number; // Total out of 100
+  caScore: number;
+  examScore: number;
+  totalScore: number;
   previousScore: number;
   grade: 'A1' | 'B2' | 'B3' | 'C4' | 'C5' | 'C6' | 'D7' | 'E8' | 'F9';
   rank: string;
   teacher_comment: string;
   teacher: string;
-  category: 'Science' | 'Core' | 'Vocational';
+  category: 'Science' | 'Core' | 'Vocational' | 'Commercial' | 'Arts';
 }
 
 export interface PerformanceTrend {
@@ -162,4 +174,109 @@ export interface ForumTopic {
   upvotes: number;
   timeAgo: string;
   content: string;
+}
+
+// ---------------------------------------------------------------------------
+// Advanced Curriculum Automation Engine Types
+// ---------------------------------------------------------------------------
+
+export interface StudentSubjectItem {
+  id: string;
+  subjectName: string;
+  subjectCode: string;
+  department: DepartmentCategory;
+  isCompulsory: boolean;
+  teacher: string;
+  status: 'active' | 'elective' | 'pending';
+  examBoard: ExamBoard;
+}
+
+export interface CurriculumTopic {
+  id: string;
+  subject: string;
+  academicLevel: AcademicLevel;
+  department: DepartmentCategory;
+  term: 'Term 1' | 'Term 2' | 'Term 3';
+  week: number;
+  title: string;
+  nerdcCode: string;
+  examWeight: 'High' | 'Medium' | 'Low';
+  targetExam: ExamBoard;
+  subtopics: string[];
+}
+
+export interface GeneratedLesson {
+  id: string;
+  classLevel: AcademicLevel;
+  subject: string;
+  topic: string;
+  duration: string;
+  status: 'Draft' | 'Pending Review' | 'Approved' | 'Published' | 'Archived';
+  author: string;
+  reviewedBy?: string;
+  aiConfidenceScore: number;
+  learningObjectives: string[];
+  lessonPlan: string;
+  teacherNotes: string;
+  studentNotes: string;
+  examples: { problem: string; solution: string }[];
+  classActivities: string[];
+  homework: string;
+  quizQuestions: { question: string; options: string[]; answer: string }[];
+  cbtQuestions: { question: string; options: string[]; answer: string; rationale: string }[];
+  revisionSummary: string;
+  createdAt: string;
+}
+
+export interface LearningCoachRecommendation {
+  id: string;
+  subject: string;
+  topic: string;
+  studentCompletion: number;
+  diagnosis: string;
+  actionPlan: string;
+  priority: 'high' | 'medium' | 'normal';
+  suggestedAction: string;
+}
+
+export interface RevisionPlan {
+  examName: string;
+  examDate: string;
+  daysLeft: number;
+  targetAggregate: string;
+  weeks: {
+    weekNumber: number;
+    weekRange: string;
+    focus: string;
+    subjects: {
+      name: string;
+      topic: string;
+      hours: number;
+      completed: boolean;
+    }[];
+  }[];
+}
+
+export interface StudentReward {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  category: 'mastery' | 'streak' | 'cbt' | 'evaluation';
+  points: number;
+  isUnlocked: boolean;
+  unlockedDate?: string;
+  currentProgress: number;
+  targetProgress: number;
+}
+
+export interface ParentAiReport {
+  studentName: string;
+  month: string;
+  academicScore: number;
+  attendanceRate: number;
+  strengths: string[];
+  improvementAreas: string[];
+  aiActionAdvice: string;
+  pacingSummary: string;
 }

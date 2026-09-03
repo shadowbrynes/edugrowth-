@@ -27,6 +27,8 @@ export const ExcelMindSidebar: React.FC<ExcelMindSidebarProps> = ({
 }) => {
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'grid_view' },
+    { id: 'curriculum', label: 'Curriculum Engine', icon: 'auto_stories', badge: 'NERDC', badgeColor: 'bg-emerald-100 text-emerald-700' },
+    { id: 'coach', label: 'AI Learning Coach', icon: 'neurology', badge: '🔥 14d', badgeColor: 'bg-purple-100 text-purple-700' },
     { id: 'courses', label: 'My Courses', icon: 'menu_book', badge: '6' },
     { id: 'learning_hub', label: 'Learning Hub', icon: 'hub', badge: 'Interactive', badgeColor: 'bg-purple-100 text-purple-700' },
     { id: 'timetable', label: 'Timetable', icon: 'calendar_today' },
