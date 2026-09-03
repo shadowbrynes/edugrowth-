@@ -167,14 +167,6 @@ export const RoleNavigation: React.FC<RoleNavigationProps> = ({
                 Digital Report Card
               </button>
             )}
-
-            <button
-              onClick={() => onViewChange('police_master_roll')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${currentView === 'police_master_roll' ? 'bg-emerald-500 text-black shadow-md' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500 hover:text-black'}`}
-            >
-              <span className="material-symbols-outlined text-sm">badge</span>
-              🇳🇬 POLICE MASTER ROLL
-            </button>
           </div>
 
           <div className="flex items-center gap-3">

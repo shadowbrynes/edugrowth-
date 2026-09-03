@@ -1013,29 +1013,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               )}
 
-              {/* PROMINENT POLICE PERSONNEL MASTER ROLL & COMMAND DIRECTORY BANNER */}
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-4 text-white mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                    🇳🇬
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-black text-base uppercase text-white tracking-wide">POLICE PERSONNEL MASTER ROLL & COMMAND DIRECTORY</h3>
-                      <span className="bg-emerald-600 text-black text-[10px] font-mono font-black px-2.5 py-0.5 rounded uppercase">AUTHORISED MODULE</span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">Authorised Nominal Roll by Rank, 17 Zonal Commands, Seaports, Airports, and C2 Tactical Command HUD.</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onNavigate('police_master_roll')}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs px-5 py-3 rounded-xl transition flex items-center gap-2 shadow-lg cursor-pointer animate-pulse"
-                >
-                  <span>OPEN POLICE MASTER ROLL DIRECTORY</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-              </div>
-
               {/* Dashboard Header */}
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
