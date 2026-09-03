@@ -77,7 +77,7 @@ CREATE TABLE `students` (
   `academic_level` VARCHAR(50) NOT NULL DEFAULT 'SSS 3',
   `address` TEXT NULL,
   `parent_id` INT NULL,
-  `enrollment_date` DATE NOT NULL DEFAULT (CURRENT_DATE),
+  `enrollment_date` DATE NULL,
   `photo` VARCHAR(255) NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -98,7 +98,7 @@ CREATE TABLE `teachers` (
   `qualification` VARCHAR(100) NULL,
   `phone` VARCHAR(30) NOT NULL,
   `address` TEXT NULL,
-  `date_joined` DATE NOT NULL DEFAULT (CURRENT_DATE),
+  `date_joined` DATE NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -307,7 +307,7 @@ CREATE TABLE `student_subjects` (
   `subject_id` INT NOT NULL,
   `compulsory_or_elective` ENUM('compulsory', 'elective') NOT NULL DEFAULT 'compulsory',
   `status` ENUM('active', 'pending', 'dropped') NOT NULL DEFAULT 'active',
-  `assigned_date` DATE NOT NULL DEFAULT (CURRENT_DATE),
+  `assigned_date` DATE NULL,
   FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE,
   FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
