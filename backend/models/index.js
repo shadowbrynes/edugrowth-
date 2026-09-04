@@ -39,6 +39,7 @@ const CommunityPost = require('./CommunityPost');
 const CommunityComment = require('./CommunityComment');
 const StudentEnvironment = require('./StudentEnvironment');
 const CurriculumKnowledge = require('./CurriculumKnowledge');
+const CurriculumContent = require('./CurriculumContent');
 const AILearningContext = require('./AILearningContext');
 const AIQuestion = require('./AIQuestion');
 
@@ -229,6 +230,7 @@ module.exports = {
   CommunityComment,
   StudentEnvironment,
   CurriculumKnowledge,
+  CurriculumContent,
   AILearningContext,
   AIQuestion
 };

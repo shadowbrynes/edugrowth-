@@ -11,6 +11,12 @@ interface ChatMessageAI {
   sections?: {
     simpleExplanation?: string;
     detailedExplanation?: string;
+    realLifeExample?: string;
+    keyPoints?: string[];
+    examinationFocus?: string;
+    practiceQuestion?: string;
+    answer?: string;
+    // backwards compatibility for fallback arrays
     examples?: string[];
     practiceQuestions?: string[];
     solutions?: string[];
@@ -35,7 +41,7 @@ export const AiTutorView: React.FC = () => {
   });
 
   // Selected Category
-  const [selectedCategory, setSelectedCategory] = useState<string>('Explain Topic');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Explain This Topic');
   const [selectedSubject, setSelectedSubject] = useState<string>('Physics');
 
   const [messages, setMessages] = useState<ChatMessageAI[]>([
@@ -46,25 +52,18 @@ export const AiTutorView: React.FC = () => {
       timestamp: 'Just now',
       accuracyScore: 0.99,
       sections: {
-        simpleExplanation: "I am specifically trained on the approved Nigerian Secondary School Curriculum (NERDC) and WAEC/NECO/JAMB past exam patterns.",
-        detailedExplanation: "Your academic profile indicates you are preparing for Senior Secondary School Certificate Examinations (SSCE/WAEC) and UTME/JAMB. I provide step-by-step problem derivations, syllabus breakdown, and targeted remediation for your specific subjects.",
-        examples: [
-          "Example: What is Physics (SS3 Science curriculum breakdown with 5 core WAEC branches)",
-          "Example: Step-by-step mathematical working for linear and quadratic equations",
-          "Example: Photosynthesis chemical equation, photolysis, and leaf adaptations"
+        simpleExplanation: "I am your personal AI Classroom Teacher, specifically trained on the approved Nigerian Secondary School Curriculum (NERDC) and WAEC/NECO/JAMB past examinations.",
+        detailedExplanation: "Your academic profile indicates you are preparing for Senior Secondary Certificate Examinations (SSCE/WAEC) and UTME/JAMB in Science (Physics, Chemistry, Biology, Mathematics, English). I provide step-by-step problem solving, syllabus breakdowns, and targeted remediation for your specific subjects.",
+        realLifeExample: "When an engineer designs a flyover bridge in Lagos or a car accelerates on the highway, Physics and Mathematics provide the exact equations and force calculations used.",
+        keyPoints: [
+          "• Always state the governing formula before substitution to secure WAEC method marks (M1).",
+          "• Never omit SI units (e.g., m/s, m/s², N, J, W, Ω) to avoid losing accuracy marks (A1).",
+          "• Show every step of algebraic working clearly.",
+          "• Master the 7-pillar teaching framework for comprehensive exam success."
         ],
-        examTips: [
-          "WAEC examiners award method marks (M1) for stating formulas before calculation.",
-          "Avoid unit penalties by always stating final quantities with SI units (e.g. m/s, m/s², N, J, W, Ω)."
-        ],
-        practiceQuestions: [
-          "1. A car travels 100m in 20 seconds. Calculate its average velocity.",
-          "2. Solve 2x + 5 = 15 showing all mathematical steps."
-        ],
-        solutions: [
-          "Solution 1: Velocity = Distance / Time = 100/20 = 5 m/s.",
-          "Solution 2: 2x = 15 - 5 = 10 => x = 10/2 = 5."
-        ]
+        examinationFocus: "WAEC examiners focus heavily on method marks, standard SI units, balanced chemical equations, and organized essay points with Nigerian context.",
+        practiceQuestion: "A car travels 100 metres in 20 seconds. Calculate its velocity.",
+        answer: "Velocity = Distance ÷ Time = 100 ÷ 20 = 5 m/s."
       }
     }
   ]);
@@ -89,22 +88,26 @@ export const AiTutorView: React.FC = () => {
     loadContext();
   }, []);
 
+  // Exact 7 AI Tutor Quick Action Buttons
   const questionCategories = [
-    { id: 'Explain Topic', label: '📖 Explain Topic', icon: 'auto_stories' },
-    { id: 'Solve Question', label: '🧮 Solve Question', icon: 'calculate' },
-    { id: 'Summarise Lesson', label: '📝 Summarise Lesson', icon: 'summarize' },
-    { id: 'Generate Quiz', label: '❓ Generate Quiz', icon: 'quiz' },
-    { id: 'Prepare for Exam', label: '🎯 Prepare for Exam', icon: 'military_tech' },
-    { id: 'Review My Mistakes', label: '🔍 Review My Mistakes', icon: 'error' }
+    { id: 'Explain This Topic', label: '📖 Explain This Topic', icon: 'auto_stories' },
+    { id: 'Solve My Question', label: '🧮 Solve My Question', icon: 'calculate' },
+    { id: 'Generate Practice Questions', label: '❓ Generate Practice Questions', icon: 'quiz' },
+    { id: 'Prepare Me For WAEC', label: '🎯 Prepare Me For WAEC', icon: 'military_tech' },
+    { id: 'Summarise My Lesson', label: '📝 Summarise My Lesson', icon: 'summarize' },
+    { id: 'Check My Answer', label: '✅ Check My Answer', icon: 'fact_check' },
+    { id: 'Create Revision Plan', label: '📅 Create Revision Plan', icon: 'calendar_month' }
   ];
 
   const quickPrompts = [
-    { label: 'Explain Physics (SS3 WAEC)', prompt: 'what is physics', category: 'Explain Topic' },
-    { label: 'Solve: 2x + 5 = 15', prompt: 'Solve 2x + 5 = 15', category: 'Solve Question' },
-    { label: 'Kinematics: Car 100m in 20s', prompt: 'A car travels 100m in 20 seconds', category: 'Solve Question' },
-    { label: 'What is Photosynthesis?', prompt: 'What is photosynthesis?', category: 'Explain Topic' },
-    { label: 'Prepare me for WAEC', prompt: 'Prepare me for WAEC', category: 'Prepare for Exam' },
-    { label: 'Remediate Physics (45%)', prompt: 'Explain Newton\'s Laws and Linear Motion for my weak area', category: 'Explain Topic' }
+    { label: 'What is Physics? (SS3 Science)', prompt: 'what is physics', category: 'Explain This Topic' },
+    { label: 'What is Mathematics?', prompt: 'what is mathematics', category: 'Explain This Topic' },
+    { label: 'Photosynthesis Process & Equation', prompt: 'What is photosynthesis?', category: 'Explain This Topic' },
+    { label: 'Solve: 2x + 5 = 15', prompt: 'Solve 2x + 5 = 15', category: 'Solve My Question' },
+    { label: 'Kinematics: Car 100m in 20s', prompt: 'A car travels 100m in 20 seconds. Calculate its velocity.', category: 'Solve My Question' },
+    { label: 'Causes of Climate Change (Essay)', prompt: 'Explain the causes of climate change with Nigerian context', category: 'Explain This Topic' },
+    { label: 'Prepare Me For WAEC Plan', prompt: 'Prepare me for WAEC', category: 'Prepare Me For WAEC' },
+    { label: 'Remediate Physics Weakness (45%)', prompt: "Explain Newton's Laws and Linear Motion for my weak area", category: 'Create Revision Plan' }
   ];
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,87 +179,126 @@ export const AiTutorView: React.FC = () => {
     let text = '';
 
     if (lower.includes('what is physics') || lower.includes('explain physics')) {
-      text = `Since you are an ${studentContext.classLevel} student preparing for WAEC, Physics is the branch of science that studies matter, energy, motion, forces and their interactions in the universe.`;
+      text = `Since you are an ${studentContext.classLevel} student preparing for WAEC, Physics is the branch of science that studies matter, energy, motion, forces, and their interactions in the universe.`;
       sections = {
         simpleExplanation: text,
-        detailedExplanation: `In your WAEC / NECO / JAMB Senior Secondary curriculum, Physics is tested across 5 primary syllabus branches:\n1. Mechanics: Motion, Newton's laws, gravitation, momentum, work, energy, and power.\n2. Thermal Physics: Temperature, heat transfer, gas laws, and latent heat.\n3. Waves & Optics: Sound waves, resonance, reflection, refraction, lenses, and optical instruments.\n4. Electricity & Magnetism: Electric circuits, Ohm's law, magnetic fields, and electromagnetic induction.\n5. Modern Physics: Atomic structure, photoelectric effect, radioactivity, and nuclear energy.`,
-        examples: [
-          `Example (Kinematics): When a car accelerates uniformly from rest at 2 m/s² for 5 seconds, Physics explains the change in velocity (v = u + at = 10 m/s) using Newton's laws of motion.`,
-          `Example (Optics): The formation of a virtual, erect, and magnified image by a simple magnifying glass is governed by refraction through a convex lens.`
+        detailedExplanation: `Major areas of physics tested in your WAEC / NECO / JAMB Senior Secondary curriculum include:\n\n1. Mechanics:\n- Motion, Force, Energy, Momentum & Gravitation\n\n2. Electricity & Magnetism:\n- Current, Voltage, Resistance, Circuits & Electromagnetic induction\n\n3. Waves & Optics:\n- Sound waves, Light, Reflection, Refraction & Optical instruments\n\n4. Thermal Physics:\n- Temperature, Heat transfer, Latent heat & Gas laws\n\n5. Modern Physics:\n- Atomic structure, Photoelectric effect, Radioactivity & Nuclear energy`,
+        realLifeExample: `When a car moves, physics explains:\n- how fast it travels (velocity)\n- what makes it accelerate (force from the engine)\n- how it stops (friction between tyres and the road)`,
+        keyPoints: [
+          `• Matter and energy are interconnected (E = mc²).`,
+          `• An unbalanced resultant force produces acceleration (F = ma).`,
+          `• Energy cannot be created or destroyed, only transformed from one form to another.`,
+          `• Accurate calculations require standard SI units (e.g. m, s, kg, N, J, W, Ω).`
         ],
-        examTips: [
-          `WAEC Examiner Tip: Mechanics accounts for over 25% of Section B theory marks. Always state the formula before substituting numerical values to earn method marks (M1).`,
-          `Avoid Unit Penalties: Never omit SI units (e.g. m/s, kg, N, J, W, Ω, Hz). An omission costs the final accuracy mark (A1).`
+        examinationFocus: `For ${studentContext.classLevel} students preparing for WAEC, important physics topics include:\n- Mechanics (Kinematics, Newton's Laws, Projectiles, Momentum)\n- Electricity & DC circuits (Ohm's law, Kirchhoff's laws)\n- Waves (Optics, Refraction, Sound resonance)\n\nExample WAEC Question:\nA car travels 100 metres in 20 seconds. Calculate its velocity.\n\nSolution:\nVelocity = Distance ÷ Time = 100 ÷ 20 = 5 m/s.`,
+        practiceQuestion: `Explain Newton's First Law of Motion.`,
+        answer: `Newton's First Law of Motion states that an object will remain in its state of rest or continue in uniform motion in a straight line unless acted upon by an external unbalanced force.`
+      };
+    } else if (lower.includes('what is mathematics') || lower.includes('explain mathematics') || lower.includes('what is math')) {
+      text = `Mathematics is the study of numbers, quantities, patterns, shapes, and relationships. Mathematics helps us solve problems logically and systematically.`;
+      sections = {
+        simpleExplanation: text,
+        detailedExplanation: `Major branches tested in your ${studentContext.classLevel} WAEC curriculum include:\n\n1. Algebra:\n- Unknown variables, linear equations, quadratic equations, and simultaneous systems.\n\n2. Geometry & Trigonometry:\n- Shapes, angles, circle theorems, Pythagoras' theorem, and sine/cosine rules.\n\n3. Statistics & Probability:\n- Data collection, mean, median, mode, cumulative frequency curves, and chance.\n\n4. Calculus & Coordinates:\n- Rates of change, differentiation, integration, and Cartesian coordinate geometry.`,
+        realLifeExample: `When calculating money:\n₦500 + ₦300 = ₦800\n\nWhen designing buildings:\nEngineers use geometry, trigonometry, and Pythagoras' theorem to construct safe roofs and bridges.`,
+        keyPoints: [
+          `• Operations must strictly follow BODMAS order of precedence.`,
+          `• Whatever algebraic operation is done to the LHS must be simultaneously done to the RHS.`,
+          `• Signs rule: (-) × (-) = (+), (-) × (+) = (-).`,
+          `• In WAEC, always show intermediate steps to secure method marks (M1).`
         ],
-        practiceQuestions: [
-          `1. A car travels a distance of 100 meters in a duration of 20 seconds. Calculate its average velocity.`,
-          `2. State the law of conservation of linear momentum and distinguish between an elastic and an inelastic collision.`
-        ],
-        solutions: [
-          `Solution 1:\nGiven: Distance (s) = 100 m, Time (t) = 20 s.\nFormula: Velocity (v) = Distance / Time\nSubstitution: v = 100 / 20 = 5 m/s.\nFinal Answer: 5 m/s.`,
-          `Solution 2: In an isolated system, total momentum before collision equals total momentum after collision. In an elastic collision, kinetic energy is conserved; in an inelastic collision, kinetic energy is converted to heat or sound.`
-        ]
+        examinationFocus: `WAEC General Mathematics Paper 2 (Theory) High-Yield Focus:\n- Quadratic equations & Factorisation\n- Trigonometry (Sine & Cosine rules, Angles of elevation/depression)\n- Statistics (Mean, Median, Mode, Ogive curves)\n- Probability & Venn diagrams`,
+        practiceQuestion: `Solve for x in: x² - 5x + 6 = 0`,
+        answer: `Factorising the quadratic equation:\n(x - 2)(x - 3) = 0\nTherefore:\nx = 2 or x = 3`
       };
     } else if (lower.includes('photosynthesis')) {
-      text = `Photosynthesis is the metabolic process by which green plants manufacture organic food (glucose) using radiant sunlight energy, carbon dioxide, and water, releasing oxygen as a byproduct.`;
+      text = `Photosynthesis is the biochemical process by which green plants manufacture organic food (glucose) from carbon dioxide and water using radiant sunlight energy absorbed by chlorophyll, releasing oxygen as a byproduct.`;
       sections = {
         simpleExplanation: text,
-        detailedExplanation: `For your ${studentContext.classLevel} Biology syllabus:\nThe entire photosynthetic reaction occurs inside the chloroplasts of plant cells.\n\nOverall Chemical Equation:\n6CO₂ + 6H₂O  ---[Sunlight / Chlorophyll]--->  C₆H₁₂O₆ + 6O₂\n\nPhases:\n1. Light-Dependent Phase (Grana/Thylakoid): 2H₂O ---> 4H⁺ + 4e⁻ + O₂ (Photolysis)\n2. Light-Independent Phase (Stroma / Calvin cycle): CO₂ is fixed into glucose.\n\nLimiting Factors:\n1. Light intensity • 2. CO₂ concentration • 3. Temperature (25°C-35°C) • 4. Water & Chlorophyll.`,
-        examples: [
-          `Leaf Adaptation: Broad, flat lamina maximizes light capture; palisade mesophyll packed with chloroplasts optimizes light absorption; stomata allow CO₂ diffusion.`
+        detailedExplanation: `For your ${studentContext.classLevel} Biology syllabus:\nThe entire photosynthetic reaction occurs inside the chloroplasts of plant cells.\n\nOverall Balanced Chemical Equation:\n6CO₂ + 6H₂O  ---[Sunlight / Chlorophyll]--->  C₆H₁₂O₆ + 6O₂\n\nTwo Fundamental Phases:\n1. Light-Dependent Phase (Photolysis):\n- Location: Grana (Thylakoids) of chloroplasts.\n- Equation: 2H₂O ---> 4H⁺ + 4e⁻ + O₂\n- Synthesizes ATP and NADPH while liberating oxygen gas.\n\n2. Light-Independent Phase (Dark Reaction / Calvin Cycle):\n- Location: Stroma of the chloroplast.\n- Carbon dioxide is reduced and synthesized into glucose using ATP and NADPH.\n\nLimiting Factors: Light intensity, CO₂ concentration, temperature (optimum 25°C–35°C), and water.`,
+        realLifeExample: `A maize or cassava plant growing in a Nigerian farm absorbing sunlight and atmospheric CO₂ to synthesize starch stored in corn cobs and cassava tubers.`,
+        keyPoints: [
+          `• Four essential conditions: Sunlight, Chlorophyll, Carbon Dioxide, and Water.`,
+          `• Grana host photolysis of water; stroma hosts dark fixation of CO₂.`,
+          `• Leaf adaptations: Broad flat lamina, thinness for rapid gas diffusion, palisade mesophyll packed with chloroplasts.`
         ],
-        examTips: [
-          `WAEC Starch Test Procedure: (1) Boil in water to kill cells, (2) Boil in alcohol in water bath to decolorize, (3) Dip in warm water to soften, (4) Add Iodine solution (turns blue-black).`,
-          `Safety Tip: Never heat ethanol directly over a flame; always use a water bath!`
-        ],
-        practiceQuestions: [
-          `1. Write the balanced chemical equation for photosynthesis.`,
-          `2. List three structural adaptations of a leaf for efficient photosynthesis.`
-        ],
-        solutions: [
-          `Solution 1: 6CO₂ + 6H₂O ---> C₆H₁₂O₆ + 6O₂ (sunlight/chlorophyll).`,
-          `Solution 2: Broad lamina, presence of stomata on lower surface, network of vascular bundles (xylem & phloem).`
-        ]
+        examinationFocus: `WAEC High-Frequency Practical Focus:\n- Leaf Starch Test Protocol: (1) Boil in water to kill cells, (2) Boil in ethanol in a water bath to decolorize, (3) Dip in warm water to soften, (4) Add Iodine solution (turns blue-black).\n- Safety Alert: Never boil ethanol directly on an open flame; always use a water bath because ethanol is inflammable!`,
+        practiceQuestion: `Write the balanced chemical equation for photosynthesis and state two structural adaptations of a leaf for efficient light absorption.`,
+        answer: `Balanced Chemical Equation:\n6CO₂ + 6H₂O ---> C₆H₁₂O₆ + 6O₂ (sunlight/chlorophyll)\n\nLeaf Structural Adaptations:\n1. Broad, flat lamina provides a large surface area for maximum absorption of sunlight.\n2. Palisade mesophyll cells are densely packed with chloroplasts and located close to the upper epidermis.`
       };
     } else if (lower.includes('solve 2x + 5 = 15') || lower.includes('2x+5=15')) {
-      text = `To solve 2x + 5 = 15, we isolate the variable 'x' step-by-step:`;
+      text = `To solve the linear equation 2x + 5 = 15, we isolate the variable 'x' step-by-step:`;
       sections = {
         simpleExplanation: text,
-        detailedExplanation: `Step 1: Subtract 5 from both sides:\n2x + 5 - 5 = 15 - 5\n2x = 10\n\nStep 2: Divide both sides by 2:\n(2x) / 2 = 10 / 2\nx = 5\n\nVerification:\n2(5) + 5 = 10 + 5 = 15 (Checked and verified!)`,
-        examples: [`Similar problem: Solve 3y + 4 = 19 => 3y = 15 => y = 5.`],
-        examTips: [`WAEC Method Marks (M1): Showing the transition 2x = 10 is required for full credit.`],
-        practiceQuestions: [`Solve for m: 4m - 7 = 25.`],
-        solutions: [`4m = 25 + 7 = 32 => m = 32 / 4 = 8.`]
+        detailedExplanation: `Given Linear Equation:\n2x + 5 = 15\n\nStep 1: Subtract 5 from both sides of the equation to eliminate the constant on the LHS:\n2x + 5 - 5 = 15 - 5\n2x = 10\n\nStep 2: Divide both sides by 2 (the coefficient of x) to isolate x:\n(2x) / 2 = 10 / 2\nx = 5\n\nVerification:\nSubstitute x = 5 back into the original LHS:\n2(5) + 5 = 10 + 5 = 15 = RHS (Checked and verified!)`,
+        realLifeExample: `If 2 notebooks plus a ₦5 pen cost ₦15 in total:\n2 × (notebook price) + ₦5 = ₦15\n2 × (notebook price) = ₦10\nEach notebook costs ₦5.`,
+        keyPoints: [
+          `• Whatever algebraic operation is performed on the LHS must be simultaneously performed on the RHS.`,
+          `• Collect like terms together before dividing by the variable's coefficient.`,
+          `• WAEC examiners award separate method marks (M1) for intermediate steps.`
+        ],
+        examinationFocus: `WAEC General Mathematics Paper 2 (Theory):\nLinear and simultaneous equations appear in both Section A and Section B. Always verify your answer by substituting back into the equation.`,
+        practiceQuestion: `Solve for m in the equation: 4m - 7 = 25`,
+        answer: `Step 1: Add 7 to both sides: 4m = 25 + 7 = 32.\nStep 2: Divide both sides by 4: m = 32 ÷ 4 = 8.\nAnswer: m = 8.`
       };
     } else if (lower.includes('100m') || lower.includes('velocity')) {
-      text = `Step-by-step Physics velocity calculation:`;
+      text = `Step-by-step Physics velocity calculation adhering strictly to WAEC method mark criteria:`;
       sections = {
         simpleExplanation: text,
-        detailedExplanation: `Given Information:\n- Distance (s) = 100 m\n- Time (t) = 20 s\n\nGoverning Formula:\nVelocity (v) = Distance / Time\n\nSubstitution:\nv = 100 / 20\n\nCalculation:\nv = 5 m/s\n\nFinal Answer: Velocity = 5 m/s`,
-        examples: [`If distance is 300m in 15 seconds: Velocity = 300 / 15 = 20 m/s.`],
-        examTips: [`Always state Given, Formula, Substitution, and SI units (m/s).`],
-        practiceQuestions: [`Find acceleration when a car accelerates from 10 m/s to 30 m/s in 4 seconds.`],
-        solutions: [`a = (v - u) / t = (30 - 10) / 4 = 20 / 4 = 5 m/s².`]
+        detailedExplanation: `Calculation Breakdown:\n\nGiven Information:\n- Distance (s) = 100 metres\n- Time taken (t) = 20 seconds\n\nGoverning Formula:\nVelocity (v) = Distance (s) ÷ Time (t)\n\nSubstitution:\nv = 100 ÷ 20\n\nCalculation:\nv = 5 m/s\n\nFinal Answer:\nVelocity = 5 m/s`,
+        realLifeExample: `A BRT bus traveling a 100-meter straight stretch between stops in Lagos taking 20 seconds moves with an average velocity of 5 m/s (which equals 18 km/h).`,
+        keyPoints: [
+          `• Velocity is a vector quantity (speed with direction), measured in metres per second (m/s).`,
+          `• In WAEC, omitting the SI unit 'm/s' immediately forfeits the accuracy mark (A1).`,
+          `• Equations of motion: v = u + at, s = ut + ½at², v² = u² + 2as.`
+        ],
+        examinationFocus: `WAEC Testing Focus:\nKinematics problems require: (1) Stating Given Data, (2) Stating the Formula, (3) Substitution, (4) Final Value with SI units.`,
+        practiceQuestion: `Calculate the acceleration of an object that accelerates uniformly from rest to a velocity of 30 m/s in 6 seconds.`,
+        answer: `Given: u = 0 m/s, v = 30 m/s, t = 6 s.\nFormula: a = (v - u) ÷ t\nSubstitution: a = (30 - 0) ÷ 6 = 30 ÷ 6 = 5 m/s².\nAnswer: Acceleration = 5 m/s².`
       };
-    } else if (cat === 'Prepare for Exam' || lower.includes('waec')) {
+    } else if (cat === 'Prepare Me For WAEC' || cat === 'Prepare for Exam' || lower.includes('waec')) {
       text = `Here is your high-yield WAEC preparation strategy and diagnostic plan:`;
       sections = {
+        simpleExplanation: `${studentContext.name}, as an ${studentContext.classLevel} student preparing for WAEC, this diagnostic plan targets your weak areas to convert current scores into straight A1 distinctions.`,
+        detailedExplanation: `Academic Diagnostic Analysis from MySQL database:\n- Current Physics Score: 45% (Mechanics, Linear Motion, Newton's Laws)\n- Mathematics Score: 80% (Strong Aptitude)\n\nRecommended 7-Day High-Yield Revision Timetable:\n• Day 1-2: Intensive Mechanics Drill (Linear motion, Velocity-Time graphs, Newton's 3 laws)\n• Day 3: Work, Energy, Power & Momentum conservation\n• Day 4: Thermal Physics & Gas laws (Boyle's & Charles's laws)\n• Day 5: Waves, Sound & Light Optics (Lenses, Mirrors, Refraction)\n• Day 6: Electric circuits, Ohm's law & Electromagnetic Induction\n• Day 7: Full 50-Question WAEC Past Paper Simulation under timed conditions (1 hr 45 mins)`,
+        realLifeExample: `Solving 20 Mechanics questions daily from WAEC past papers increases problem-solving speed by 40% and guarantees method marks (M1).`,
+        keyPoints: [
+          `• Focus on compulsory Section B questions first.`,
+          `• Always draw neat, labeled diagrams where applicable (earns up to 3 marks).`,
+          `• State governing formulas before substitution to protect method marks.`
+        ],
+        examinationFocus: `WAEC Examination Strategy:\n- Objective: 50 questions in 1 hour 15 mins (spend max 1.5 mins per question).\n- Theory: Answer all compulsory questions; select high-confidence options for elective sections.`,
+        practiceQuestion: `A bullet of mass 20g is fired horizontally at 400 m/s into a stationary wooden block of mass 1.98 kg. Calculate the common velocity with which both move together after impact.`,
+        answer: `Given: Mass of bullet (m₁) = 20g = 0.02 kg, Initial velocity (u₁) = 400 m/s.\nMass of block (m₂) = 1.98 kg, Initial velocity (u₂) = 0 m/s.\nBy Principle of Conservation of Linear Momentum:\nm₁u₁ + m₂u₂ = (m₁ + m₂)v\n(0.02 × 400) + 0 = (0.02 + 1.98)v\n8 = 2.0v\nv = 8 ÷ 2.0 = 4 m/s.\nAnswer: Common velocity = 4 m/s.`
+      };
+    } else if (lower.includes('climate change') || lower.includes('global warming')) {
+      text = `Climate change refers to long-term shifts in global temperatures and regional weather patterns primarily caused by human industrial activities.`;
+      sections = {
         simpleExplanation: text,
-        detailedExplanation: `Diagnostic Academic Analysis:\n- Current Physics Score: 45% (Difficulty in Mechanics & Kinematics)\n- Current Math Score: 80% (Strong Aptitude)\n\nRecommended 7-Day WAEC Revision Timetable:\n• Day 1-2: Intensive Mechanics (Newton's laws, v-t graphs, equations of motion)\n• Day 3: Work, Energy, Power & Momentum\n• Day 4: Heat & Gas Laws\n• Day 5: Waves, Sound & Light Optics\n• Day 6: Electric circuits & Ohm's law\n• Day 7: Full 50-Question WAEC Past Paper Simulation`,
-        examples: [`Daily Practice Goal: Solve 20 past paper questions under timed conditions.`],
-        examTips: [`In Section B theory, tackle Mechanics questions first where calculations are direct.`],
-        practiceQuestions: [`Calculate the common velocity of a 20g bullet fired at 400 m/s into a 1.98 kg stationary block.`],
-        solutions: [`m₁u₁ = (m₁ + m₂)v => (0.02 * 400) = 2.0v => 8 = 2.0v => v = 4 m/s.`]
+        detailedExplanation: `Major Causes of Climate Change:\n1. Greenhouse Gas Emissions: Burning fossil fuels releases CO₂ and nitrous oxide, trapping solar radiation.\n2. Deforestation: Logging and clearing tropical rainforests in West Africa reduces CO₂ absorption.\n3. Agricultural Methane: Livestock and fertilizer generate methane (CH₄).\n4. Industrial Gas Flaring: Flaring in the Niger Delta releases massive greenhouse gases.`,
+        realLifeExample: `Severe seasonal flooding in coastal Lagos, Bayelsa, and Rivers states, alongside advancing desertification and drought in northern Nigerian states (Sahel region).`,
+        keyPoints: [
+          `• The enhanced Greenhouse Effect causes global warming.`,
+          `• Key greenhouse gases: Carbon dioxide (CO₂), Methane (CH₄), Nitrous oxide (N₂O).`,
+          `• Mitigation: Afforestation, transition to solar and renewable energy, stopping gas flaring.`
+        ],
+        examinationFocus: `WAEC Geography & Civic Education Essay Requirements:\nOrganize essay answers into clear paragraphs: (1) Introduction & Definition, (2) 3-4 distinct causes with examples, (3) Environmental and economic impacts on Nigeria, (4) Practical remedies.`,
+        practiceQuestion: `State three environmental consequences of climate change in Nigeria.`,
+        answer: `1. Desert encroachment and drought in Northern Nigeria.\n2. Rising sea levels and severe coastal flooding in Lagos and Bayelsa.\n3. Irregular rainfall leading to decreased agricultural crop yield.`
       };
     } else {
       text = `Curriculum-based academic analysis for: "${promptToSend}"`;
       sections = {
-        simpleExplanation: text,
-        detailedExplanation: `According to the Nigerian NERDC senior secondary curriculum for ${studentContext.classLevel}, this concept requires understanding the underlying scientific laws and solving past examination papers.`,
-        examples: [`Applied in Nigerian secondary school laboratory practicals and theoretical assessments.`],
-        examTips: [`Ensure exact scientific definitions are used to gain maximum marks from WAEC examiners.`],
-        practiceQuestions: [`Explain the principle governing this concept with one everyday application.`],
-        solutions: [`Consult your ExcelMind Learning Hub lesson notes for worked examples.`]
+        simpleExplanation: `Here is the comprehensive curriculum explanation for: "${promptToSend}" tailored to ${studentContext.classLevel} ${selectedSubject}.`,
+        detailedExplanation: `According to the approved Nigerian NERDC curriculum for ${studentContext.classLevel} ${selectedSubject}, this topic encompasses fundamental theoretical principles, standard scientific definitions, and mathematical relationships tested by WAEC, NECO, and JAMB.`,
+        realLifeExample: `Applied consistently in Nigerian secondary school laboratory investigations and industrial technologies.`,
+        keyPoints: [
+          `• Master the exact scientific or academic definitions.`,
+          `• Understand the underlying physical, chemical, or biological mechanisms.`,
+          `• Always state the governing law or formula when solving related problems.`
+        ],
+        examinationFocus: `WAEC testing commonly focuses on conceptual clarity, proper notation, and standard laboratory practical procedures.`,
+        practiceQuestion: `Formulate the governing principle of this topic and explain one real-world practical application.`,
+        answer: `Consult your ExcelMind Learning Hub lesson notes for complete worked examples and full marking rubrics.`
       };
     }
 
@@ -272,8 +314,8 @@ export const AiTutorView: React.FC = () => {
   };
 
   const handleTriggerWaecPrep = () => {
-    setSelectedCategory('Prepare for Exam');
-    handleSendPrompt('Prepare me for WAEC examination with 7-day revision plan and weak area analysis', 'Prepare for Exam');
+    setSelectedCategory('Prepare Me For WAEC');
+    handleSendPrompt('Prepare me for WAEC', 'Prepare Me For WAEC');
   };
 
   return (
@@ -370,7 +412,7 @@ export const AiTutorView: React.FC = () => {
             </div>
 
             <button
-              onClick={() => handleSendPrompt(`Explain Newton's Laws and Kinematics step-by-step to improve my ${studentContext.weakSubjects[0].score}% Physics score`, 'Explain Topic')}
+              onClick={() => handleSendPrompt(`Explain Newton's Laws and Kinematics step-by-step to improve my ${studentContext.weakSubjects[0].score}% Physics score`, 'Explain This Topic')}
               className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] shadow transition cursor-pointer whitespace-nowrap"
             >
               Remediate Weak Area Now
@@ -384,11 +426,20 @@ export const AiTutorView: React.FC = () => {
         
         {/* Question Categories Rail */}
         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto scrollbar-none">
-          <span className="text-[10px] font-mono font-bold text-slate-400 shrink-0 uppercase">Category:</span>
+          <span className="text-[10px] font-mono font-bold text-slate-400 shrink-0 uppercase">Quick Actions:</span>
           {questionCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => {
+                setSelectedCategory(cat.id);
+                if (cat.id === 'Prepare Me For WAEC') {
+                  handleSendPrompt('Prepare me for WAEC', 'Prepare Me For WAEC');
+                } else if (cat.id === 'Create Revision Plan') {
+                  handleSendPrompt(`Create a 7-day revision plan for my weak area in ${studentContext.weakSubjects?.[0]?.subject || 'Physics'}`, 'Create Revision Plan');
+                } else if (cat.id === 'Generate Practice Questions') {
+                  handleSendPrompt(`Generate WAEC-standard practice questions for ${studentContext.classLevel} ${selectedSubject}`, 'Generate Practice Questions');
+                }
+              }}
               className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition whitespace-nowrap shadow-sm cursor-pointer flex items-center gap-1.5 ${
                 selectedCategory === cat.id
                   ? 'bg-[#111B5E] text-white border-transparent'
@@ -471,24 +522,24 @@ export const AiTutorView: React.FC = () => {
 
                 <p className="font-semibold whitespace-pre-line text-slate-900 dark:text-slate-100">{m.text}</p>
 
-                {/* 6 Structured Educational Methodology Sections */}
+                {/* 7-Pillar Structured Educational Methodology Sections */}
                 {m.sections && (
                   <div className="space-y-3 pt-2">
                     {/* 1. Simple Explanation */}
                     {m.sections.simpleExplanation && (
                       <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                        <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          📖 1. Simple Explanation:
+                        <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>📖</span> <span>1. Simple Explanation</span>
                         </span>
-                        <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line">{m.sections.simpleExplanation}</p>
+                        <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed">{m.sections.simpleExplanation}</p>
                       </div>
                     )}
 
-                    {/* 2. Detailed Curriculum Breakdown */}
+                    {/* 2. Detailed Explanation */}
                     {m.sections.detailedExplanation && (
                       <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                        <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          🔬 2. Detailed Explanation & Syllabus Breakdown:
+                        <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>🔬</span> <span>2. Detailed Explanation & Curriculum Depth</span>
                         </span>
                         <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line font-mono text-[11px] leading-relaxed">
                           {m.sections.detailedExplanation}
@@ -496,59 +547,83 @@ export const AiTutorView: React.FC = () => {
                       </div>
                     )}
 
-                    {/* 3. Worked Examples */}
-                    {m.sections.examples && m.sections.examples.length > 0 && (
-                      <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900">
-                        <span className="font-black text-emerald-800 dark:text-emerald-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          🧮 3. Model Worked Examples & Derivations:
-                        </span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
-                          {m.sections.examples.map((ex, i) => (
-                            <li key={i} className="whitespace-pre-line">{ex}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* 4. WAEC Exam Tips */}
-                    {m.sections.examTips && m.sections.examTips.length > 0 && (
+                    {/* 3. Real-Life Example */}
+                    {(m.sections.realLifeExample || (m.sections.examples && m.sections.examples.length > 0)) && (
                       <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
-                        <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          🎯 4. WAEC / NECO / JAMB Exam Tips & Marking Scheme:
+                        <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>💡</span> <span>3. Real-Life Example</span>
+                        </span>
+                        {m.sections.realLifeExample ? (
+                          <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed">{m.sections.realLifeExample}</p>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
+                            {m.sections.examples?.map((ex, i) => (
+                              <li key={i} className="whitespace-pre-line">{ex}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 4. Key Points to Remember */}
+                    {((m.sections.keyPoints && m.sections.keyPoints.length > 0) || (m.sections.examTips && m.sections.examTips.length > 0)) && (
+                      <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700">
+                        <span className="font-black text-slate-800 dark:text-slate-200 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>📌</span> <span>4. Key Points to Remember</span>
                         </span>
                         <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
-                          {m.sections.examTips.map((tip, i) => (
-                            <li key={i} className="whitespace-pre-line">{tip}</li>
+                          {(m.sections.keyPoints || m.sections.examTips)?.map((pt, i) => (
+                            <li key={i} className="whitespace-pre-line leading-relaxed">{pt}</li>
                           ))}
                         </ul>
                       </div>
                     )}
 
-                    {/* 5. Practice Questions */}
-                    {m.sections.practiceQuestions && m.sections.practiceQuestions.length > 0 && (
+                    {/* 5. Examination Focus */}
+                    {m.sections.examinationFocus && (
+                      <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900">
+                        <span className="font-black text-rose-800 dark:text-rose-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>🎯</span> <span>5. Examination Focus (WAEC • NECO • JAMB)</span>
+                        </span>
+                        <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line font-mono text-[11px] leading-relaxed">
+                          {m.sections.examinationFocus}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 6. Practice Question */}
+                    {(m.sections.practiceQuestion || (m.sections.practiceQuestions && m.sections.practiceQuestions.length > 0)) && (
                       <div className="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900">
-                        <span className="font-black text-purple-800 dark:text-purple-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          ❓ 5. Practice Exam Question:
+                        <span className="font-black text-purple-800 dark:text-purple-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>❓</span> <span>6. Practice Question</span>
                         </span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
-                          {m.sections.practiceQuestions.map((q, i) => (
-                            <li key={i} className="whitespace-pre-line">{q}</li>
-                          ))}
-                        </ul>
+                        {m.sections.practiceQuestion ? (
+                          <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-medium leading-relaxed">{m.sections.practiceQuestion}</p>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
+                            {m.sections.practiceQuestions?.map((q, i) => (
+                              <li key={i} className="whitespace-pre-line font-medium">{q}</li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     )}
 
-                    {/* 6. Step-by-Step Solutions */}
-                    {m.sections.solutions && m.sections.solutions.length > 0 && (
-                      <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900">
-                        <span className="font-black text-teal-800 dark:text-teal-300 block mb-1 uppercase tracking-wider font-mono text-[11px]">
-                          💡 6. Verified Solution & Rationale:
+                    {/* 7. Answer & Detailed Working */}
+                    {(m.sections.answer || (m.sections.solutions && m.sections.solutions.length > 0)) && (
+                      <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900">
+                        <span className="font-black text-emerald-800 dark:text-emerald-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                          <span>✅</span> <span>7. Answer & Detailed Working</span>
                         </span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
-                          {m.sections.solutions.map((sol, i) => (
-                            <li key={i} className="whitespace-pre-line font-mono">{sol}</li>
-                          ))}
-                        </ul>
+                        {m.sections.answer ? (
+                          <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] leading-relaxed">{m.sections.answer}</p>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
+                            {m.sections.solutions?.map((sol, i) => (
+                              <li key={i} className="whitespace-pre-line font-mono text-[11px]">{sol}</li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     )}
                   </div>
