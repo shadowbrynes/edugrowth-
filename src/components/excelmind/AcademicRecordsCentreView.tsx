@@ -9,7 +9,9 @@ interface AcademicRecordsCentreViewProps {
 }
 
 export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps> = ({ currentRole = 'admin' }) => {
-  const [activeTab, setActiveTab] = useState<'student_reg' | 'assignment_scores' | 'exam_results' | 'report_card' | 'analytics' | 'directory'>('student_reg');
+  const [activeTab, setActiveTab] = useState<'student_reg' | 'assignment_scores' | 'exam_results' | 'report_card' | 'analytics' | 'directory'>(
+    currentRole === 'teacher' ? 'assignment_scores' : 'student_reg'
+  );
 
   // ==========================================
   // 1. ADD NEW STUDENT FORM STATE
@@ -311,18 +313,34 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
       {/* ACADEMIC MANAGEMENT QUICK ACTIONS (LARGE INTERACTIVE CARDS)              */}
       {/* ========================================================================= */}
       <div className="space-y-2">
-        <h3 className="text-xs font-mono font-bold uppercase text-slate-400">
-          Academic Management Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { id: 'student_reg', label: '+ Add New Student', icon: 'person_add', color: 'from-blue-600 to-indigo-700 text-white' },
-            { id: 'directory', label: '🪪 Student Directory', icon: 'badge', color: 'from-cyan-600 to-blue-700 text-white' },
-            { id: 'assignment_scores', label: '📝 Assignment Scores', icon: 'edit_note', color: 'from-purple-600 to-indigo-700 text-white' },
-            { id: 'exam_results', label: '📊 Enter Exam Results', icon: 'grade', color: 'from-emerald-600 to-teal-700 text-white' },
-            { id: 'report_card', label: '📄 Generate Report Card', icon: 'description', color: 'from-amber-600 to-orange-700 text-white' },
-            { id: 'analytics', label: '📈 Performance Analysis', icon: 'trending_up', color: 'from-rose-600 to-pink-700 text-white' }
-          ].map((act) => (
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-mono font-bold uppercase text-slate-400">
+            {currentRole === 'teacher' ? 'Assigned Academic Actions' : 'Academic Management Quick Actions'}
+          </h3>
+          {currentRole === 'teacher' && (
+            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">lock</span>
+              <span>Class-Isolated Score Entry (Assigned Students Only)</span>
+            </span>
+          )}
+        </div>
+        <div className={`grid grid-cols-2 sm:grid-cols-3 ${currentRole === 'teacher' ? 'lg:grid-cols-4' : 'lg:grid-cols-6'} gap-3`}>
+          {(currentRole === 'teacher'
+            ? [
+                { id: 'assignment_scores', label: '📝 Assignment Scores', icon: 'edit_note', color: 'from-purple-600 to-indigo-700 text-white' },
+                { id: 'exam_results', label: '📊 Enter Exam Results', icon: 'grade', color: 'from-emerald-600 to-teal-700 text-white' },
+                { id: 'report_card', label: '📄 Class Report Cards', icon: 'description', color: 'from-amber-600 to-orange-700 text-white' },
+                { id: 'analytics', label: '📈 Class Performance', icon: 'trending_up', color: 'from-rose-600 to-pink-700 text-white' }
+              ]
+            : [
+                { id: 'student_reg', label: '+ Add New Student', icon: 'person_add', color: 'from-blue-600 to-indigo-700 text-white' },
+                { id: 'directory', label: '🪪 Student Directory', icon: 'badge', color: 'from-cyan-600 to-blue-700 text-white' },
+                { id: 'assignment_scores', label: '📝 Assignment Scores', icon: 'edit_note', color: 'from-purple-600 to-indigo-700 text-white' },
+                { id: 'exam_results', label: '📊 Enter Exam Results', icon: 'grade', color: 'from-emerald-600 to-teal-700 text-white' },
+                { id: 'report_card', label: '📄 Generate Report Card', icon: 'description', color: 'from-amber-600 to-orange-700 text-white' },
+                { id: 'analytics', label: '📈 Performance Analysis', icon: 'trending_up', color: 'from-rose-600 to-pink-700 text-white' }
+              ]
+          ).map((act) => (
             <button
               key={act.id}
               onClick={() => setActiveTab(act.id as any)}

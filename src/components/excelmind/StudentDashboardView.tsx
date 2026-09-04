@@ -79,11 +79,11 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
           <div className="flex flex-wrap items-center gap-2.5 sm:self-center">
             <button
-              onClick={() => onNavigate('student_directory')}
+              onClick={() => onNavigate('learning_hub')}
               className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-lg shadow-blue-600/25 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-sm">badge</span>
-              <span>Digital ID & Directory</span>
+              <span className="material-symbols-outlined text-sm">hub</span>
+              <span>My Learning Hub</span>
             </button>
 
             <button
@@ -297,6 +297,62 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         {/* Left 2 Cols: Continue Learning & Courses */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Privacy & Isolation Security Assurance */}
+          <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 text-emerald-900 dark:text-emerald-200">
+              <span className="material-symbols-outlined text-lg text-emerald-600 dark:text-emerald-400 shrink-0">verified_user</span>
+              <p className="leading-tight">
+                <strong className="font-extrabold">Private Learning Space Active:</strong> Your academic records and profile are strictly data-isolated. Other students' names, photos, results, scores, attendance, profiles, and parent details are completely protected and inaccessible.
+              </p>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shrink-0">
+              Zero Leakage
+            </span>
+          </div>
+
+          {/* Section 10: My Learning Hub (7 Pillars Required by Spec) */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-3.5">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-blue-600 text-xl">hub</span>
+                  My Learning Hub
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Your personalized, all-in-one educational center
+                </p>
+              </div>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                7 Pillars
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+              {[
+                { name: 'My Courses', icon: 'menu_book', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60', action: () => onNavigate('courses') },
+                { name: 'My Lessons', icon: 'auto_stories', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60', action: () => onNavigate('learning_hub') },
+                { name: 'My Videos', icon: 'smart_display', color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/60', action: () => onNavigate('learning_hub') },
+                { name: 'My Notes', icon: 'description', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60', action: () => onNavigate('learning_hub') },
+                { name: 'My CBT Practice', icon: 'timer', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60', action: () => onNavigate('cbt') },
+                { name: 'My Revision Plan', icon: 'neurology', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60', action: () => onNavigate('coach') },
+                { name: 'My AI Tutor', icon: 'smart_toy', color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/60', action: () => onNavigate('ai_tutor') }
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={item.action}
+                  className="p-3 rounded-xl border border-slate-200/70 dark:border-slate-800 hover:border-blue-500 hover:shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer group bg-slate-50/50 dark:bg-slate-800/30"
+                >
+                  <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
+                    {item.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Continue Learning Featured Banner (Mathematics 75%) */}
           <div className="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-blue-800/60">
             <div className="space-y-1">

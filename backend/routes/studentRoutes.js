@@ -2,15 +2,18 @@ const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
 const authMiddleware = require('../middleware/authMiddleware');
+const { requireRole, studentIsolation } = require('../middleware/rbacMiddleware');
 
-router.get('/profile', authMiddleware, studentController.getStudentProfile);
-router.get('/timetable', authMiddleware, studentController.getStudentTimetable);
-router.get('/attendance', authMiddleware, studentController.getStudentAttendance);
+// Student self routes (protected by student isolation)
+router.get('/profile', authMiddleware, studentIsolation, studentController.getStudentProfile);
+router.get('/timetable', authMiddleware, studentIsolation, studentController.getStudentTimetable);
+router.get('/attendance', authMiddleware, studentIsolation, studentController.getStudentAttendance);
 
-router.get('/', studentController.getAllStudents);
-router.post('/', studentController.registerStudent);
-router.get('/:id', studentController.getStudentById);
-router.put('/:id', studentController.updateStudent);
-router.delete('/:id', studentController.deleteStudent);
+// Institutional student management - restricted to Admin only to prevent student data leakage
+router.get('/', authMiddleware, requireRole('admin'), studentController.getAllStudents);
+router.post('/', authMiddleware, requireRole('admin'), studentController.registerStudent);
+router.get('/:id', authMiddleware, studentIsolation, studentController.getStudentById);
+router.put('/:id', authMiddleware, requireRole('admin'), studentController.updateStudent);
+router.delete('/:id', authMiddleware, requireRole('admin'), studentController.deleteStudent);
 
 module.exports = router;

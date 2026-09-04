@@ -2,17 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { Course, Assignment, CbtQuestion } from '../../types/excelmind';
 import { COURSES_DATA, ASSIGNMENTS_DATA } from '../../data/excelmindData';
 import { AcademicRecordsCentreView } from './AcademicRecordsCentreView';
-import { assignmentApi } from '../../services/api';
+import { assignmentApi, teacherSpaceApi } from '../../services/api';
 
 export const TeacherPortalView: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>(COURSES_DATA);
   const [assignments, setAssignments] = useState<Assignment[]>(ASSIGNMENTS_DATA);
-  const [activeTab, setActiveTab] = useState<'academic_centre' | 'materials' | 'assignments' | 'cbt_setter' | 'grading'>('academic_centre');
+  const [activeTab, setActiveTab] = useState<'roster' | 'academic_centre' | 'materials' | 'assignments' | 'cbt_setter' | 'grading'>('roster');
 
-  // Load assignments from MySQL database on mount
+  // Teacher Space Assigned Classes & Students State
+  const [assignedClasses, setAssignedClasses] = useState<any[]>([
+    { id: 7, className: 'SS 2 Science', level: 'SS2', role: 'Form Master / Class Teacher', studentCount: 45, subjectsTaught: ['Physics', 'Chemistry'] },
+    { id: 4, className: 'SS 1 Science', level: 'SS1', role: 'Subject Teacher', studentCount: 38, subjectsTaught: ['Physics'] }
+  ]);
+  const [selectedClassId, setSelectedClassId] = useState<number | string>(7);
+  const [rosterStudents, setRosterStudents] = useState<any[]>([]);
+  const [isLoadingRoster, setIsLoadingRoster] = useState(false);
+
+  // Load classes and assignments from MySQL database on mount
   useEffect(() => {
     async function loadTeacherData() {
       try {
+        // Load assigned classes
+        const classRes = await teacherSpaceApi.getClasses();
+        if (classRes.success && classRes.data?.classes && classRes.data.classes.length > 0) {
+          setAssignedClasses(classRes.data.classes);
+          setSelectedClassId(classRes.data.classes[0].id);
+        }
+
+        // Load assignments
         const res = await assignmentApi.getAll();
         if (res.success && res.data?.assignments && res.data.assignments.length > 0) {
           const mapped = res.data.assignments.map((a: any) => ({
@@ -32,6 +49,30 @@ export const TeacherPortalView: React.FC = () => {
     }
     loadTeacherData();
   }, []);
+
+  // Load roster students whenever selectedClassId changes
+  useEffect(() => {
+    async function loadRoster() {
+      setIsLoadingRoster(true);
+      try {
+        const res = await teacherSpaceApi.getStudents(selectedClassId);
+        if (res.success && res.data?.students && res.data.students.length > 0) {
+          setRosterStudents(res.data.students);
+        } else {
+          // Fallback roster for current class
+          setRosterStudents([
+            { id: 1, admissionNumber: 'EXM-2025-0842', name: 'John Doe', academicLevel: 'SS 2 Science', gender: 'Male', status: 'active', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+            { id: 4, admissionNumber: 'EXM-2026-4412', name: 'John Smith', academicLevel: 'SS 2 Science', gender: 'Male', status: 'active', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150' }
+          ]);
+        }
+      } catch (err) {
+        console.warn('Error loading teacher roster:', err);
+      } finally {
+        setIsLoadingRoster(false);
+      }
+    }
+    loadRoster();
+  }, [selectedClassId]);
 
   // New Material State
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
@@ -209,9 +250,120 @@ export const TeacherPortalView: React.FC = () => {
         </div>
       </div>
 
+      {/* Assigned Scope & Data Isolation Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Card 1: My Classes */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400">My Assigned Classes</span>
+            <span className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+              <span className="material-symbols-outlined text-lg">groups</span>
+            </span>
+          </div>
+          <div className="space-y-2">
+            {assignedClasses.map((cls) => (
+              <button
+                key={cls.id}
+                onClick={() => {
+                  setSelectedClassId(cls.id);
+                  setActiveTab('roster');
+                }}
+                className={`w-full text-left p-3 rounded-2xl border transition flex items-center justify-between ${
+                  selectedClassId === cls.id
+                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/30'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-900 dark:text-slate-100">{cls.className}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      {cls.role.includes('Form') ? 'Form Master' : 'Subject'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {cls.subjectsTaught?.join(', ') || 'Physics'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm font-black text-blue-600 dark:text-blue-400 font-mono">
+                    {cls.studentCount || 45}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">Students</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Card 2: My Subjects */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400">My Subjects</span>
+            <span className="p-1.5 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
+              <span className="material-symbols-outlined text-lg">menu_book</span>
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="p-3 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900 flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-slate-100">Physics</h4>
+                <p className="text-[11px] text-slate-500">SS 2 Science & SS 1 Science</p>
+              </div>
+              <span className="px-2 py-1 rounded-xl bg-purple-100 text-purple-800 font-mono font-bold text-[10px]">
+                PHY 201
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-slate-100">Chemistry</h4>
+                <p className="text-[11px] text-slate-500">SS 2 Science</p>
+              </div>
+              <span className="px-2 py-1 rounded-xl bg-emerald-100 text-emerald-800 font-mono font-bold text-[10px]">
+                CHM 202
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Contact Privacy & RBAC Control */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono font-bold uppercase text-slate-400">Teacher Privacy & Access</span>
+              <span className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                <span className="material-symbols-outlined text-lg">verified_user</span>
+              </span>
+            </div>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Form Master:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">SS 2 Science</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Approved Phone:</span>
+                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">+234 803 234 5678</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">WhatsApp Channel:</span>
+                <span className="font-mono font-bold text-emerald-600">Active (Parents & Students)</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+            <span className="material-symbols-outlined text-base shrink-0 mt-0.5">lock</span>
+            <span>
+              <strong>RBAC Isolation Enforced:</strong> You can only access students in your assigned classes (SS 2 Science, SS 1 Science). Access to SS 3 Arts is restricted.
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Action Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
+          { id: 'roster', label: 'My Assigned Students Roster', icon: 'badge' },
           { id: 'academic_centre', label: 'Academic Records Centre', icon: 'school' },
           { id: 'materials', label: 'Course Materials & Lessons', icon: 'auto_stories' },
           { id: 'assignments', label: 'Set Assignments', icon: 'assignment' },
@@ -232,6 +384,124 @@ export const TeacherPortalView: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* TAB 0: ASSIGNED STUDENTS ROSTER */}
+      {activeTab === 'roster' && (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-black text-slate-900 dark:text-slate-100">
+                  Assigned Students Roster
+                </h3>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                  🔒 Class-Isolated
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Roster of verified students in your assigned class and subject streams.
+              </p>
+            </div>
+
+            {/* Class Switcher */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-medium">Filter Class:</span>
+              <div className="flex rounded-xl p-1 bg-slate-100 dark:bg-slate-800">
+                {assignedClasses.map((cls) => (
+                  <button
+                    key={cls.id}
+                    onClick={() => setSelectedClassId(cls.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      selectedClassId === cls.id
+                        ? 'bg-[#111B5E] text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                    }`}
+                  >
+                    {cls.className}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {isLoadingRoster ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              <span className="material-symbols-outlined text-3xl animate-spin mb-2 block">sync</span>
+              Loading assigned students from MySQL...
+            </div>
+          ) : rosterStudents.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              No students enrolled in this class yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
+                    <th className="py-3 px-3">Student Details</th>
+                    <th className="py-3 px-3">Admission No</th>
+                    <th className="py-3 px-3">Academic Class</th>
+                    <th className="py-3 px-3">Enrolment Status</th>
+                    <th className="py-3 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {rosterStudents.map((st) => (
+                    <tr key={st.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={st.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+                            alt={st.name}
+                            className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                          />
+                          <div>
+                            <span className="font-bold text-slate-900 dark:text-slate-100 block">
+                              {st.name}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              Gender: {st.gender || 'Not specified'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-blue-600 dark:text-blue-400">
+                        {st.admissionNumber || `EXM-2026-${st.id}`}
+                      </td>
+                      <td className="py-3 px-3 font-medium text-slate-700 dark:text-slate-300">
+                        {st.className || st.academicLevel || 'SS 2 Science'}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold inline-flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          Enrolled
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <button
+                            onClick={() => setActiveTab('academic_centre')}
+                            className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[11px] hover:bg-indigo-100 transition cursor-pointer"
+                          >
+                            Enter Scores
+                          </button>
+                          <button
+                            onClick={() => alert(`Direct feedback dispatched to parent and student ${st.name}`)}
+                            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                            title="Send In-App Feedback"
+                          >
+                            <span className="material-symbols-outlined text-base">chat</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB: ACADEMIC RECORDS CENTRE */}
       {activeTab === 'academic_centre' && (

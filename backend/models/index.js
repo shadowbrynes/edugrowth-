@@ -37,6 +37,7 @@ const Timetable = require('./Timetable');
 const ProfileImage = require('./ProfileImage');
 const CommunityPost = require('./CommunityPost');
 const CommunityComment = require('./CommunityComment');
+const StudentEnvironment = require('./StudentEnvironment');
 
 // --- Associations ---
 
@@ -173,6 +174,11 @@ CommunityPost.hasMany(CommunityComment, { foreignKey: 'post_id', as: 'comments' 
 CommunityComment.belongsTo(CommunityPost, { foreignKey: 'post_id', as: 'post' });
 CommunityComment.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
+// Student Environment association
+Student.hasOne(StudentEnvironment, { foreignKey: 'student_id', as: 'environment' });
+StudentEnvironment.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+StudentEnvironment.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+
 module.exports = {
   sequelize,
   User,
@@ -210,5 +216,6 @@ module.exports = {
   Timetable,
   ProfileImage,
   CommunityPost,
-  CommunityComment
+  CommunityComment,
+  StudentEnvironment
 };
