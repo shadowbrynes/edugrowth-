@@ -1,9 +1,9 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Subject = sequelize.define('Subject', {
-  subject_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
@@ -13,16 +13,19 @@ const Subject = sequelize.define('Subject', {
   },
   subject_code: {
     type: DataTypes.STRING(50),
-    allowNull: false,
-    unique: true
-  },
-  department: {
-    type: DataTypes.STRING(100),
     allowNull: false
   },
-  teacher_id: {
-    type: DataTypes.INTEGER,
+  department_id: {
+    type: DataTypes.BIGINT,
     allowNull: true
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  status: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'active'
   }
 }, {
   tableName: 'subjects',

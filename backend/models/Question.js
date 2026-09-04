@@ -1,14 +1,14 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Question = sequelize.define('Question', {
-  question_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
   exam_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false
   },
   question_text: {
@@ -25,11 +25,11 @@ const Question = sequelize.define('Question', {
   },
   option_c: {
     type: DataTypes.TEXT,
-    allowNull: false
+    allowNull: true
   },
   option_d: {
     type: DataTypes.TEXT,
-    allowNull: false
+    allowNull: true
   },
   correct_answer: {
     type: DataTypes.ENUM('A', 'B', 'C', 'D'),
@@ -38,10 +38,15 @@ const Question = sequelize.define('Question', {
   explanation: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  difficulty_level: {
+    type: DataTypes.ENUM('Easy', 'Medium', 'Hard'),
+    defaultValue: 'Medium'
   }
 }, {
   tableName: 'questions',
-  timestamps: false
+  timestamps: false,
+  underscored: true
 });
 
 module.exports = Question;

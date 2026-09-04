@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const PasswordResetToken = sequelize.define('PasswordResetToken', {
+const Notification = sequelize.define('Notification', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
@@ -11,23 +11,30 @@ const PasswordResetToken = sequelize.define('PasswordResetToken', {
     type: DataTypes.BIGINT,
     allowNull: false
   },
-  token: {
+  title: {
     type: DataTypes.STRING(255),
-    allowNull: false,
-    unique: true
-  },
-  expires_at: {
-    type: DataTypes.DATE,
     allowNull: false
+  },
+  message: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  type: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'academic' // 'assignment', 'result', 'message', 'exam', 'system'
+  },
+  status: {
+    type: DataTypes.ENUM('unread', 'read'),
+    defaultValue: 'unread'
   },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'password_reset_tokens',
+  tableName: 'notifications',
   timestamps: false,
   underscored: true
 });
 
-module.exports = PasswordResetToken;
+module.exports = Notification;

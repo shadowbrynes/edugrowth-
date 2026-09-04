@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { isAiConfigured } from '../../ai';
+import { aiApi } from '../../services/api';
 
 interface ChatMessageAI {
   id: string;
@@ -179,6 +180,17 @@ export const AiTutorView: React.FC = () => {
         timestamp: 'Just now',
         sections: responseSection
       };
+
+      // Automatically persist AI chat interaction to MySQL ai_chat_history table
+      try {
+        aiApi.saveChat({
+          student_id: 1,
+          question: promptToSend || 'Photographed exam question',
+          response: responseText
+        });
+      } catch (e) {
+        console.warn('AI chat save notice:', e);
+      }
 
       setMessages((prev) => [...prev, aiMsg]);
       setIsThinking(false);

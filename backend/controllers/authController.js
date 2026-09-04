@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const { User, Student, Teacher, Parent, PasswordResetToken } = require('../models');
+const { User, Student, Teacher, Parent, PasswordResetToken, LoginActivity, AuditLog } = require('../models');
 
 // Helper to generate JWT token
 const generateToken = (user) => {
@@ -56,10 +56,33 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user);
 
+    // Save Login Activity in MySQL login_activity table
+    const userAgent = req.headers['user-agent'] || 'Web Client';
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    let loginRecord = null;
+    try {
+      loginRecord = await LoginActivity.create({
+        user_id: user.id,
+        device: String(userAgent).slice(0, 250),
+        ip_address: String(ip).slice(0, 45),
+        login_time: new Date()
+      });
+
+      await AuditLog.create({
+        user_id: user.id,
+        action: 'USER_LOGIN',
+        description: `User ${user.email} (${user.role}) logged in successfully.`,
+        ip_address: String(ip).slice(0, 45)
+      });
+    } catch (logErr) {
+      console.warn('[Auth Log Warning]:', logErr.message);
+    }
+
     return res.status(200).json({
       success: true,
       message: `Welcome back, ${user.first_name}!`,
       token,
+      login_id: loginRecord ? loginRecord.id : null,
       user: {
         id: user.id,
         first_name: user.first_name,
@@ -82,7 +105,44 @@ exports.login = async (req, res) => {
   }
 };
 
-// 2. User Registration
+// 2. User Logout
+exports.logout = async (req, res) => {
+  try {
+    const { login_id, user_id } = req.body;
+    if (login_id) {
+      await LoginActivity.update({ logout_time: new Date() }, { where: { id: login_id } });
+    } else if (user_id) {
+      const latest = await LoginActivity.findOne({ where: { user_id }, order: [['id', 'DESC']] });
+      if (latest) {
+        latest.logout_time = new Date();
+        await latest.save();
+      }
+    }
+
+    return res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (err) {
+    console.error('Logout error:', err);
+    return res.status(500).json({ success: false, message: 'Server error during logout' });
+  }
+};
+
+// 3. User Login History
+exports.getLoginHistory = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const history = await LoginActivity.findAll({
+      where: { user_id },
+      order: [['login_time', 'DESC']],
+      limit: 30
+    });
+    return res.status(200).json({ success: true, count: history.length, history });
+  } catch (err) {
+    console.error('getLoginHistory error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// 4. User Registration
 exports.register = async (req, res) => {
   try {
     const { first_name, last_name, email, password, phone, role } = req.body;
@@ -108,7 +168,7 @@ exports.register = async (req, res) => {
       email: email.toLowerCase().trim(),
       phone,
       password_hash: password,
-      role: role || 'Student'
+      role: role || 'student'
     });
 
     const token = generateToken(newUser);
@@ -134,7 +194,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// 3. Forgot Password Request
+// 5. Forgot Password Request
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -144,14 +204,12 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ where: { email: email.toLowerCase().trim() } });
     if (!user) {
-      // Return 200 for security so email enumeration is mitigated
       return res.status(200).json({
         success: true,
         message: 'If the email exists, a password reset link has been dispatched.'
       });
     }
 
-    // Generate token valid for 1 hour
     const token = crypto.randomBytes(32).toString('hex');
     const expiry_time = new Date(Date.now() + 3600000); // 1 hour
 
@@ -161,7 +219,6 @@ exports.forgotPassword = async (req, res) => {
       expiry_time
     });
 
-    // In production, send email with reset link. In dev, return token.
     return res.status(200).json({
       success: true,
       message: 'Password reset token generated successfully. Valid for 60 minutes.',
@@ -174,7 +231,7 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// 4. Reset Password with Token
+// 6. Reset Password with Token
 exports.resetPassword = async (req, res) => {
   try {
     const { token, new_password } = req.body;
@@ -201,7 +258,6 @@ exports.resetPassword = async (req, res) => {
     user.password_hash = new_password;
     await user.save();
 
-    // Delete used token
     await resetRecord.destroy();
 
     return res.status(200).json({
@@ -214,7 +270,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// 5. Current Authenticated Profile
+// 7. Current Authenticated Profile
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {

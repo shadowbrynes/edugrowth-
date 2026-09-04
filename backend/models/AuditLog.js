@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const PasswordResetToken = sequelize.define('PasswordResetToken', {
+const AuditLog = sequelize.define('AuditLog', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
@@ -9,25 +9,28 @@ const PasswordResetToken = sequelize.define('PasswordResetToken', {
   },
   user_id: {
     type: DataTypes.BIGINT,
+    allowNull: true
+  },
+  action: {
+    type: DataTypes.STRING(100),
     allowNull: false
   },
-  token: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-    unique: true
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
   },
-  expires_at: {
-    type: DataTypes.DATE,
-    allowNull: false
+  ip_address: {
+    type: DataTypes.STRING(45),
+    allowNull: true
   },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'password_reset_tokens',
+  tableName: 'audit_logs',
   timestamps: false,
   underscored: true
 });
 
-module.exports = PasswordResetToken;
+module.exports = AuditLog;

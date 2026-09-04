@@ -1,16 +1,19 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Student = sequelize.define('Student', {
-  student_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
   user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    unique: true
+    type: DataTypes.BIGINT,
+    allowNull: false
+  },
+  school_id: {
+    type: DataTypes.BIGINT,
+    defaultValue: 1
   },
   admission_number: {
     type: DataTypes.STRING(50),
@@ -27,48 +30,48 @@ const Student = sequelize.define('Student', {
   },
   gender: {
     type: DataTypes.ENUM('Male', 'Female', 'Other'),
-    allowNull: false
+    defaultValue: 'Male'
   },
   date_of_birth: {
     type: DataTypes.DATEONLY,
     allowNull: true
   },
-  class_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+  photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
   },
-  department: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    defaultValue: 'Science & Technology'
+  class_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
+  },
+  department_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
   },
   academic_level: {
     type: DataTypes.STRING(50),
-    allowNull: false,
-    defaultValue: 'SSS 3'
+    defaultValue: 'SS2'
   },
   address: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   parent_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: true
   },
-  enrollment_date: {
+  admission_date: {
     type: DataTypes.DATEONLY,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
-  },
-  photo: {
-    type: DataTypes.STRING(255),
     allowNull: true
+  },
+  status: {
+    type: DataTypes.ENUM('active', 'inactive', 'graduated', 'suspended'),
+    defaultValue: 'active'
   }
 }, {
   tableName: 'students',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: false
+  timestamps: false,
+  underscored: true
 });
 
 module.exports = Student;

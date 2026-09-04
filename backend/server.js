@@ -14,6 +14,11 @@ const examRoutes = require('./routes/examRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const communicationRoutes = require('./routes/communicationRoutes');
+const curriculumRoutes = require('./routes/curriculumRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const aiRoutes = require('./routes/aiRoutes');
+const backupRoutes = require('./routes/backupRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,11 +34,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Healthcheck & System Meta Endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch (e) {
+    dbStatus = 'error: ' + e.message;
+  }
+
   res.status(200).json({
     status: 'online',
     platform: 'ExcelMind Academic Companion API',
     database: process.env.DB_NAME || 'excelmind_academic',
+    databaseStatus: dbStatus,
     host: process.env.DB_HOST || 'localhost',
     timestamp: new Date().toISOString()
   });
@@ -44,10 +58,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/parents', parentRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/attendance', attendanceRoutes);
 app.use('/api/communication', communicationRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -65,13 +84,12 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('[ExcelMind DB]: ✓ MySQL Database connection established successfully.');
 
-    // Sync schema
+    // Sync schema without dropping tables
     await sequelize.sync({ alter: false });
     console.log('[ExcelMind DB]: ✓ Sequelize models synchronized with database tables.');
   } catch (dbErr) {
     console.warn(`[ExcelMind DB Notice]: Could not connect to MySQL at ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}.`);
     console.warn('Reason:', dbErr.message);
-    console.warn('[ExcelMind DB Notice]: Server will start in standby mode. Start your local MySQL service (e.g. via XAMPP, WAMP, or MySQL Workbench) to activate live database syncing.');
   }
 
   app.listen(PORT, () => {

@@ -1,33 +1,36 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const PasswordResetToken = sequelize.define('PasswordResetToken', {
+const AIRecommendation = sequelize.define('AIRecommendation', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true
   },
-  user_id: {
+  student_id: {
     type: DataTypes.BIGINT,
     allowNull: false
   },
-  token: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-    unique: true
+  weak_subject: {
+    type: DataTypes.STRING(150),
+    allowNull: true
   },
-  expires_at: {
-    type: DataTypes.DATE,
+  recommendation: {
+    type: DataTypes.TEXT,
     allowNull: false
+  },
+  generated_by: {
+    type: DataTypes.STRING(100),
+    defaultValue: 'ExcelMind AI Academic Coach'
   },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'password_reset_tokens',
+  tableName: 'ai_recommendations',
   timestamps: false,
   underscored: true
 });
 
-module.exports = PasswordResetToken;
+module.exports = AIRecommendation;

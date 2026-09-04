@@ -1,19 +1,23 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Assignment = sequelize.define('Assignment', {
-  assignment_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
-  subject_id: {
-    type: DataTypes.INTEGER,
+  teacher_id: {
+    type: DataTypes.BIGINT,
     allowNull: false
   },
-  teacher_id: {
-    type: DataTypes.INTEGER,
+  subject_id: {
+    type: DataTypes.BIGINT,
     allowNull: false
+  },
+  class_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
   },
   title: {
     type: DataTypes.STRING(255),
@@ -21,21 +25,24 @@ const Assignment = sequelize.define('Assignment', {
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: false
-  },
-  deadline: {
-    type: DataTypes.DATE,
-    allowNull: false
+    allowNull: true
   },
   attachment: {
     type: DataTypes.STRING(255),
     allowNull: true
+  },
+  deadline: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'assignments',
-  timestamps: true,
-  createdAt: 'created_date',
-  updatedAt: false
+  timestamps: false,
+  underscored: true
 });
 
 module.exports = Assignment;

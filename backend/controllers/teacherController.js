@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const { Teacher, User, Subject, Assignment, AssignmentSubmission, Student } = require('../models');
 
 // 1. Get teacher dashboard summary
@@ -16,7 +17,7 @@ exports.getTeacherDashboard = async (req, res) => {
     }
 
     const assignments = await Assignment.findAll({
-      where: { teacher_id: teacher.teacher_id },
+      where: { teacher_id: teacher.id },
       include: [
         {
           model: AssignmentSubmission,
@@ -34,7 +35,7 @@ exports.getTeacherDashboard = async (req, res) => {
     });
   } catch (err) {
     console.error('getTeacherDashboard error:', err);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
@@ -45,25 +46,49 @@ exports.getAllTeachers = async (req, res) => {
       include: [
         { model: User, as: 'user', attributes: ['first_name', 'last_name', 'email', 'profile_image'] },
         { model: Subject, as: 'subjects' }
-      ]
+      ],
+      order: [['first_name', 'ASC']]
     });
 
     return res.status(200).json({ success: true, count: teachers.length, teachers });
   } catch (err) {
-    return res.status(500).json({ success: false, message: 'Server error' });
+    console.error('getAllTeachers error:', err);
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
-// 3. Register new teacher (Status: Pending Approval)
+// 3. Get single teacher
+exports.getTeacherById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await Teacher.findByPk(id, {
+      include: [
+        { model: User, as: 'user', attributes: ['first_name', 'last_name', 'email', 'profile_image'] },
+        { model: Subject, as: 'subjects' }
+      ]
+    });
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    return res.status(200).json({ success: true, teacher });
+  } catch (err) {
+    console.error('getTeacherById error:', err);
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
+// 4. Register new teacher
 exports.registerTeacher = async (req, res) => {
   try {
-    const bcrypt = require('bcryptjs');
     const {
       firstName,
       lastName,
       gender,
       dob,
       phone,
+      whatsappNumber,
       email,
       address,
       employeeId,
@@ -79,7 +104,7 @@ exports.registerTeacher = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Required fields missing' });
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email: email.toLowerCase().trim() } });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'An account with this email already exists' });
     }
@@ -90,11 +115,11 @@ exports.registerTeacher = async (req, res) => {
     const newUser = await User.create({
       first_name: firstName,
       last_name: lastName,
-      email: email,
+      email: email.toLowerCase().trim(),
       phone: phone || null,
       password_hash: passwordHash,
       role: 'teacher',
-      status: 'inactive' // Pending Admin Approval
+      status: 'active'
     });
 
     const newTeacher = await Teacher.create({
@@ -107,16 +132,21 @@ exports.registerTeacher = async (req, res) => {
       qualification: qualification || 'B.Sc / M.Sc',
       specialization: specialisation || 'General Sciences',
       department: department || 'Science',
-      phone: phone,
+      phone: phone || null,
+      phone_number: phone || null,
+      whatsapp_number: whatsappNumber || phone || null,
+      allow_parent_contact: 1,
+      communication_status: 'available',
       address: address || null,
       employment_date: employmentDate || new Date(),
-      status: 'inactive' // Requires Administrator Approval
+      status: 'active'
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Teacher registered successfully. Status: Pending Administrator Approval.',
-      teacher: newTeacher
+      message: 'Teacher registered successfully and recorded in MySQL teachers table',
+      teacher: newTeacher,
+      user: { id: newUser.id, email: newUser.email, role: newUser.role }
     });
   } catch (err) {
     console.error('registerTeacher error:', err);

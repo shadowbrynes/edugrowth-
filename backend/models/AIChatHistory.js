@@ -1,23 +1,22 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const PasswordResetToken = sequelize.define('PasswordResetToken', {
+const AIChatHistory = sequelize.define('AIChatHistory', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true
   },
-  user_id: {
+  student_id: {
     type: DataTypes.BIGINT,
     allowNull: false
   },
-  token: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-    unique: true
+  question: {
+    type: DataTypes.TEXT,
+    allowNull: false
   },
-  expires_at: {
-    type: DataTypes.DATE,
+  response: {
+    type: DataTypes.TEXT('long'),
     allowNull: false
   },
   created_at: {
@@ -25,9 +24,9 @@ const PasswordResetToken = sequelize.define('PasswordResetToken', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'password_reset_tokens',
+  tableName: 'ai_chat_history',
   timestamps: false,
   underscored: true
 });
 
-module.exports = PasswordResetToken;
+module.exports = AIChatHistory;

@@ -1,26 +1,39 @@
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 // Import all models
 const User = require('./User');
+const School = require('./School');
+const Department = require('./Department');
 const Class = require('./Class');
-const Parent = require('./Parent');
 const Student = require('./Student');
 const Teacher = require('./Teacher');
+const Parent = require('./Parent');
+const ParentStudent = require('./ParentStudent');
 const Subject = require('./Subject');
-const Timetable = require('./Timetable');
+const Course = require('./Course');
+const Topic = require('./Topic');
+const Lesson = require('./Lesson');
 const Assignment = require('./Assignment');
 const AssignmentSubmission = require('./AssignmentSubmission');
+const Attendance = require('./Attendance');
 const Exam = require('./Exam');
 const Question = require('./Question');
+const ExamAttempt = require('./ExamAttempt');
 const StudentExamResult = require('./StudentExamResult');
 const AcademicResult = require('./AcademicResult');
-const Attendance = require('./Attendance');
-const Message = require('./Message');
-const PasswordResetToken = require('./PasswordResetToken');
-const School = require('./School');
-const Course = require('./Course');
-const Lesson = require('./Lesson');
 const Result = require('./Result');
+const ReportCard = require('./ReportCard');
+const Message = require('./Message');
+const CommunicationLog = require('./CommunicationLog');
+const CommunicationSetting = require('./CommunicationSetting');
+const Notification = require('./Notification');
+const AIChatHistory = require('./AIChatHistory');
+const AIRecommendation = require('./AIRecommendation');
+const File = require('./File');
+const PasswordResetToken = require('./PasswordResetToken');
+const LoginActivity = require('./LoginActivity');
+const AuditLog = require('./AuditLog');
+const Timetable = require('./Timetable');
 
 // --- Associations ---
 
@@ -36,7 +49,7 @@ Teacher.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasOne(Parent, { foreignKey: 'user_id', as: 'parent_profile', onDelete: 'CASCADE' });
 Parent.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-// Parent <-> Student (1:N)
+// Parent <-> Student (1:N & M:N via ParentStudent)
 Parent.hasMany(Student, { foreignKey: 'parent_id', as: 'children' });
 Student.belongsTo(Parent, { foreignKey: 'parent_id', as: 'parent' });
 
@@ -44,9 +57,13 @@ Student.belongsTo(Parent, { foreignKey: 'parent_id', as: 'parent' });
 Class.hasMany(Student, { foreignKey: 'class_id', as: 'students' });
 Student.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
 
-// Teacher <-> Subject (1:N)
-Teacher.hasMany(Subject, { foreignKey: 'teacher_id', as: 'subjects' });
-Subject.belongsTo(Teacher, { foreignKey: 'teacher_id', as: 'teacher' });
+// Teacher <-> Class (1:N)
+Teacher.hasMany(Class, { foreignKey: 'class_teacher_id', as: 'managed_classes' });
+Class.belongsTo(Teacher, { foreignKey: 'class_teacher_id', as: 'class_teacher' });
+
+// Subject <-> Topic (1:N)
+Subject.hasMany(Topic, { foreignKey: 'subject_id', as: 'topics' });
+Topic.belongsTo(Subject, { foreignKey: 'subject_id', as: 'subject' });
 
 // Timetable associations
 Class.hasMany(Timetable, { foreignKey: 'class_id', as: 'timetable_entries' });
@@ -83,12 +100,16 @@ Exam.belongsTo(Teacher, { foreignKey: 'created_by', as: 'creator' });
 Exam.hasMany(Question, { foreignKey: 'exam_id', as: 'questions' });
 Question.belongsTo(Exam, { foreignKey: 'exam_id', as: 'exam' });
 
+// Exam <-> ExamAttempt
+Exam.hasMany(ExamAttempt, { foreignKey: 'exam_id', as: 'attempts' });
+ExamAttempt.belongsTo(Exam, { foreignKey: 'exam_id', as: 'exam' });
+
+Student.hasMany(ExamAttempt, { foreignKey: 'student_id', as: 'exam_attempts' });
+ExamAttempt.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+
 // Student <-> Exam Results
 Student.hasMany(StudentExamResult, { foreignKey: 'student_id', as: 'exam_results' });
 StudentExamResult.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
-
-Exam.hasMany(StudentExamResult, { foreignKey: 'exam_id', as: 'student_results' });
-StudentExamResult.belongsTo(Exam, { foreignKey: 'exam_id', as: 'exam' });
 
 // Academic Results
 Student.hasMany(AcademicResult, { foreignKey: 'student_id', as: 'academic_results' });
@@ -111,6 +132,14 @@ Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 User.hasMany(Message, { foreignKey: 'receiver_id', as: 'received_messages' });
 Message.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
+// Notifications
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// Login Activity
+User.hasMany(LoginActivity, { foreignKey: 'user_id', as: 'login_history' });
+LoginActivity.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 // Password Reset Token
 User.hasMany(PasswordResetToken, { foreignKey: 'user_id', as: 'reset_tokens' });
 PasswordResetToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -130,29 +159,43 @@ Teacher.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
 Student.hasMany(Result, { foreignKey: 'student_id', as: 'results' });
 Result.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
-const ParentStudent = require('./ParentStudent');
+// Report Card associations
+Student.hasMany(ReportCard, { foreignKey: 'student_id', as: 'report_cards' });
+ReportCard.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
 module.exports = {
   sequelize,
   User,
+  School,
+  Department,
   Class,
-  Parent,
   Student,
   Teacher,
+  Parent,
+  ParentStudent,
   Subject,
-  Timetable,
+  Course,
+  Topic,
+  Lesson,
   Assignment,
   AssignmentSubmission,
+  Attendance,
   Exam,
   Question,
+  ExamAttempt,
   StudentExamResult,
   AcademicResult,
-  Attendance,
-  Message,
-  PasswordResetToken,
-  School,
-  Course,
-  Lesson,
   Result,
-  ParentStudent
+  ReportCard,
+  Message,
+  CommunicationLog,
+  CommunicationSetting,
+  Notification,
+  AIChatHistory,
+  AIRecommendation,
+  File,
+  PasswordResetToken,
+  LoginActivity,
+  AuditLog,
+  Timetable
 };

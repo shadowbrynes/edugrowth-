@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const resultController = require('../controllers/resultController');
-const authMiddleware = require('../middleware/authMiddleware');
-const roleMiddleware = require('../middleware/roleMiddleware');
 
-router.get('/my-results', authMiddleware, resultController.getStudentResults);
-router.post('/save', authMiddleware, roleMiddleware('Teacher', 'Administrator'), resultController.saveAcademicScore);
+router.get('/', resultController.getAllResults);
+router.get('/student/:id', resultController.getStudentResults);
+router.post('/', resultController.saveAcademicScore);
+router.get('/report-card/:student_id', resultController.getReportCard);
 
 module.exports = router;

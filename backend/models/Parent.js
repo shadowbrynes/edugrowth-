@@ -1,32 +1,47 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Parent = sequelize.define('Parent', {
-  parent_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
   user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    unique: true
+    type: DataTypes.BIGINT,
+    allowNull: false
+  },
+  school_id: {
+    type: DataTypes.BIGINT,
+    defaultValue: 1
   },
   first_name: {
     type: DataTypes.STRING(100),
-    allowNull: false
+    allowNull: true
   },
   last_name: {
     type: DataTypes.STRING(100),
-    allowNull: false
+    allowNull: true
+  },
+  relationship: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'Parent'
   },
   phone: {
     type: DataTypes.STRING(30),
-    allowNull: false
+    allowNull: true
+  },
+  phone_number: {
+    type: DataTypes.STRING(30),
+    allowNull: true
+  },
+  whatsapp_number: {
+    type: DataTypes.STRING(30),
+    allowNull: true
   },
   email: {
-    type: DataTypes.STRING(191),
-    allowNull: false
+    type: DataTypes.STRING(150),
+    allowNull: true
   },
   occupation: {
     type: DataTypes.STRING(150),
@@ -36,13 +51,14 @@ const Parent = sequelize.define('Parent', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  relationship: {
-    type: DataTypes.STRING(50),
-    defaultValue: 'Parent'
+  communication_preference: {
+    type: DataTypes.ENUM('whatsapp', 'in_app', 'phone'),
+    defaultValue: 'whatsapp'
   }
 }, {
   tableName: 'parents',
-  timestamps: false
+  timestamps: false,
+  underscored: true
 });
 
 module.exports = Parent;

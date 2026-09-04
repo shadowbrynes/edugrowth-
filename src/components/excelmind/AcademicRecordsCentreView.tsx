@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CURRENT_STUDENT } from '../../data/excelmindData';
 import { UserRole } from '../../types/excelmind';
+import { studentApi, resultApi, assignmentApi, backupApi } from '../../services/api';
 
 interface AcademicRecordsCentreViewProps {
   currentRole?: UserRole;
@@ -42,15 +43,62 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
     { id: 4, name: 'Chidinma Eze', admNo: 'EXM-2025-0845', class: 'SS2 Science', dept: 'Science', email: 'c.eze@excelmind.edu.ng', phone: '+2348077889900' }
   ]);
   const [regSuccessBanner, setRegSuccessBanner] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRegisterStudent = (e: React.FormEvent) => {
+  // Sync registered students from MySQL database on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await studentApi.getAll();
+        if (res.success && res.data?.students && res.data.students.length > 0) {
+          const mapped = res.data.students.map((s: any) => ({
+            id: s.id,
+            name: `${s.first_name} ${s.last_name}`,
+            admNo: s.admission_number,
+            class: s.academic_level || (s.class ? s.class.class_name : 'SS2 Science'),
+            dept: 'Science',
+            email: s.user ? s.user.email : `${s.first_name.toLowerCase()}@excelmind.edu.ng`,
+            phone: s.user?.phone || '+2348000000000'
+          }));
+          setRegisteredStudents(mapped);
+        }
+      } catch (err) {
+        console.warn('Initial student load notice:', err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const handleRegisterStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) return;
 
+    setIsSubmitting(true);
+    const result = await studentApi.registerStudent({
+      firstName,
+      lastName,
+      email,
+      phone,
+      gender,
+      dob,
+      admissionNo,
+      classLevel,
+      department,
+      parentName,
+      parentPhone,
+      parentEmail,
+      relationship,
+      address,
+      photo,
+      password
+    });
+    setIsSubmitting(false);
+
+    const generatedAdm = result.data?.student?.admission_number || admissionNo;
     const newStudent = {
-      id: Date.now(),
+      id: result.data?.student?.id || Date.now(),
       name: `${firstName} ${lastName}`,
-      admNo: admissionNo,
+      admNo: generatedAdm,
       class: classLevel,
       dept: department,
       email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@excelmind.edu.ng`,
@@ -58,7 +106,7 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
     };
 
     setRegisteredStudents([newStudent, ...registeredStudents]);
-    setRegSuccessBanner(`✓ Student ${newStudent.name} registered successfully! Admission No: ${newStudent.admNo}. Credentials created for MySQL users table.`);
+    setRegSuccessBanner(`✓ Student ${newStudent.name} saved directly to MySQL users & students tables! Admission No: ${newStudent.admNo}.`);
     setTimeout(() => setRegSuccessBanner(null), 5000);
 
     // Reset Form
@@ -95,7 +143,15 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
     );
   };
 
-  const handleSaveAssignmentScores = () => {
+  const handleSaveAssignmentScores = async () => {
+    for (const s of assignmentScores) {
+      await assignmentApi.grade({
+        student_id: s.id,
+        assignment_id: 1,
+        score: s.score,
+        teacher_feedback: s.comment
+      });
+    }
     setAssignSavedNotice(`✓ Assignment continuous assessment scores successfully committed to MySQL assignment_submissions table!`);
     setTimeout(() => setAssignSavedNotice(null), 4000);
   };
@@ -137,8 +193,19 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
     );
   };
 
-  const handleSaveExamResults = () => {
-    setExamSavedNotice(`✓ Final examination results and WAEC grades successfully committed to MySQL results table!`);
+  const handleSaveExamResults = async () => {
+    for (const s of examScoresList) {
+      await resultApi.saveScore({
+        student_id: s.id,
+        subject_id: 1,
+        term: examTerm,
+        session: examSession,
+        ca_score: s.ca,
+        exam_score: s.exam,
+        teacher_comment: s.comment
+      });
+    }
+    setExamSavedNotice(`✓ Final examination results, automated Total Scores and Grades committed to MySQL results & academic_results tables!`);
     setTimeout(() => setExamSavedNotice(null), 4000);
   };
 

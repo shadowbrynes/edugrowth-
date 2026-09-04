@@ -1,28 +1,31 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const Class = sequelize.define('Class', {
-  class_id: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true
   },
+  school_id: {
+    type: DataTypes.BIGINT,
+    defaultValue: 1
+  },
   class_name: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(50),
     allowNull: false
   },
   level: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(20),
     allowNull: false
   },
-  department: {
-    type: DataTypes.STRING(100),
-    allowNull: false
+  department_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
   },
-  academic_session: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-    defaultValue: '2025/2026'
+  class_teacher_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
   }
 }, {
   tableName: 'classes',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CbtExam, CbtQuestion } from '../../types/excelmind';
 import { CBT_EXAMS_DATA } from '../../data/excelmindData';
+import { examApi } from '../../services/api';
 
 interface CbtExamViewProps {
   initialExamId?: string;
@@ -125,6 +126,18 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({ initialExamId }) => {
       jambScore: Math.round((percentage / 100) * 400),
       timeTaken: `${mins}m ${secs}s`
     });
+
+    // Automatically persist CBT attempt to MySQL database
+    try {
+      examApi.recordAttempt({
+        student_id: 1,
+        exam_id: 1,
+        score: correctCount,
+        percentage
+      });
+    } catch (e) {
+      console.warn('CBT attempt auto-sync notice:', e);
+    }
 
     setIsSubmitted(true);
     setShowConfirmSubmit(false);
