@@ -32,12 +32,16 @@ import { ProfileSettingsView } from './components/excelmind/ProfileSettingsView'
 // Authentication Pages
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { TeacherRegister } from './pages/auth/TeacherRegister';
+import { TeacherLogin } from './pages/auth/TeacherLogin';
+import { ParentRegister } from './pages/auth/ParentRegister';
+import { ParentLogin } from './pages/auth/ParentLogin';
 import { clearAuthToken } from './services/api';
 
 export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
-  const [authScreen, setAuthScreen] = useState<'login' | 'forgot_password' | null>(null);
+  const [authScreen, setAuthScreen] = useState<'login' | 'forgot_password' | 'teacher_register' | 'parent_register' | 'teacher_login' | 'parent_login' | null>(null);
   const [selectedSession, setSelectedSession] = useState<string>('2025/2026 Term 1');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('excelmind_theme') === 'dark';
@@ -111,10 +115,52 @@ export default function App() {
           {authScreen === 'login' && (
             <Login
               onLoginSuccess={(user, role) => {
-                setCurrentRole(role);
+                setCurrentRole(role as UserRole);
                 setAuthScreen(null);
               }}
               onNavigateForgotPassword={() => setAuthScreen('forgot_password')}
+              onNavigateTeacherRegister={() => setAuthScreen('teacher_register')}
+              onNavigateParentRegister={() => setAuthScreen('parent_register')}
+              onNavigateTeacherLogin={() => setAuthScreen('teacher_login')}
+              onNavigateParentLogin={() => setAuthScreen('parent_login')}
+            />
+          )}
+
+          {authScreen === 'teacher_register' && (
+            <TeacherRegister
+              onNavigateLogin={() => setAuthScreen('teacher_login')}
+              onRegistrationComplete={() => setAuthScreen('teacher_login')}
+            />
+          )}
+
+          {authScreen === 'teacher_login' && (
+            <TeacherLogin
+              onLoginSuccess={(user, role) => {
+                setCurrentRole('teacher');
+                setAuthScreen(null);
+              }}
+              onNavigateRegister={() => setAuthScreen('teacher_register')}
+              onNavigateForgotPassword={() => setAuthScreen('forgot_password')}
+              onNavigateUnifiedLogin={() => setAuthScreen('login')}
+            />
+          )}
+
+          {authScreen === 'parent_register' && (
+            <ParentRegister
+              onNavigateLogin={() => setAuthScreen('parent_login')}
+              onRegistrationComplete={() => setAuthScreen('parent_login')}
+            />
+          )}
+
+          {authScreen === 'parent_login' && (
+            <ParentLogin
+              onLoginSuccess={(user, role) => {
+                setCurrentRole('parent');
+                setAuthScreen(null);
+              }}
+              onNavigateRegister={() => setAuthScreen('parent_register')}
+              onNavigateForgotPassword={() => setAuthScreen('forgot_password')}
+              onNavigateUnifiedLogin={() => setAuthScreen('login')}
             />
           )}
 

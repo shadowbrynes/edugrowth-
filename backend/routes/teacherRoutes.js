@@ -5,5 +5,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/dashboard', authMiddleware, teacherController.getTeacherDashboard);
 router.get('/all', authMiddleware, teacherController.getAllTeachers);
+router.post('/register', teacherController.registerTeacher);
 
 module.exports = router;

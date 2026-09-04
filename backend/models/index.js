@@ -130,6 +130,8 @@ Teacher.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
 Student.hasMany(Result, { foreignKey: 'student_id', as: 'results' });
 Result.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
+const ParentStudent = require('./ParentStudent');
+
 module.exports = {
   sequelize,
   User,
@@ -151,5 +153,6 @@ module.exports = {
   School,
   Course,
   Lesson,
-  Result
+  Result,
+  ParentStudent
 };
