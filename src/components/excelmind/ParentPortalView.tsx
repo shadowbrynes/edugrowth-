@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentProfile } from '../../types/excelmind';
 import { CURRENT_STUDENT, SUBJECT_RESULTS_DATA } from '../../data/excelmindData';
 import { ParentCommunication } from '../communication/ParentCommunication';
+import { parentApi, studentApi } from '../../services/api';
 
 interface ParentPortalViewProps {
   student?: StudentProfile;
@@ -14,7 +15,45 @@ export const ParentPortalView: React.FC<ParentPortalViewProps> = ({
   onNavigateToMessages,
   onNavigateToResults
 }) => {
+  const [activeStudent, setActiveStudent] = useState<StudentProfile>(student);
   const [selectedChildTab, setSelectedChildTab] = useState<'overview' | 'attendance' | 'fees' | 'teachers'>('overview');
+
+  useEffect(() => {
+    async function loadWard() {
+      try {
+        const res = await parentApi.getChildren();
+        if (res.success && res.data?.children && res.data.children.length > 0) {
+          const child = res.data.children[0];
+          setActiveStudent({
+            student_id: child.admission_number,
+            name: `${child.first_name} ${child.last_name}`,
+            email: child.user?.email || `${child.first_name.toLowerCase()}@excelmind.edu.ng`,
+            class: child.class?.class_name || child.academic_level || 'SS3 Gold',
+            academicLevel: 'SS3',
+            department: 'Science',
+            parent_id: 'PRT-1',
+            parentName: 'Engr. Michael Doe',
+            avatar: child.photo || child.student_passport || student.avatar,
+            academicSession: '2025/2026 Term 1',
+            overallScore: 84,
+            scoreImprovement: 6,
+            attendanceRate: 96,
+            assignmentsSubmitted: 48,
+            assignmentsTotal: 50,
+            cbtAverageScore: 82,
+            rank: 2,
+            totalInClass: 42,
+            conduct: 'Exemplary academic discipline and moral uprightness.',
+            studyStreakDays: 14,
+            rewardPoints: 1350
+          });
+        }
+      } catch (e) {
+        console.warn('Parent portal ward load notice:', e);
+      }
+    }
+    loadWard();
+  }, []);
 
   return (
     <div className="space-y-6 pb-12">

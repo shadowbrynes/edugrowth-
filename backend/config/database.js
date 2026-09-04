@@ -25,4 +25,12 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   }
 });
 
+sequelize.authenticate()
+  .then(() => {
+    console.log("MYSQL DATABASE CONNECTED");
+  })
+  .catch(error => {
+    console.error("MYSQL DATABASE CONNECTION ERROR:", error.message);
+  });
+
 module.exports = sequelize;

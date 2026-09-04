@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SubjectResult, PerformanceTrend, StudentProfile } from '../../types/excelmind';
 import { SUBJECT_RESULTS_DATA, PERFORMANCE_TRENDS_DATA, CURRENT_STUDENT } from '../../data/excelmindData';
+import { resultApi } from '../../services/api';
 import {
   ResponsiveContainer,
   LineChart,
@@ -22,10 +23,39 @@ interface PerformanceAnalyticsViewProps {
 export const PerformanceAnalyticsView: React.FC<PerformanceAnalyticsViewProps> = ({
   student = CURRENT_STUDENT
 }) => {
-  const [results] = useState<SubjectResult[]>(SUBJECT_RESULTS_DATA);
+  const [results, setResults] = useState<SubjectResult[]>(SUBJECT_RESULTS_DATA);
   const [trends] = useState<PerformanceTrend[]>(PERFORMANCE_TRENDS_DATA);
   const [selectedTerm, setSelectedTerm] = useState<string>('2025/2026 Term 1');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  useEffect(() => {
+    async function loadResults() {
+      try {
+        const res = await resultApi.getStudentResults(1);
+        if (res.success && res.data?.results && res.data.results.length > 0) {
+          const mapped: SubjectResult[] = res.data.results.map((r: any, idx: number) => ({
+            id: `res-${r.id || idx}`,
+            subject: r.subject?.subject_name || 'Subject',
+            score: Number(r.exam_score || 70),
+            grade: r.grade || 'A1',
+            remark: r.grade === 'A1' || r.grade === 'A' ? 'Distinction' : 'Credit',
+            caScore: Number(r.ca_score || 25),
+            examScore: Number(r.exam_score || 55),
+            totalScore: Number(r.total_score || (Number(r.ca_score || 25) + Number(r.exam_score || 55))),
+            previousScore: 75,
+            highestInClass: 95,
+            lowestInClass: 40,
+            classAverage: 71,
+            position: '3rd'
+          }));
+          setResults(mapped);
+        }
+      } catch (e) {
+        console.warn('Results database load notice:', e);
+      }
+    }
+    loadResults();
+  }, []);
 
   // Calculate GPA / Overall averages
   const totalScoreSum = results.reduce((acc, curr) => acc + curr.totalScore, 0);

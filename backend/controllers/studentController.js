@@ -187,7 +187,8 @@ exports.registerStudent = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `Student ${firstName} ${lastName} successfully registered into MySQL users & students tables!`,
+      message: `Student ${firstName} ${lastName} saved successfully to MySQL database!`,
+      student_id: newStudent.id,
       student: newStudent,
       user: {
         id: newUser.id,

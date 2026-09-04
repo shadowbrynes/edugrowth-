@@ -37,10 +37,32 @@ import { TeacherRegister } from './pages/auth/TeacherRegister';
 import { TeacherLogin } from './pages/auth/TeacherLogin';
 import { ParentRegister } from './pages/auth/ParentRegister';
 import { ParentLogin } from './pages/auth/ParentLogin';
-import { clearAuthToken } from './services/api';
+import { clearAuthToken, getAuthToken, authApi } from './services/api';
 
 export default function App() {
-  const [currentRole, setCurrentRole] = useState<UserRole>('student');
+  const [currentRole, setCurrentRole] = useState<UserRole>(() => {
+    const savedRole = localStorage.getItem('excelmind_role');
+    if (savedRole) return savedRole as UserRole;
+    const savedUser = localStorage.getItem('excelmind_user');
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        if (u.role) return u.role.toLowerCase() as UserRole;
+      } catch (e) {}
+    }
+    return 'student';
+  });
+
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const savedUser = localStorage.getItem('excelmind_user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {}
+    }
+    return null;
+  });
+
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
   const [authScreen, setAuthScreen] = useState<'login' | 'forgot_password' | 'teacher_register' | 'parent_register' | 'teacher_login' | 'parent_login' | null>(null);
   const [selectedSession, setSelectedSession] = useState<string>('2025/2026 Term 1');
@@ -52,6 +74,29 @@ export default function App() {
   // Selected course and exam IDs for cross-module jumping
   const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>(undefined);
   const [selectedExamId, setSelectedExamId] = useState<string | undefined>(undefined);
+
+  // Step 8: Validate user session against MySQL on startup
+  useEffect(() => {
+    async function restoreSession() {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        const res = await authApi.getMe();
+        if (res.success && res.data?.user) {
+          const u = res.data.user;
+          const role = (u.role || 'student').toLowerCase() as UserRole;
+          setCurrentUser(u);
+          setCurrentRole(role);
+          localStorage.setItem('excelmind_role', role);
+          localStorage.setItem('excelmind_user', JSON.stringify(u));
+        }
+      } catch (err) {
+        console.warn('Session verification notice:', err);
+      }
+    }
+    restoreSession();
+  }, []);
 
   // Sync dark mode class
   useEffect(() => {
@@ -70,6 +115,7 @@ export default function App() {
 
   const handleRoleChange = (role: UserRole) => {
     setCurrentRole(role);
+    localStorage.setItem('excelmind_role', role);
     // When switching role, default back to relevant dashboard
     setActiveModule('dashboard');
   };
@@ -88,6 +134,9 @@ export default function App() {
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         onSignOut={() => {
           clearAuthToken();
+          localStorage.removeItem('excelmind_role');
+          localStorage.removeItem('excelmind_user');
+          setCurrentUser(null);
           setAuthScreen('login');
         }}
       />
@@ -116,7 +165,11 @@ export default function App() {
           {authScreen === 'login' && (
             <Login
               onLoginSuccess={(user, role) => {
-                setCurrentRole(role as UserRole);
+                const verifiedRole = (role || user.role || 'student').toLowerCase() as UserRole;
+                setCurrentUser(user);
+                setCurrentRole(verifiedRole);
+                localStorage.setItem('excelmind_role', verifiedRole);
+                localStorage.setItem('excelmind_user', JSON.stringify(user));
                 setAuthScreen(null);
               }}
               onNavigateForgotPassword={() => setAuthScreen('forgot_password')}
@@ -137,7 +190,10 @@ export default function App() {
           {authScreen === 'teacher_login' && (
             <TeacherLogin
               onLoginSuccess={(user, role) => {
+                setCurrentUser(user);
                 setCurrentRole('teacher');
+                localStorage.setItem('excelmind_role', 'teacher');
+                localStorage.setItem('excelmind_user', JSON.stringify(user));
                 setAuthScreen(null);
               }}
               onNavigateRegister={() => setAuthScreen('teacher_register')}
@@ -156,7 +212,10 @@ export default function App() {
           {authScreen === 'parent_login' && (
             <ParentLogin
               onLoginSuccess={(user, role) => {
+                setCurrentUser(user);
                 setCurrentRole('parent');
+                localStorage.setItem('excelmind_role', 'parent');
+                localStorage.setItem('excelmind_user', JSON.stringify(user));
                 setAuthScreen(null);
               }}
               onNavigateRegister={() => setAuthScreen('parent_register')}

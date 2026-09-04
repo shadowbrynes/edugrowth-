@@ -37,36 +37,57 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('Password@123');
 
-  const [registeredStudents, setRegisteredStudents] = useState([
-    { id: 1, name: 'John Doe', admNo: 'EXM-2025-0842', class: 'SS3 Science', dept: 'Science', email: 'john.doe@excelmind.edu.ng', phone: '+2348044556677' },
-    { id: 2, name: 'Mary James', admNo: 'EXM-2025-0843', class: 'SS3 Science', dept: 'Science', email: 'mary.james@excelmind.edu.ng', phone: '+2348055667788' },
-    { id: 3, name: 'Peter Smith', admNo: 'EXM-2025-0844', class: 'SS3 Science', dept: 'Science', email: 'peter.smith@excelmind.edu.ng', phone: '+2348066778899' },
-    { id: 4, name: 'Chidinma Eze', admNo: 'EXM-2025-0845', class: 'SS2 Science', dept: 'Science', email: 'c.eze@excelmind.edu.ng', phone: '+2348077889900' }
-  ]);
+  const [registeredStudents, setRegisteredStudents] = useState<any[]>([]);
   const [regSuccessBanner, setRegSuccessBanner] = useState<string | null>(null);
+  const [regError, setRegError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync registered students from MySQL database on mount
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await studentApi.getAll();
-        if (res.success && res.data?.students && res.data.students.length > 0) {
-          const mapped = res.data.students.map((s: any) => ({
-            id: s.id,
-            name: `${s.first_name} ${s.last_name}`,
-            admNo: s.admission_number,
-            class: s.academic_level || (s.class ? s.class.class_name : 'SS2 Science'),
-            dept: 'Science',
-            email: s.user ? s.user.email : `${s.first_name.toLowerCase()}@excelmind.edu.ng`,
-            phone: s.user?.phone || '+2348000000000'
-          }));
-          setRegisteredStudents(mapped);
-        }
-      } catch (err) {
-        console.warn('Initial student load notice:', err);
+  // Sync registered students from MySQL database
+  const loadData = async () => {
+    try {
+      const res = await studentApi.getAll();
+      if (res.success && res.data?.students && res.data.students.length > 0) {
+        const mapped = res.data.students.map((s: any) => ({
+          id: s.id,
+          name: `${s.first_name} ${s.last_name}`,
+          admNo: s.admission_number,
+          class: s.academic_level || (s.class ? s.class.class_name : 'SS2 Science'),
+          dept: s.class?.department || 'Science',
+          email: s.user ? s.user.email : `${s.first_name.toLowerCase()}@excelmind.edu.ng`,
+          phone: s.user?.phone || '+2348000000000'
+        }));
+        setRegisteredStudents(mapped);
+
+        // Sync real students to Assignment & Exam lists
+        setAssignmentScores(mapped.map((st: any, idx: number) => ({
+          id: st.id,
+          name: st.name,
+          score: 18 - (idx % 4),
+          total: 20,
+          comment: 'Demonstrates thorough conceptual understanding'
+        })));
+
+        setExamScoresList(mapped.map((st: any, idx: number) => ({
+          id: st.id,
+          name: st.name,
+          ca: 26 - (idx % 5),
+          exam: 62 - (idx % 8),
+          comment: 'Consistent academic aptitude'
+        })));
+      } else {
+        // Fallback demo students if database is just initialized
+        setRegisteredStudents([
+          { id: 1, name: 'John Doe', admNo: 'EXM-2025-0842', class: 'SS3 Science', dept: 'Science', email: 'john.doe@excelmind.edu.ng', phone: '+2348044556677' },
+          { id: 2, name: 'Mary James', admNo: 'EXM-2025-0843', class: 'SS3 Science', dept: 'Science', email: 'mary.james@excelmind.edu.ng', phone: '+2348055667788' }
+        ]);
       }
+    } catch (err: any) {
+      console.warn('Student database load notice:', err);
+      setRegError(`Could not reach MySQL backend. Ensure node server.js is running.`);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -75,47 +96,49 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
     if (!firstName.trim() || !lastName.trim()) return;
 
     setIsSubmitting(true);
+    setRegError(null);
+    setRegSuccessBanner(null);
+
     const result = await studentApi.registerStudent({
-      firstName,
-      lastName,
-      email,
-      phone,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim() || undefined,
+      phone: phone.trim() || undefined,
       gender,
       dob,
-      admissionNo,
+      admissionNo: admissionNo.trim(),
       classLevel,
       department,
-      parentName,
-      parentPhone,
-      parentEmail,
+      parentName: parentName.trim() || undefined,
+      parentPhone: parentPhone.trim() || undefined,
+      parentEmail: parentEmail.trim() || undefined,
       relationship,
-      address,
+      address: address.trim() || undefined,
       photo,
-      password
+      password: password || 'Password@123'
     });
+
     setIsSubmitting(false);
 
-    const generatedAdm = result.data?.student?.admission_number || admissionNo;
-    const newStudent = {
-      id: result.data?.student?.id || Date.now(),
-      name: `${firstName} ${lastName}`,
-      admNo: generatedAdm,
-      class: classLevel,
-      dept: department,
-      email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@excelmind.edu.ng`,
-      phone: phone
-    };
+    if (result.success && (result.data?.student || result.data?.student_id)) {
+      const studentId = result.data?.student_id || result.data?.student?.id;
+      const adm = result.data?.student?.admission_number || admissionNo;
+      setRegSuccessBanner(`✓ Student ${firstName} ${lastName} permanently saved to MySQL database (excelmind_academic)! Student ID: ${studentId}, Admission No: ${adm}.`);
+      
+      // Reload the true state from MySQL database
+      await loadData();
 
-    setRegisteredStudents([newStudent, ...registeredStudents]);
-    setRegSuccessBanner(`✓ Student ${newStudent.name} saved directly to MySQL users & students tables! Admission No: ${newStudent.admNo}.`);
-    setTimeout(() => setRegSuccessBanner(null), 5000);
-
-    // Reset Form
-    setFirstName('');
-    setLastName('');
-    setEmail('');
-    setUsername('');
-    setAdmissionNo(`EXM-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+      // Reset Form
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setUsername('');
+      setAdmissionNo(`EXM-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+      setTimeout(() => setRegSuccessBanner(null), 6000);
+    } else {
+      const errMsg = result.error || result.data?.message || 'Check database connection. Ensure backend server is running on port 5000.';
+      setRegError(`Unable to save student to MySQL database: ${errMsg}. Data was not saved locally.`);
+    }
   };
 
   // ==========================================
@@ -145,16 +168,29 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
   };
 
   const handleSaveAssignmentScores = async () => {
+    let successCount = 0;
+    let failCount = 0;
+
     for (const s of assignmentScores) {
-      await assignmentApi.grade({
+      const res = await assignmentApi.grade({
         student_id: s.id,
         assignment_id: 1,
         score: s.score,
         teacher_feedback: s.comment
       });
+      if (res.success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
     }
-    setAssignSavedNotice(`✓ Assignment continuous assessment scores successfully committed to MySQL assignment_submissions table!`);
-    setTimeout(() => setAssignSavedNotice(null), 4000);
+
+    if (failCount === 0) {
+      setAssignSavedNotice(`✓ All ${successCount} assignment Continuous Assessment scores successfully committed to MySQL assignment_submissions table!`);
+    } else {
+      setAssignSavedNotice(`⚠️ Committed ${successCount} scores. ${failCount} scores could not be saved to MySQL. Verify backend database connection.`);
+    }
+    setTimeout(() => setAssignSavedNotice(null), 5000);
   };
 
   // ==========================================
@@ -195,8 +231,11 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
   };
 
   const handleSaveExamResults = async () => {
+    let successCount = 0;
+    let failCount = 0;
+
     for (const s of examScoresList) {
-      await resultApi.saveScore({
+      const res = await resultApi.saveScore({
         student_id: s.id,
         subject_id: 1,
         term: examTerm,
@@ -205,9 +244,19 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
         exam_score: s.exam,
         teacher_comment: s.comment
       });
+      if (res.success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
     }
-    setExamSavedNotice(`✓ Final examination results, automated Total Scores and Grades committed to MySQL results & academic_results tables!`);
-    setTimeout(() => setExamSavedNotice(null), 4000);
+
+    if (failCount === 0) {
+      setExamSavedNotice(`✓ Final examination results, automated Total Scores and Grades permanently committed to MySQL results & academic_results tables for all ${successCount} students!`);
+    } else {
+      setExamSavedNotice(`⚠️ Committed ${successCount} results. ${failCount} results could not be saved to MySQL. Verify backend database connection.`);
+    }
+    setTimeout(() => setExamSavedNotice(null), 5000);
   };
 
   // ==========================================
@@ -309,9 +358,16 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
           </div>
 
           {regSuccessBanner && (
-            <div className="p-4 bg-emerald-50 text-emerald-900 rounded-2xl border border-emerald-300 text-xs font-bold flex items-center gap-2">
+            <div className="p-4 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200 rounded-2xl border border-emerald-300 dark:border-emerald-800 text-xs font-bold flex items-center gap-2">
               <span className="material-symbols-outlined text-lg">check_circle</span>
               <span>{regSuccessBanner}</span>
+            </div>
+          )}
+
+          {regError && (
+            <div className="p-4 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:text-rose-200 rounded-2xl border border-rose-300 dark:border-rose-800 text-xs font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">error</span>
+              <span>{regError}</span>
             </div>
           )}
 

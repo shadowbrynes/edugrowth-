@@ -35,6 +35,10 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
   // Selected student for quick Passport Photo upload modal
   const [uploadStudentTarget, setUploadStudentTarget] = useState<{ id: number; name: string } | null>(null);
 
+  // Database Connection Tracking
+  const [dbStatus, setDbStatus] = useState<'connected' | 'disconnected' | 'loading'>('loading');
+  const [dbErrorMessage, setDbErrorMessage] = useState<string | null>(null);
+
   // Fallback demo dataset if offline / connecting
   const fallbackDirectory: DirectoryStudent[] = [
     {
@@ -72,35 +76,12 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
       parent_phone: '+2348045678901',
       parent_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
       status: 'active'
-    },
-    {
-      id: 4,
-      full_name: 'Chidinma Eze',
-      admission_number: 'EXM-2025-0845',
-      student_passport: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
-      class: 'SS2 Science',
-      department: 'Sciences',
-      parent_name: 'Chief Emeka Eze',
-      parent_phone: '+2348056789012',
-      parent_photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-      status: 'active'
-    },
-    {
-      id: 5,
-      full_name: 'Abdulrahman Bello',
-      admission_number: 'EXM-2025-0846',
-      student_passport: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400',
-      class: 'SS2 Arts',
-      department: 'Arts',
-      parent_name: 'Hajia Aisha Bello',
-      parent_phone: '+2348067890123',
-      parent_photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-      status: 'active'
     }
   ];
 
   const fetchDirectory = async () => {
     setLoading(true);
+    setDbErrorMessage(null);
     try {
       const res = await imageApi.getDirectory({
         search: search.trim() || undefined,
@@ -108,27 +89,18 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
         department: deptFilter !== 'All' ? deptFilter : undefined
       });
 
-      if (res.success && res.data?.directory && res.data.directory.length > 0) {
+      if (res.success && res.data?.directory) {
         setStudents(res.data.directory);
+        setDbStatus('connected');
       } else {
-        // Filter fallback locally if backend returned empty or mock needed
-        let filtered = [...fallbackDirectory];
-        if (search.trim()) {
-          const q = search.toLowerCase();
-          filtered = filtered.filter(
-            s => s.full_name.toLowerCase().includes(q) || s.admission_number.toLowerCase().includes(q)
-          );
-        }
-        if (classFilter !== 'All') {
-          filtered = filtered.filter(s => s.class.includes(classFilter));
-        }
-        if (deptFilter !== 'All') {
-          filtered = filtered.filter(s => s.department === deptFilter);
-        }
-        setStudents(filtered);
+        setDbStatus('disconnected');
+        setDbErrorMessage(res.error || 'Failed to query MySQL student directory. Verify node server.js is running.');
+        setStudents(fallbackDirectory);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Student directory fetch notice:', err);
+      setDbStatus('disconnected');
+      setDbErrorMessage(err.message || 'MySQL database unreachable');
       setStudents(fallbackDirectory);
     } finally {
       setLoading(false);
@@ -203,11 +175,22 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
             <span className="text-xl sm:text-2xl font-black text-amber-300">SS1 - SS3</span>
           </div>
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10">
-            <span className="text-[10px] font-mono uppercase text-blue-200 block">Identity Status</span>
-            <span className="text-xl sm:text-2xl font-black text-cyan-300">MySQL Synced</span>
+            <span className="text-[10px] font-mono uppercase text-blue-200 block">Database Status</span>
+            <span className={`text-sm sm:text-base font-black flex items-center gap-1.5 mt-1 ${dbStatus === 'connected' ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <span className={`w-2 h-2 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+              {dbStatus === 'connected' ? 'MySQL Connected' : 'Offline Mode'}
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Database Error Banner (Step 12) */}
+      {dbErrorMessage && (
+        <div className="p-4 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:text-rose-200 rounded-2xl border border-rose-300 dark:border-rose-800 text-xs font-bold flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">database</span>
+          <span>Database Connection Notice: {dbErrorMessage}. Showing offline snapshot.</span>
+        </div>
+      )}
 
       {/* 2. Search, Filter & View Controls */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">

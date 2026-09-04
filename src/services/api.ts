@@ -3,7 +3,7 @@
  * Connects Frontend Application -> Express Backend -> MySQL (excelmind_academic)
  */
 
-const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
 
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('excelmind_token');
@@ -231,4 +231,41 @@ export const imageApi = {
     photo?: string;
   }) => apiRequest(`/images/emergency/${studentId}`, { method: 'PUT', body: JSON.stringify(data) })
 };
+
+// ==========================================
+// 11. AUTHENTICATION API (MySQL users, login_activity & audit_logs)
+// ==========================================
+export const authApi = {
+  login: (credentials: { email: string; password: string; role?: string }) =>
+    apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  getMe: () => apiRequest('/auth/me'),
+  logout: () => {
+    clearAuthToken();
+    return apiRequest('/auth/logout', { method: 'POST' });
+  },
+  forgotPassword: (email: string) =>
+    apiRequest('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (data: { token: string; new_password: string }) =>
+    apiRequest('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) })
+};
+
+// ==========================================
+// 12. TEACHERS API (MySQL teachers & users)
+// ==========================================
+export const teacherApi = {
+  getAll: () => apiRequest('/teachers'),
+  getById: (id: number | string) => apiRequest(`/teachers/${id}`),
+  getDashboard: () => apiRequest('/teachers/dashboard'),
+  register: (data: any) => apiRequest('/teachers/register', { method: 'POST', body: JSON.stringify(data) })
+};
+
+// ==========================================
+// 13. PARENTS API (MySQL parents & users)
+// ==========================================
+export const parentApi = {
+  getAll: () => apiRequest('/parents'),
+  getChildren: () => apiRequest('/parents/children'),
+  register: (data: any) => apiRequest('/parents/register', { method: 'POST', body: JSON.stringify(data) })
+};
+
 
