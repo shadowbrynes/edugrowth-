@@ -129,7 +129,7 @@ export const assignmentApi = {
 };
 
 // ==========================================
-// 4. CBT EXAMS API (MySQL exams, questions & exam_attempts)
+// 4. CBT EXAMS & QUESTION BANK API (MySQL questions_bank, exams & cbt_results)
 // ==========================================
 export const examApi = {
   getAll: () => apiRequest('/exams'),
@@ -138,8 +138,77 @@ export const examApi = {
     apiRequest(`/exams/${examId}/submit`, { method: 'POST', body: JSON.stringify({ answers, student_id: studentId }) }),
   recordAttempt: (data: { student_id?: number; exam_id?: number; score: number; percentage: number }) =>
     apiRequest('/exams/attempt', { method: 'POST', body: JSON.stringify(data) }),
-  getAttempts: (studentId: number | string) => apiRequest(`/exams/attempts/student/${studentId}`)
+  getAttempts: (studentId: number | string) => apiRequest(`/exams/attempts/student/${studentId}`),
+
+  // Full CBT Question Bank Intelligence Engine
+  getCbtSubjects: (department?: string, classLevel?: string) => {
+    const q = new URLSearchParams();
+    if (department) q.append('department', department);
+    if (classLevel) q.append('class_level', classLevel);
+    return apiRequest(`/exams/cbt/subjects?${q.toString()}`);
+  },
+  getCbtTopics: (subject: string, classLevel?: string) => {
+    const q = new URLSearchParams();
+    if (subject) q.append('subject', subject);
+    if (classLevel) q.append('class_level', classLevel);
+    return apiRequest(`/exams/cbt/topics?${q.toString()}`);
+  },
+  generateCbtExam: (params: {
+    exam_body?: string;
+    subject?: string;
+    class_level?: string;
+    department?: string;
+    topic?: string;
+    difficulty?: string;
+    mode?: string;
+    count?: number;
+    year?: string | number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params.exam_body) q.append('exam_body', params.exam_body);
+    if (params.subject) q.append('subject', params.subject);
+    if (params.class_level) q.append('class_level', params.class_level);
+    if (params.department) q.append('department', params.department);
+    if (params.topic) q.append('topic', params.topic);
+    if (params.difficulty) q.append('difficulty', params.difficulty);
+    if (params.mode) q.append('mode', params.mode);
+    if (params.count) q.append('count', String(params.count));
+    if (params.year) q.append('year', String(params.year));
+    return apiRequest(`/exams/cbt/generate?${q.toString()}`);
+  },
+  submitCbtExam: (data: {
+    student_id?: number;
+    exam_body?: string;
+    subject_name?: string;
+    class_level?: string;
+    department?: string;
+    questions: any[];
+    answers: Record<number, string>;
+    duration_taken_seconds?: number;
+  }) => apiRequest('/exams/cbt/submit', { method: 'POST', body: JSON.stringify(data) }),
+  getCbtAnalytics: (studentId?: number | string) =>
+    apiRequest(`/exams/cbt/analytics/${studentId || 1}`),
+  getQuestionBankAdmin: (params?: {
+    subject?: string;
+    exam_body?: string;
+    class_level?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.subject) q.append('subject', params.subject);
+    if (params?.exam_body) q.append('exam_body', params.exam_body);
+    if (params?.class_level) q.append('class_level', params.class_level);
+    if (params?.search) q.append('search', params.search);
+    if (params?.page) q.append('page', String(params.page));
+    if (params?.limit) q.append('limit', String(params.limit));
+    return apiRequest(`/exams/cbt/questions-bank?${q.toString()}`);
+  },
+  createQuestionInBank: (data: any) =>
+    apiRequest('/exams/cbt/questions-bank', { method: 'POST', body: JSON.stringify(data) })
 };
+
 
 // ==========================================
 // 5. CURRICULUM API (MySQL subjects, topics, lessons & files)

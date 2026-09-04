@@ -42,6 +42,10 @@ const CurriculumKnowledge = require('./CurriculumKnowledge');
 const CurriculumContent = require('./CurriculumContent');
 const AILearningContext = require('./AILearningContext');
 const AIQuestion = require('./AIQuestion');
+const QuestionBank = require('./QuestionBank');
+const StudentAnswer = require('./StudentAnswer');
+const CBTResult = require('./CBTResult');
+const PerformanceAnalytics = require('./PerformanceAnalytics');
 
 // --- Associations ---
 
@@ -232,5 +236,10 @@ module.exports = {
   CurriculumKnowledge,
   CurriculumContent,
   AILearningContext,
-  AIQuestion
+  AIQuestion,
+  QuestionBank,
+  StudentAnswer,
+  CBTResult,
+  PerformanceAnalytics
 };
+
