@@ -168,7 +168,7 @@ export const attendanceApi = {
 };
 
 // ==========================================
-// 7. AI LEARNING API (MySQL ai_chat_history & ai_recommendations)
+// 7. AI LEARNING API (MySQL ai_chat_history, ai_recommendations, ai_questions & curriculum_knowledge)
 // ==========================================
 export const aiApi = {
   saveChat: (data: { student_id?: number; question: string; response: string }) =>
@@ -176,7 +176,20 @@ export const aiApi = {
   getHistory: (studentId: number | string) => apiRequest(`/ai/chat/${studentId}`),
   saveRecommendation: (data: { student_id?: number; weak_subject?: string; recommendation: string }) =>
     apiRequest('/ai/recommendations', { method: 'POST', body: JSON.stringify(data) }),
-  getRecommendations: (studentId: number | string) => apiRequest(`/ai/recommendations/${studentId}`)
+  getRecommendations: (studentId: number | string) => apiRequest(`/ai/recommendations/${studentId}`),
+
+  // Intelligent Curriculum-Aware AI Tutor methods
+  tutorQuery: (data: {
+    student_id?: number;
+    question: string;
+    category?: string;
+    imageAttachment?: string;
+    subject?: string;
+  }) => apiRequest('/ai/tutor/query', { method: 'POST', body: JSON.stringify(data) }),
+  tutorContext: (studentId?: number | string) =>
+    apiRequest(`/ai/tutor/context/${studentId || 1}`),
+  tutorWaecPrep: (data: { student_id?: number; subject?: string }) =>
+    apiRequest('/ai/tutor/waec-prep', { method: 'POST', body: JSON.stringify(data) })
 };
 
 // ==========================================

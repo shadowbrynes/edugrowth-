@@ -38,6 +38,9 @@ const ProfileImage = require('./ProfileImage');
 const CommunityPost = require('./CommunityPost');
 const CommunityComment = require('./CommunityComment');
 const StudentEnvironment = require('./StudentEnvironment');
+const CurriculumKnowledge = require('./CurriculumKnowledge');
+const AILearningContext = require('./AILearningContext');
+const AIQuestion = require('./AIQuestion');
 
 // --- Associations ---
 
@@ -179,6 +182,13 @@ Student.hasOne(StudentEnvironment, { foreignKey: 'student_id', as: 'environment'
 StudentEnvironment.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 StudentEnvironment.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
 
+// AI Curriculum & Question Associations
+Student.hasMany(AIQuestion, { foreignKey: 'student_id', as: 'ai_questions' });
+AIQuestion.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+
+Student.hasOne(AILearningContext, { foreignKey: 'student_id', as: 'learning_context' });
+AILearningContext.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+
 module.exports = {
   sequelize,
   User,
@@ -217,5 +227,8 @@ module.exports = {
   ProfileImage,
   CommunityPost,
   CommunityComment,
-  StudentEnvironment
+  StudentEnvironment,
+  CurriculumKnowledge,
+  AILearningContext,
+  AIQuestion
 };
