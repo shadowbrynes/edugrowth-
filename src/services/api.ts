@@ -197,3 +197,38 @@ export const backupApi = {
     apiRequest('/backup/run', { method: 'POST', body: JSON.stringify({ type }) }),
   listBackups: () => apiRequest('/backup/list')
 };
+
+// ==========================================
+// 10. DIGITAL IDENTITY & PASSPORT API (MySQL profile_images)
+// ==========================================
+export const imageApi = {
+  uploadPassport: (data: {
+    user_id?: number;
+    student_id?: number;
+    parent_id?: number;
+    teacher_id?: number;
+    image_type: 'student_passport' | 'parent_passport' | 'father_passport' | 'mother_passport' | 'guardian_passport' | 'teacher_passport';
+    base64_image?: string;
+    image_url?: string;
+  }) => apiRequest('/images/upload', { method: 'POST', body: JSON.stringify(data) }),
+
+  getStudentIdentity: (studentId: number | string) =>
+    apiRequest(`/images/student/${studentId}`),
+
+  getDirectory: (params?: { search?: string; classLevel?: string; department?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.search) q.append('search', params.search);
+    if (params?.classLevel) q.append('classLevel', params.classLevel);
+    if (params?.department) q.append('department', params.department);
+    return apiRequest(`/images/directory?${q.toString()}`);
+  },
+
+  updateEmergencyContact: (studentId: number | string, data: {
+    name: string;
+    phone: string;
+    relationship?: string;
+    address?: string;
+    photo?: string;
+  }) => apiRequest(`/images/emergency/${studentId}`, { method: 'PUT', body: JSON.stringify(data) })
+};
+

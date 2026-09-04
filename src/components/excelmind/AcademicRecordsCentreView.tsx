@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { CURRENT_STUDENT } from '../../data/excelmindData';
 import { UserRole } from '../../types/excelmind';
 import { studentApi, resultApi, assignmentApi, backupApi } from '../../services/api';
+import { StudentDirectory } from '../directory/StudentDirectory';
 
 interface AcademicRecordsCentreViewProps {
   currentRole?: UserRole;
 }
 
 export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps> = ({ currentRole = 'admin' }) => {
-  const [activeTab, setActiveTab] = useState<'student_reg' | 'assignment_scores' | 'exam_results' | 'report_card' | 'analytics'>('student_reg');
+  const [activeTab, setActiveTab] = useState<'student_reg' | 'assignment_scores' | 'exam_results' | 'report_card' | 'analytics' | 'directory'>('student_reg');
 
   // ==========================================
   // 1. ADD NEW STUDENT FORM STATE
@@ -264,9 +265,10 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
         <h3 className="text-xs font-mono font-bold uppercase text-slate-400">
           Academic Management Quick Actions
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { id: 'student_reg', label: '+ Add New Student', icon: 'person_add', color: 'from-blue-600 to-indigo-700 text-white' },
+            { id: 'directory', label: '🪪 Student Directory', icon: 'badge', color: 'from-cyan-600 to-blue-700 text-white' },
             { id: 'assignment_scores', label: '📝 Assignment Scores', icon: 'edit_note', color: 'from-purple-600 to-indigo-700 text-white' },
             { id: 'exam_results', label: '📊 Enter Exam Results', icon: 'grade', color: 'from-emerald-600 to-teal-700 text-white' },
             { id: 'report_card', label: '📄 Generate Report Card', icon: 'description', color: 'from-amber-600 to-orange-700 text-white' },
@@ -1091,6 +1093,13 @@ export const AcademicRecordsCentreView: React.FC<AcademicRecordsCentreViewProps>
 
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 6: STUDENT DIGITAL DIRECTORY & PASSPORT IDENTITIES                    */}
+      {/* ========================================================================= */}
+      {activeTab === 'directory' && (
+        <StudentDirectory onNavigateToRegistration={() => setActiveTab('student_reg')} />
       )}
 
     </div>

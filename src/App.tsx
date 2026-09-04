@@ -22,6 +22,7 @@ import { AiTutorView } from './components/excelmind/AiTutorView';
 import { CurriculumAutomationView } from './components/excelmind/CurriculumAutomationView';
 import { AiLearningCoachView } from './components/excelmind/AiLearningCoachView';
 import { AcademicRecordsCentreView } from './components/excelmind/AcademicRecordsCentreView';
+import { StudentDirectory } from './components/directory/StudentDirectory';
 
 // Faculty, Parent & Admin Role Portals
 import { TeacherPortalView } from './components/excelmind/TeacherPortalView';
@@ -176,11 +177,16 @@ export default function App() {
                 <AcademicRecordsCentreView currentRole={currentRole} />
               )}
 
+              {/* STUDENT DIGITAL DIRECTORY & PASSPORT IDENTITIES (All Roles) */}
+              {activeModule === 'student_directory' && (
+                <StudentDirectory onNavigateToRegistration={() => setActiveModule('academic_centre')} />
+              )}
+
               {/* TEACHER ROLE VIEW */}
-              {activeModule !== 'academic_centre' && currentRole === 'teacher' && <TeacherPortalView />}
+              {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'teacher' && <TeacherPortalView />}
 
               {/* PARENT ROLE VIEW */}
-              {activeModule !== 'academic_centre' && currentRole === 'parent' && (
+              {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'parent' && (
                 <ParentPortalView
                   student={CURRENT_STUDENT}
                   onNavigateToMessages={() => {
@@ -195,10 +201,10 @@ export default function App() {
               )}
 
               {/* ADMINISTRATOR ROLE VIEW */}
-              {activeModule !== 'academic_centre' && currentRole === 'admin' && <AdminPortalView />}
+              {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'admin' && <AdminPortalView />}
 
           {/* STUDENT ROLE VIEWS (11 modules) */}
-          {activeModule !== 'academic_centre' && currentRole === 'student' && (
+          {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'student' && (
             <>
               {activeModule === 'dashboard' && (
                 <StudentDashboardView

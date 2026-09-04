@@ -7,6 +7,7 @@ export type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
 export type ActiveModule =
   | 'dashboard'
   | 'academic_centre'
+  | 'student_directory'
   | 'courses'
   | 'learning_hub'
   | 'timetable'

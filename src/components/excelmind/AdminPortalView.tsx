@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { COURSES_DATA, CBT_EXAMS_DATA } from '../../data/excelmindData';
 import { AcademicRecordsCentreView } from './AcademicRecordsCentreView';
+import { StudentDirectory } from '../directory/StudentDirectory';
 
 export const AdminPortalView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'academic_centre' | 'classes' | 'exams' | 'reports'>('academic_centre');
+  const [activeTab, setActiveTab] = useState<'users' | 'directory' | 'academic_centre' | 'classes' | 'exams' | 'reports'>('academic_centre');
   const [searchTerm, setSearchTerm] = useState('');
 
   const sampleUsers = [
@@ -88,6 +89,7 @@ export const AdminPortalView: React.FC = () => {
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
           { id: 'academic_centre', label: 'Academic Records Centre', icon: 'school' },
+          { id: 'directory', label: 'Digital Student Directory & Passports', icon: 'badge' },
           { id: 'users', label: 'User Directory (Students/Teachers)', icon: 'group' },
           { id: 'classes', label: 'Classes & Curriculum', icon: 'account_tree' },
           { id: 'exams', label: 'CBT Examination Schedules', icon: 'event' },
@@ -111,6 +113,11 @@ export const AdminPortalView: React.FC = () => {
       {/* TAB: ACADEMIC RECORDS CENTRE */}
       {activeTab === 'academic_centre' && (
         <AcademicRecordsCentreView currentRole="admin" />
+      )}
+
+      {/* TAB: STUDENT DIRECTORY & PASSPORT IDENTITIES */}
+      {activeTab === 'directory' && (
+        <StudentDirectory onNavigateToRegistration={() => setActiveTab('academic_centre')} />
       )}
 
       {/* TAB 1: USERS */}

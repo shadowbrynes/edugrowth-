@@ -39,6 +39,22 @@ const Parent = sequelize.define('Parent', {
     type: DataTypes.STRING(30),
     allowNull: true
   },
+  passport_photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  father_photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  mother_photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  guardian_photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   email: {
     type: DataTypes.STRING(150),
     allowNull: true

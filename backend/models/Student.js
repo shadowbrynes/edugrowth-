@@ -40,6 +40,10 @@ const Student = sequelize.define('Student', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  student_passport: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   class_id: {
     type: DataTypes.BIGINT,
     allowNull: true
@@ -58,6 +62,26 @@ const Student = sequelize.define('Student', {
   },
   parent_id: {
     type: DataTypes.BIGINT,
+    allowNull: true
+  },
+  emergency_contact_name: {
+    type: DataTypes.STRING(150),
+    allowNull: true
+  },
+  emergency_contact_phone: {
+    type: DataTypes.STRING(30),
+    allowNull: true
+  },
+  emergency_contact_relationship: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
+  emergency_contact_address: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  emergency_contact_photo: {
+    type: DataTypes.STRING(255),
     allowNull: true
   },
   admission_date: {

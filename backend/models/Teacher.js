@@ -56,6 +56,10 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.STRING(30),
     allowNull: true
   },
+  teacher_passport: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   communication_status: {
     type: DataTypes.ENUM('available', 'busy', 'offline'),
     defaultValue: 'available'

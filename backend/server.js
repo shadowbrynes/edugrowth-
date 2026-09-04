@@ -19,6 +19,7 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const backupRoutes = require('./routes/backupRoutes');
+const imageRoutes = require('./routes/imageRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,8 +31,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static uploaded passport photographs
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Healthcheck & System Meta Endpoint
 app.get('/api/health', async (req, res) => {
@@ -67,6 +71,7 @@ app.use('/api/communication', communicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/backup', backupRoutes);
+app.use('/api/images', imageRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

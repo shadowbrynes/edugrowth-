@@ -34,6 +34,7 @@ const PasswordResetToken = require('./PasswordResetToken');
 const LoginActivity = require('./LoginActivity');
 const AuditLog = require('./AuditLog');
 const Timetable = require('./Timetable');
+const ProfileImage = require('./ProfileImage');
 
 // --- Associations ---
 
@@ -197,5 +198,6 @@ module.exports = {
   PasswordResetToken,
   LoginActivity,
   AuditLog,
-  Timetable
+  Timetable,
+  ProfileImage
 };

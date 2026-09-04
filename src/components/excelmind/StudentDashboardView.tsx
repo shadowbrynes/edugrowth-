@@ -79,6 +79,14 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
           <div className="flex flex-wrap items-center gap-2.5 sm:self-center">
             <button
+              onClick={() => onNavigate('student_directory')}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-lg shadow-blue-600/25 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">badge</span>
+              <span>Digital ID & Directory</span>
+            </button>
+
+            <button
               onClick={() => onNavigate('curriculum')}
               className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs shadow-lg shadow-purple-600/25 transition-all flex items-center gap-1.5 cursor-pointer"
             >
