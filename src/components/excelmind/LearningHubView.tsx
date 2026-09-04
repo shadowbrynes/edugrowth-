@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Course, Lesson, ForumTopic } from '../../types/excelmind';
 import { COURSES_DATA, FORUM_TOPICS_DATA } from '../../data/excelmindData';
+import { TopicLearningWorkspace } from './TopicLearningWorkspace';
 
 interface LearningHubViewProps {
   initialCourseId?: string;
@@ -13,6 +14,7 @@ export const LearningHubView: React.FC<LearningHubViewProps> = ({ initialCourseI
   );
   const [activeTab, setActiveTab] = useState<'lessons' | 'pdf' | 'audio' | 'quiz' | 'forum'>('lessons');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  const [showInteractiveWorkspace, setShowInteractiveWorkspace] = useState(false);
   const [forumTopics, setForumTopics] = useState<ForumTopic[]>(FORUM_TOPICS_DATA);
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
@@ -92,18 +94,32 @@ export const LearningHubView: React.FC<LearningHubViewProps> = ({ initialCourseI
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 text-center">
-              <span className="text-xl font-black font-mono text-blue-300">6</span>
-              <p className="text-[10px] text-indigo-200 font-bold uppercase mt-0.5">Active Courses</p>
-            </div>
-            <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 text-center">
-              <span className="text-xl font-black font-mono text-emerald-300">116+</span>
-              <p className="text-[10px] text-indigo-200 font-bold uppercase mt-0.5">Lessons & Notes</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <button
+              onClick={() => setShowInteractiveWorkspace(true)}
+              className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg flex items-center gap-2 cursor-pointer transition transform hover:scale-105"
+            >
+              <span className="material-symbols-outlined text-base">dashboard_customize</span>
+              <span>Open Multi-Panel Workspace (Physics SS2 Motion)</span>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 text-center">
+                <span className="text-xl font-black font-mono text-blue-300">6</span>
+                <p className="text-[10px] text-indigo-200 font-bold uppercase mt-0.5">Active Courses</p>
+              </div>
+              <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 text-center">
+                <span className="text-xl font-black font-mono text-emerald-300">116+</span>
+                <p className="text-[10px] text-indigo-200 font-bold uppercase mt-0.5">Lessons & Notes</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {showInteractiveWorkspace ? (
+        <TopicLearningWorkspace onClose={() => setShowInteractiveWorkspace(false)} />
+      ) : (
+        <>
 
       {/* Course Selection Horizontal Rail */}
       <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
@@ -652,6 +668,8 @@ export const LearningHubView: React.FC<LearningHubViewProps> = ({ initialCourseI
             </form>
           </div>
         </div>
+      )}
+      </>
       )}
 
     </div>

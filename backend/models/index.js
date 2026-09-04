@@ -17,6 +17,10 @@ const AcademicResult = require('./AcademicResult');
 const Attendance = require('./Attendance');
 const Message = require('./Message');
 const PasswordResetToken = require('./PasswordResetToken');
+const School = require('./School');
+const Course = require('./Course');
+const Lesson = require('./Lesson');
+const Result = require('./Result');
 
 // --- Associations ---
 
@@ -111,6 +115,21 @@ Message.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 User.hasMany(PasswordResetToken, { foreignKey: 'user_id', as: 'reset_tokens' });
 PasswordResetToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// Course <-> Lesson
+Course.hasMany(Lesson, { foreignKey: 'topic_id', as: 'lessons' });
+Lesson.belongsTo(Course, { foreignKey: 'topic_id', as: 'course' });
+
+// School associations
+School.hasMany(Student, { foreignKey: 'school_id', as: 'students' });
+Student.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
+
+School.hasMany(Teacher, { foreignKey: 'school_id', as: 'teachers' });
+Teacher.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
+
+// Result associations
+Student.hasMany(Result, { foreignKey: 'student_id', as: 'results' });
+Result.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+
 module.exports = {
   sequelize,
   User,
@@ -128,5 +147,9 @@ module.exports = {
   AcademicResult,
   Attendance,
   Message,
-  PasswordResetToken
+  PasswordResetToken,
+  School,
+  Course,
+  Lesson,
+  Result
 };
