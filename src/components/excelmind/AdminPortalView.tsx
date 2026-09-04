@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { COURSES_DATA, CBT_EXAMS_DATA } from '../../data/excelmindData';
+import { AcademicRecordsCentreView } from './AcademicRecordsCentreView';
 
 export const AdminPortalView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'classes' | 'exams' | 'reports'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'academic_centre' | 'classes' | 'exams' | 'reports'>('academic_centre');
   const [searchTerm, setSearchTerm] = useState('');
 
   const sampleUsers = [
@@ -86,6 +87,7 @@ export const AdminPortalView: React.FC = () => {
       {/* Admin Action Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
+          { id: 'academic_centre', label: 'Academic Records Centre', icon: 'school' },
           { id: 'users', label: 'User Directory (Students/Teachers)', icon: 'group' },
           { id: 'classes', label: 'Classes & Curriculum', icon: 'account_tree' },
           { id: 'exams', label: 'CBT Examination Schedules', icon: 'event' },
@@ -94,7 +96,7 @@ export const AdminPortalView: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-[#111B5E] text-white shadow'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300'
@@ -105,6 +107,11 @@ export const AdminPortalView: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* TAB: ACADEMIC RECORDS CENTRE */}
+      {activeTab === 'academic_centre' && (
+        <AcademicRecordsCentreView currentRole="admin" />
+      )}
 
       {/* TAB 1: USERS */}
       {activeTab === 'users' && (

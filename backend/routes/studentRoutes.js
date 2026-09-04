@@ -7,5 +7,6 @@ router.get('/profile', authMiddleware, studentController.getStudentProfile);
 router.get('/timetable', authMiddleware, studentController.getStudentTimetable);
 router.get('/attendance', authMiddleware, studentController.getStudentAttendance);
 router.get('/all', authMiddleware, studentController.getAllStudents);
+router.post('/register', authMiddleware, studentController.registerStudent);
 
 module.exports = router;

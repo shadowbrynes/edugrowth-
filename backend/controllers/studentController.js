@@ -100,3 +100,66 @@ exports.getAllStudents = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// 5. Admin: Register new student
+exports.registerStudent = async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      gender,
+      dob,
+      admissionNo,
+      classLevel,
+      department,
+      password
+    } = req.body;
+
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ success: false, message: 'First name, last name, and email are required' });
+    }
+
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'A user with this email address already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password || 'Password@123', salt);
+
+    const newUser = await User.create({
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      phone: phone || null,
+      password_hash: passwordHash,
+      role: 'student',
+      status: 'active'
+    });
+
+    const newStudent = await Student.create({
+      user_id: newUser.id,
+      school_id: 1,
+      admission_number: admissionNo || `EXM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      first_name: firstName,
+      last_name: lastName,
+      gender: gender || 'Male',
+      date_of_birth: dob || null,
+      academic_level: classLevel || 'SSS 3',
+      status: 'active'
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Student successfully registered and credentials provisioned',
+      student: newStudent,
+      user: { id: newUser.id, email: newUser.email, role: newUser.role }
+    });
+  } catch (err) {
+    console.error('registerStudent error:', err);
+    return res.status(500).json({ success: false, message: 'Server error registering student', error: err.message });
+  }
+};

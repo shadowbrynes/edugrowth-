@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Course, Assignment, CbtQuestion } from '../../types/excelmind';
 import { COURSES_DATA, ASSIGNMENTS_DATA } from '../../data/excelmindData';
+import { AcademicRecordsCentreView } from './AcademicRecordsCentreView';
 
 export const TeacherPortalView: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>(COURSES_DATA);
   const [assignments, setAssignments] = useState<Assignment[]>(ASSIGNMENTS_DATA);
-  const [activeTab, setActiveTab] = useState<'materials' | 'assignments' | 'cbt_setter' | 'grading'>('materials');
+  const [activeTab, setActiveTab] = useState<'academic_centre' | 'materials' | 'assignments' | 'cbt_setter' | 'grading'>('academic_centre');
 
   // New Material State
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
@@ -169,6 +170,7 @@ export const TeacherPortalView: React.FC = () => {
       {/* Action Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
+          { id: 'academic_centre', label: 'Academic Records Centre', icon: 'school' },
           { id: 'materials', label: 'Course Materials & Lessons', icon: 'auto_stories' },
           { id: 'assignments', label: 'Set Assignments', icon: 'assignment' },
           { id: 'cbt_setter', label: 'CBT Question Authoring', icon: 'quiz' },
@@ -177,7 +179,7 @@ export const TeacherPortalView: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-[#111B5E] text-white shadow-md'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300'
@@ -188,6 +190,11 @@ export const TeacherPortalView: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* TAB: ACADEMIC RECORDS CENTRE */}
+      {activeTab === 'academic_centre' && (
+        <AcademicRecordsCentreView currentRole="teacher" />
+      )}
 
       {/* TAB 1: COURSE MATERIALS */}
       {activeTab === 'materials' && (

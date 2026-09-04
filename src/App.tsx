@@ -21,6 +21,7 @@ import { AcademicCommunicationView } from './components/excelmind/AcademicCommun
 import { AiTutorView } from './components/excelmind/AiTutorView';
 import { CurriculumAutomationView } from './components/excelmind/CurriculumAutomationView';
 import { AiLearningCoachView } from './components/excelmind/AiLearningCoachView';
+import { AcademicRecordsCentreView } from './components/excelmind/AcademicRecordsCentreView';
 
 // Faculty, Parent & Admin Role Portals
 import { TeacherPortalView } from './components/excelmind/TeacherPortalView';
@@ -124,29 +125,34 @@ export default function App() {
           {/* MAIN PLATFORM WORKSPACES */}
           {!authScreen && (
             <>
+              {/* ACADEMIC RECORDS MANAGEMENT ACTION CENTRE (All Roles) */}
+              {activeModule === 'academic_centre' && (
+                <AcademicRecordsCentreView currentRole={currentRole} />
+              )}
+
               {/* TEACHER ROLE VIEW */}
-              {currentRole === 'teacher' && <TeacherPortalView />}
+              {activeModule !== 'academic_centre' && currentRole === 'teacher' && <TeacherPortalView />}
 
               {/* PARENT ROLE VIEW */}
-              {currentRole === 'parent' && (
-            <ParentPortalView
-              student={CURRENT_STUDENT}
-              onNavigateToMessages={() => {
-                setCurrentRole('student');
-                setActiveModule('messages');
-              }}
-              onNavigateToResults={() => {
-                setCurrentRole('student');
-                setActiveModule('results');
-              }}
-            />
-          )}
+              {activeModule !== 'academic_centre' && currentRole === 'parent' && (
+                <ParentPortalView
+                  student={CURRENT_STUDENT}
+                  onNavigateToMessages={() => {
+                    setCurrentRole('student');
+                    setActiveModule('messages');
+                  }}
+                  onNavigateToResults={() => {
+                    setCurrentRole('student');
+                    setActiveModule('results');
+                  }}
+                />
+              )}
 
-          {/* ADMINISTRATOR ROLE VIEW */}
-          {currentRole === 'admin' && <AdminPortalView />}
+              {/* ADMINISTRATOR ROLE VIEW */}
+              {activeModule !== 'academic_centre' && currentRole === 'admin' && <AdminPortalView />}
 
           {/* STUDENT ROLE VIEWS (11 modules) */}
-          {currentRole === 'student' && (
+          {activeModule !== 'academic_centre' && currentRole === 'student' && (
             <>
               {activeModule === 'dashboard' && (
                 <StudentDashboardView
