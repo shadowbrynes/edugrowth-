@@ -13,6 +13,7 @@ const parentRoutes = require('./routes/parentRoutes');
 const examRoutes = require('./routes/examRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
+const communicationRoutes = require('./routes/communicationRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use('/api/parents', parentRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/communication', communicationRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

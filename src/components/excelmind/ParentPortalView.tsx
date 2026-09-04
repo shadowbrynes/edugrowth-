@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StudentProfile } from '../../types/excelmind';
 import { CURRENT_STUDENT, SUBJECT_RESULTS_DATA } from '../../data/excelmindData';
+import { ParentCommunication } from '../communication/ParentCommunication';
 
 interface ParentPortalViewProps {
   student?: StudentProfile;
@@ -221,32 +222,23 @@ export const ParentPortalView: React.FC<ParentPortalViewProps> = ({
         </div>
       )}
 
-      {/* TAB 4: TEACHER HOTLINE */}
+      {/* TAB 4: TEACHER HOTLINE & COMMUNICATION HUB */}
       {selectedChildTab === 'teachers' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-          <h3 className="text-base font-black text-slate-900 dark:text-slate-100">
-            Designated Faculty Contacts & Advisors
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { name: 'Dr. Kenneth Okon', role: 'Form Master & Physics HOD', email: 'k.okon@excelmind.edu.ng' },
-              { name: 'Mrs. Folashade Adeleke', role: 'Mathematics Department Head', email: 'f.adeleke@excelmind.edu.ng' },
-              { name: 'Vice Principal (Academic)', role: 'Senior School Dean', email: 'vp.academic@excelmind.edu.ng' }
-            ].map((f, i) => (
-              <div key={i} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                <h4 className="text-xs font-black text-slate-900 dark:text-slate-100">{f.name}</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">{f.role}</p>
-                <p className="text-[10px] font-mono text-blue-600 mt-2">{f.email}</p>
-                <button
-                  onClick={onNavigateToMessages}
-                  className="mt-3 w-full py-1.5 bg-[#111B5E] text-white text-xs font-bold rounded-xl"
-                >
-                  Send Direct Message
-                </button>
-              </div>
-            ))}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-base font-black text-slate-900 dark:text-slate-100">
+              Parent–Teacher Direct Communication Hub
+            </h3>
+            <p className="text-xs text-slate-500">
+              Direct access to call teachers, chat on WhatsApp, or send in-app private messages linked to {student.name}.
+            </p>
           </div>
+
+          <ParentCommunication
+            studentName={student.name}
+            className={student.class}
+            admissionNo={student.student_id}
+          />
         </div>
       )}
 
