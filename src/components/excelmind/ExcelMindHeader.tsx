@@ -40,20 +40,43 @@ export const ExcelMindHeader: React.FC<ExcelMindHeaderProps> = ({
     }
   };
 
-  const getRoleUser = (role: UserRole) => {
+  const getSpaceInfo = (role: UserRole) => {
     switch (role) {
       case 'student':
-        return { name: 'John Doe', meta: 'SSS 3 Gold • Sci & Tech' };
+        return { spaceName: 'My Learning Space', icon: 'school', color: 'text-blue-200 bg-blue-500/20 border-blue-400/40' };
       case 'teacher':
-        return { name: 'Dr. Kenneth Okon', meta: 'HOD Physics & Senior Tutor' };
+        return { spaceName: 'My Teaching Space', icon: 'psychology', color: 'text-emerald-200 bg-emerald-500/20 border-emerald-400/40' };
       case 'parent':
-        return { name: 'Engr. Michael Doe', meta: 'Guardian (John Doe)' };
+        return { spaceName: 'My Child Monitoring Space', icon: 'family_restroom', color: 'text-purple-200 bg-purple-500/20 border-purple-400/40' };
       case 'admin':
-        return { name: 'Vice Principal Academic', meta: 'Institutional Registry' };
+        return { spaceName: 'School Management Space', icon: 'admin_panel_settings', color: 'text-amber-200 bg-amber-500/20 border-amber-400/40' };
+    }
+  };
+
+  const getRoleUser = (role: UserRole) => {
+    const savedUserStr = localStorage.getItem('excelmind_user');
+    let dbName = '';
+    if (savedUserStr) {
+      try {
+        const u = JSON.parse(savedUserStr);
+        if (u.first_name && u.last_name) dbName = `${u.first_name} ${u.last_name}`;
+      } catch (e) {}
+    }
+
+    switch (role) {
+      case 'student':
+        return { name: dbName || 'John Doe', meta: 'SSS 3 Gold • Sci & Tech' };
+      case 'teacher':
+        return { name: dbName || 'Dr. Kenneth Okon', meta: 'HOD Physics & Senior Tutor' };
+      case 'parent':
+        return { name: dbName || 'Engr. Michael Doe', meta: 'Guardian (John Doe)' };
+      case 'admin':
+        return { name: dbName || 'Vice Principal Academic', meta: 'Institutional Registry' };
     }
   };
 
   const currentRoleUser = getRoleUser(currentRole);
+  const currentSpace = getSpaceInfo(currentRole);
 
   const notifications = [
     { id: 1, title: 'CBT Exam Scheduled', desc: 'WAEC Mathematics Mock scheduled for Thursday 10:00 AM.', time: '15m ago', unread: true },
@@ -120,6 +143,16 @@ export const ExcelMindHeader: React.FC<ExcelMindHeaderProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          {/* Current Isolated Persona Space Indicator */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-bold border border-white/10 bg-white/5 shadow-inner">
+            <span className="material-symbols-outlined text-sm text-blue-300">{currentSpace.icon}</span>
+            <span className="text-white font-extrabold">{currentSpace.spaceName}</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Isolated
+            </span>
           </div>
 
           {/* Right Tools: Session, Dark Mode, Notifications, User */}

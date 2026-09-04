@@ -35,6 +35,8 @@ const LoginActivity = require('./LoginActivity');
 const AuditLog = require('./AuditLog');
 const Timetable = require('./Timetable');
 const ProfileImage = require('./ProfileImage');
+const CommunityPost = require('./CommunityPost');
+const CommunityComment = require('./CommunityComment');
 
 // --- Associations ---
 
@@ -164,6 +166,13 @@ Result.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 Student.hasMany(ReportCard, { foreignKey: 'student_id', as: 'report_cards' });
 ReportCard.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
+// Community associations
+Student.hasMany(CommunityPost, { foreignKey: 'student_id', as: 'community_posts' });
+CommunityPost.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+CommunityPost.hasMany(CommunityComment, { foreignKey: 'post_id', as: 'comments' });
+CommunityComment.belongsTo(CommunityPost, { foreignKey: 'post_id', as: 'post' });
+CommunityComment.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
+
 module.exports = {
   sequelize,
   User,
@@ -199,5 +208,7 @@ module.exports = {
   LoginActivity,
   AuditLog,
   Timetable,
-  ProfileImage
+  ProfileImage,
+  CommunityPost,
+  CommunityComment
 };

@@ -26,7 +26,7 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    if (user.status !== 'Active') {
+    if (user.status && user.status.toLowerCase() !== 'active') {
       return res.status(403).json({
         success: false,
         message: 'Account suspended or inactive. Please contact administration.'

@@ -1,4 +1,5 @@
-const { Message, User, Teacher, Student, Parent, CommunicationLog, CommunicationSetting } = require('../models');
+const { sequelize, Message, User, Teacher, Student, Parent, CommunicationLog, CommunicationSetting } = require('../models');
+const { Op } = require('sequelize');
 
 // 1. Get contactable teachers for a student ward
 exports.getTeacherContacts = async (req, res) => {

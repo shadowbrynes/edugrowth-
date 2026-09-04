@@ -268,4 +268,66 @@ export const parentApi = {
   register: (data: any) => apiRequest('/parents/register', { method: 'POST', body: JSON.stringify(data) })
 };
 
+// ==========================================
+// 14. STUDENT SPACE API ("My Learning Space")
+// ==========================================
+export const studentSpaceApi = {
+  getProfile: () => apiRequest('/student/profile'),
+  getResults: () => apiRequest('/student/results'),
+  getCourses: () => apiRequest('/student/courses'),
+  getAssignments: () => apiRequest('/student/assignments'),
+  getLearningHub: () => apiRequest('/student/learning-hub'),
+  getCommunity: () => apiRequest('/student/community'),
+  createCommunityPost: (data: { title: string; content: string; category?: string }) =>
+    apiRequest('/student/community', { method: 'POST', body: JSON.stringify(data) }),
+  replyCommunityPost: (postId: number | string, comment: string) =>
+    apiRequest(`/student/community/${postId}/reply`, { method: 'POST', body: JSON.stringify({ comment }) })
+};
+
+// ==========================================
+// 15. PARENT SPACE API ("My Child Monitoring Space")
+// ==========================================
+export const parentSpaceApi = {
+  getChildren: () => apiRequest('/parent/children'),
+  getChildResults: (studentId: number | string) => apiRequest(`/parent/results/${studentId}`),
+  getChildAttendance: (studentId: number | string) => apiRequest(`/parent/attendance/${studentId}`),
+  getChildTeachers: (studentId: number | string) => apiRequest(`/parent/teachers/${studentId}`)
+};
+
+// ==========================================
+// 16. TEACHER SPACE API ("My Teaching Space")
+// ==========================================
+export const teacherSpaceApi = {
+  getClasses: () => apiRequest('/teacher/classes'),
+  getStudents: (classId?: number | string) =>
+    apiRequest(`/teacher/students${classId ? `?class_id=${classId}` : ''}`),
+  enterScore: (data: {
+    student_id: number;
+    subject_id: number;
+    term?: string;
+    session?: string;
+    ca_score: number;
+    exam_score: number;
+    teacher_comment?: string;
+  }) => apiRequest('/teacher/results', { method: 'POST', body: JSON.stringify(data) }),
+  getAssignments: () => apiRequest('/teacher/assignments'),
+  createAssignment: (data: {
+    title: string;
+    description?: string;
+    subject_id: number;
+    class_id?: number;
+    deadline?: string;
+  }) => apiRequest('/teacher/assignments', { method: 'POST', body: JSON.stringify(data) })
+};
+
+// ==========================================
+// 17. ADMIN SPACE API ("School Management Space")
+// ==========================================
+export const adminSpaceApi = {
+  getOverview: () => apiRequest('/admin/overview'),
+  assignTeacher: (data: { teacher_id: number; class_id: number; role?: string }) =>
+    apiRequest('/admin/assign-teacher', { method: 'POST', body: JSON.stringify(data) }),
+  getRbacAudit: () => apiRequest('/admin/rbac-audit')
+};
+
 

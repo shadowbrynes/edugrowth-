@@ -249,11 +249,9 @@ export default function App() {
                 <ParentPortalView
                   student={CURRENT_STUDENT}
                   onNavigateToMessages={() => {
-                    setCurrentRole('student');
                     setActiveModule('messages');
                   }}
                   onNavigateToResults={() => {
-                    setCurrentRole('student');
                     setActiveModule('results');
                   }}
                 />

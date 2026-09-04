@@ -21,6 +21,12 @@ const aiRoutes = require('./routes/aiRoutes');
 const backupRoutes = require('./routes/backupRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 
+// RBAC Isolated Space Routes
+const studentSpaceRoutes = require('./routes/studentSpaceRoutes');
+const parentSpaceRoutes = require('./routes/parentSpaceRoutes');
+const teacherSpaceRoutes = require('./routes/teacherSpaceRoutes');
+const adminSpaceRoutes = require('./routes/adminSpaceRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -72,6 +78,12 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/images', imageRoutes);
+
+// Dedicated RBAC Persona Spaces
+app.use('/api/student', studentSpaceRoutes);
+app.use('/api/parent', parentSpaceRoutes);
+app.use('/api/teacher', teacherSpaceRoutes);
+app.use('/api/admin', adminSpaceRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
