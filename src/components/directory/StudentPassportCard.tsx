@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ImageUploader } from './ImageUploader';
+import { resolveImageUrl } from '../../services/api';
 
 interface StudentPassportCardProps {
   student: {
@@ -24,13 +25,22 @@ export const StudentPassportCard: React.FC<StudentPassportCardProps> = ({
   onPassportUpdated,
   canEdit = true
 }) => {
-  const [passportUrl, setPassportUrl] = useState<string>(
-    student.student_passport || student.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'
-  );
+  const initialUrl = resolveImageUrl(student.student_passport || student.photo);
+  const [passportUrl, setPassportUrl] = useState<string>(initialUrl);
+
+  // Sync state whenever student object changes from database re-fetch
+  useEffect(() => {
+    const raw = student.student_passport || student.photo;
+    if (raw) {
+      setPassportUrl(resolveImageUrl(raw));
+    }
+  }, [student.student_passport, student.photo]);
 
   const handleUploadSuccess = (newUrl: string) => {
-    setPassportUrl(newUrl);
-    onPassportUpdated?.(newUrl);
+    const resolved = resolveImageUrl(newUrl);
+    const cacheBusted = resolved.includes('?') ? `${resolved}&t=${Date.now()}` : `${resolved}?t=${Date.now()}`;
+    setPassportUrl(cacheBusted);
+    onPassportUpdated?.(cacheBusted);
   };
 
   return (
@@ -56,12 +66,15 @@ export const StudentPassportCard: React.FC<StudentPassportCardProps> = ({
         <div className="relative group">
           <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 ring-4 ring-blue-500/20 bg-slate-200 dark:bg-slate-800">
             <img
+              key={passportUrl}
               src={passportUrl}
               alt={student.full_name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-all duration-300"
               onError={(e) => {
-                // Fallback on broken image
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('unsplash')) {
+                  target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                }
               }}
             />
           </div>

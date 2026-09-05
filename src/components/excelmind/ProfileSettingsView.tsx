@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentProfile } from '../../types/excelmind';
 import { CURRENT_STUDENT } from '../../data/excelmindData';
+import { ImageUploader } from '../directory/ImageUploader';
+import { resolveImageUrl } from '../../services/api';
 
 interface ProfileSettingsViewProps {
   student?: StudentProfile;
@@ -13,6 +15,18 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
   isDarkMode,
   onToggleDarkMode
 }) => {
+  const [avatarUrl, setAvatarUrl] = useState<string>(() => {
+    const savedUser = localStorage.getItem('excelmind_user');
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        if (u.student_passport || u.photo || u.profile_image) {
+          return resolveImageUrl(u.student_passport || u.photo || u.profile_image);
+        }
+      } catch (e) {}
+    }
+    return resolveImageUrl(student.avatar);
+  });
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [assignmentReminders, setAssignmentReminders] = useState(true);
@@ -80,9 +94,16 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
 
             <div className="flex items-center gap-4">
               <img
-                src={student.avatar}
+                key={avatarUrl}
+                src={avatarUrl}
                 alt={student.name}
                 className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('unsplash')) {
+                    target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                  }
+                }}
               />
               <div className="space-y-1">
                 <h3 className="text-base font-black text-white">{student.name}</h3>
@@ -90,6 +111,19 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
                 <p className="text-[11px] font-mono text-indigo-300 font-bold">ID: {student.student_id}</p>
                 <p className="text-[10px] text-slate-300">{student.department}</p>
               </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between bg-white/5 rounded-2xl p-2.5 border border-white/10">
+              <span className="text-[11px] text-indigo-200 font-medium">Update Passport Photograph:</span>
+              <ImageUploader
+                label="Change Photo"
+                imageType="student_passport"
+                studentId={1}
+                currentImage={avatarUrl}
+                onUploadSuccess={(newUrl) => {
+                  setAvatarUrl(newUrl);
+                }}
+              />
             </div>
 
             <div className="pt-3 border-t border-white/15 grid grid-cols-2 gap-2 text-[11px] text-indigo-200">

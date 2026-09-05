@@ -1,39 +1,50 @@
 import React, { useState, useRef } from 'react';
-import { imageApi } from '../../services/api';
+import { imageApi, resolveImageUrl } from '../../services/api';
 
 interface ImageUploaderProps {
   label?: string;
-  imageType: 'student_passport' | 'parent_passport' | 'father_passport' | 'mother_passport' | 'guardian_passport' | 'teacher_passport';
+  imageType?: 'student_passport' | 'parent_passport' | 'father_passport' | 'mother_passport' | 'guardian_passport' | 'teacher_passport';
+  targetType?: string; // Compatibility alias
   userId?: number;
   studentId?: number;
   parentId?: number;
   teacherId?: number;
   currentImage?: string;
   onUploadSuccess?: (newImageUrl: string) => void;
+  onSuccess?: (newImageUrl: string) => void; // Compatibility alias
+  onClose?: () => void;
+  title?: string;
   className?: string;
 }
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
   label = 'Upload Passport',
   imageType,
+  targetType,
   userId,
   studentId,
   parentId,
   teacherId,
   currentImage,
   onUploadSuccess,
+  onSuccess,
+  onClose,
+  title,
   className = ''
 }) => {
-  const [preview, setPreview] = useState<string | null>(currentImage || null);
+  const effectiveImageType = (imageType || targetType || 'student_passport') as any;
+  const [preview, setPreview] = useState<string | null>(() => {
+    return currentImage ? resolveImageUrl(currentImage) : null;
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(Boolean(targetType && !imageType));
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Auto-compress and crop image to passport standard (300x300)
+  // Auto-compress and crop image to passport standard (400x400 square)
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -59,8 +70,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           const startY = (img.height - minDim) / 2;
 
           ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
-          // Compress to JPEG at 88% quality
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          // Compress to JPEG at 90% quality
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.90);
           resolve(compressedDataUrl);
         };
         img.onerror = (e) => reject(e);
@@ -71,19 +82,24 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMsg(null);
+    setSuccessMsg(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 1. Validate MIME type
+    // 1. Validate MIME type strictly (JPG, JPEG, PNG, WEBP)
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type.toLowerCase())) {
-      setErrorMsg('Invalid format! Please choose a JPG, JPEG, or PNG photograph.');
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+
+    if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(fileExt)) {
+      setErrorMsg('Image format not supported');
       return;
     }
 
-    // 2. Validate max size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('File size exceeds 5MB! Please select a smaller photo.');
+    // 2. Validate max size strictly (2MB limit)
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+    if (file.size > MAX_SIZE_BYTES) {
+      setErrorMsg('File size exceeded');
       return;
     }
 
@@ -102,6 +118,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     setIsUploading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
 
     try {
       const response = await imageApi.uploadPassport({
@@ -109,25 +126,66 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         student_id: studentId,
         parent_id: parentId,
         teacher_id: teacherId,
-        image_type: imageType,
+        image_type: effectiveImageType,
         base64_image: preview
       });
 
-      if (response.success && response.data?.image_url) {
-        setSuccessMsg('✓ Passport photograph saved to MySQL excelmind_academic database!');
-        onUploadSuccess?.(response.data.image_url);
+      if (response.success) {
+        setSuccessMsg('Passport uploaded successfully');
+
+        // Extract returned image URL or fallback to base64 preview
+        const rawUrl = response.data?.image_url || response.data?.raw_url || response.data?.relative_url || preview;
+        const resolved = resolveImageUrl(rawUrl);
+        const cacheBuster = resolved.includes('?') ? `&updated=${Date.now()}` : `?updated=${Date.now()}`;
+        const finalUrlWithCacheBust = resolved.startsWith('data:') ? resolved : `${resolved}${cacheBuster}`;
+
+        setPreview(finalUrlWithCacheBust);
+
+        // Notify parent components immediately
+        onUploadSuccess?.(finalUrlWithCacheBust);
+        onSuccess?.(finalUrlWithCacheBust);
+
+        // Update local session if currently active user is updated
+        const savedUserStr = localStorage.getItem('excelmind_user');
+        if (savedUserStr) {
+          try {
+            const savedUser = JSON.parse(savedUserStr);
+            if (!userId || Number(savedUser.id) === Number(userId) || (savedUser.student_id && Number(savedUser.student_id) === Number(studentId))) {
+              savedUser.photo = finalUrlWithCacheBust;
+              savedUser.student_passport = finalUrlWithCacheBust;
+              savedUser.profile_image = finalUrlWithCacheBust;
+              localStorage.setItem('excelmind_user', JSON.stringify(savedUser));
+            }
+          } catch (e) {}
+        }
+
         setTimeout(() => {
           setShowModal(false);
           setSuccessMsg(null);
-        }, 1500);
+          onClose?.();
+        }, 1200);
       } else {
-        setErrorMsg(response.error || 'Failed to save passport photo.');
+        const backendError = response.error || response.data?.message;
+        if (backendError && backendError.toLowerCase().includes('format')) {
+          setErrorMsg('Image format not supported');
+        } else if (backendError && backendError.toLowerCase().includes('size')) {
+          setErrorMsg('File size exceeded');
+        } else {
+          setErrorMsg('Failed to upload passport');
+        }
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error communicating with upload server.');
+      setErrorMsg('Failed to upload passport');
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    onClose?.();
   };
 
   return (
@@ -136,7 +194,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".jpg,.jpeg,.png,.webp"
+          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={handleFileChange}
         />
@@ -158,11 +216,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600">crop_square</span>
-                Crop & Preview Passport
+                <span>{title || 'Crop & Preview Passport'}</span>
               </h3>
               <button
-                onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition"
+                onClick={handleClose}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -170,64 +228,90 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
             {/* Square Passport Frame */}
             <div className="relative mx-auto w-48 h-48 rounded-2xl overflow-hidden shadow-inner border-4 border-dashed border-blue-500/60 p-1 bg-slate-100 dark:bg-slate-800">
-              {preview && (
+              {preview ? (
                 <img
+                  key={preview}
                   src={preview}
                   alt="Passport Preview"
                   className="w-full h-full object-cover rounded-xl"
                 />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <span className="material-symbols-outlined text-4xl mb-1">add_a_photo</span>
+                  <span className="text-xs font-semibold">Select an image</span>
+                </div>
               )}
               <div className="absolute inset-x-0 bottom-0 py-1 bg-slate-950/70 text-[10px] text-white font-mono uppercase tracking-wider">
-                Official 1:1 Passport Ratio
+                Official 1:1 Passport Standard (Max 2MB)
               </div>
             </div>
 
             <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-              <p className="font-semibold text-slate-700 dark:text-slate-300">
-                {selectedFile?.name} ({(selectedFile ? selectedFile.size / 1024 : 0).toFixed(1)} KB)
-              </p>
-              <p>Auto-compressed with square framing for institutional digital ID cards.</p>
+              {selectedFile ? (
+                <p className="font-semibold text-slate-700 dark:text-slate-300">
+                  {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                </p>
+              ) : (
+                <p className="font-semibold text-slate-700 dark:text-slate-300">
+                  Select a photo (JPG, PNG, WEBP under 2MB)
+                </p>
+              )}
+              <p>Square biometric framing suitable for official school student identification cards.</p>
             </div>
 
             {errorMsg && (
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 text-xs border border-rose-200 dark:border-rose-800">
-                {errorMsg}
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 text-xs font-bold border border-rose-200 dark:border-rose-800 flex items-center gap-1.5 justify-center">
+                <span className="material-symbols-outlined text-base">error</span>
+                <span>{errorMsg}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 text-xs border border-emerald-200 dark:border-emerald-800">
-                {successMsg}
+              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5 justify-center">
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                <span>{successMsg}</span>
               </div>
             )}
 
             <div className="flex gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={handleClose}
                 disabled={isUploading}
                 className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={handleConfirmUpload}
-                disabled={isUploading}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <>
-                    <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    <span>Confirm & Save</span>
-                  </>
-                )}
-              </button>
+              
+              {!selectedFile ? (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">photo_camera</span>
+                  <span>Choose Photo</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleConfirmUpload}
+                  disabled={isUploading}
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">check_circle</span>
+                      <span>Confirm & Save</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
           </div>

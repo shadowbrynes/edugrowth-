@@ -184,10 +184,10 @@ export const ProfileViewer: React.FC<ProfileViewerProps> = ({
               student={s}
               canEdit={canEdit}
               onPassportUpdated={(url) => {
-                setIdentityData({
-                  ...identityData,
-                  student: { ...s, student_passport: url, photo: url }
-                });
+                setIdentityData((prev: any) => ({
+                  ...prev,
+                  student: { ...(prev?.student || s), student_passport: url, photo: url }
+                }));
               }}
             />
           </div>
@@ -253,10 +253,10 @@ export const ProfileViewer: React.FC<ProfileViewerProps> = ({
                 studentId={s.id}
                 currentImage={s.student_passport}
                 onUploadSuccess={(url) => {
-                  setIdentityData({
-                    ...identityData,
-                    student: { ...s, student_passport: url, photo: url }
-                  });
+                  setIdentityData((prev: any) => ({
+                    ...prev,
+                    student: { ...(prev?.student || s), student_passport: url, photo: url }
+                  }));
                 }}
               />
             </div>

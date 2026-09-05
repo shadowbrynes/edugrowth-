@@ -2,14 +2,22 @@ const { Sequelize } = require('sequelize');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const dbHost = process.env.DATABASE_HOST || process.env.DB_HOST || 'excelmind-db.cwhwi6e6yyee.us-east-1.rds.amazonaws.com';
-const dbPort = parseInt(process.env.DATABASE_PORT || process.env.DB_PORT || '3306', 10);
-const dbUser = process.env.DATABASE_USER || process.env.DB_USERNAME || process.env.DB_USER || 'admin';
-const dbPassword = process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '';
-const dbName = process.env.DATABASE_NAME || process.env.DB_DATABASE || process.env.DB_NAME || 'excelmind_academic';
+let dbHost = process.env.DATABASE_HOST || process.env.DB_HOST || 'excelmind-db.cwhwi6e6yyee.us-east-1.rds.amazonaws.com';
+let dbPort = parseInt(process.env.DATABASE_PORT || process.env.DB_PORT || '3306', 10);
+let dbUser = process.env.DATABASE_USER || process.env.DB_USERNAME || process.env.DB_USER || 'admin';
+let dbPassword = process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || '';
+let dbName = process.env.DATABASE_NAME || process.env.DB_DATABASE || process.env.DB_NAME || 'excelmind_academic';
+
+// Seamless fallback: If RDS password placeholder is still present, use local MySQL
+const isRdsConfigured = dbPassword && dbPassword !== 'YOUR_AWS_RDS_PASSWORD_HERE';
+if (!isRdsConfigured && dbHost.includes('rds.amazonaws.com')) {
+  dbHost = 'localhost';
+  dbUser = 'root';
+  dbPassword = process.env.LOCAL_DB_PASSWORD || 'Shadowalker@123';
+}
 
 const dialectOptions = {};
-if (process.env.DB_SSL === 'true' || process.env.DATABASE_SSL === 'true' || (dbHost && dbHost.includes('rds.amazonaws.com'))) {
+if (process.env.DB_SSL === 'true' || process.env.DATABASE_SSL === 'true' || (isRdsConfigured && dbHost.includes('rds.amazonaws.com'))) {
   dialectOptions.ssl = {
     require: true,
     rejectUnauthorized: false
@@ -36,7 +44,7 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
 
 sequelize.authenticate()
   .then(() => {
-    console.log(`[ExcelMind DB]: ✓ AWS RDS MySQL Database connected successfully to '${dbName}' on ${dbHost}:${dbPort}`);
+    console.log(`[ExcelMind DB]: ✓ MySQL Database connected successfully to '${dbName}' on ${dbHost}:${dbPort}`);
   })
   .catch(error => {
     console.error(`[ExcelMind DB ERROR]: Failed to connect to MySQL on ${dbHost}:${dbPort}:`, error.message);

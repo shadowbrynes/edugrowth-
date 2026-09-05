@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActiveModule, StudentProfile } from '../../types/excelmind';
 import { COURSES_DATA, ASSIGNMENTS_DATA, TIMETABLE_DATA, CBT_EXAMS_DATA } from '../../data/excelmindData';
+import { resolveImageUrl } from '../../services/api';
 
 interface StudentDashboardViewProps {
   student: StudentProfile;
@@ -18,6 +19,19 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
   const pendingAssignments = ASSIGNMENTS_DATA.filter(a => a.submission_status === 'pending');
   const todayClasses = TIMETABLE_DATA.filter(t => t.day === 'Monday').slice(0, 4);
 
+  const getDisplayAvatar = () => {
+    const savedUser = localStorage.getItem('excelmind_user');
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        if (u.student_passport || u.photo || u.profile_image) {
+          return resolveImageUrl(u.student_passport || u.photo || u.profile_image);
+        }
+      } catch (e) {}
+    }
+    return resolveImageUrl(student.avatar);
+  };
+
   return (
     <div className="space-y-6 pb-12">
       
@@ -32,9 +46,15 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           <div className="flex items-start sm:items-center gap-4 sm:gap-5">
             <div className="relative">
               <img
-                src={student.avatar}
+                src={getDisplayAvatar()}
                 alt={student.name}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-xl"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('unsplash')) {
+                    target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                  }
+                }}
               />
               <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#111B5E] flex items-center justify-center text-[10px]" title="Online Active">
                 ✓

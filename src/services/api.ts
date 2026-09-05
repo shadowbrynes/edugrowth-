@@ -5,6 +5,45 @@
 
 export const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
 
+/**
+ * Resolves a passport image path into a full, valid URL (handling relative /uploads paths and caching).
+ */
+export const resolveImageUrl = (url?: string | null): string => {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+  }
+
+  // Preserve data URLs and blob URLs
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  // If already absolute http/https
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // If relative path beginning with /uploads
+  if (url.startsWith('/uploads')) {
+    const backendOrigin = API_BASE_URL.replace(/\/api\/?$/, '');
+    return `${backendOrigin}${url}`;
+  }
+
+  return url;
+};
+
+/**
+ * Appends a cache-busting timestamp parameter to ensure immediate visual refresh
+ */
+export const getCacheBustedUrl = (url?: string | null): string => {
+  const resolved = resolveImageUrl(url);
+  if (resolved.startsWith('data:') || resolved.startsWith('blob:')) {
+    return resolved;
+  }
+  const sep = resolved.includes('?') ? '&' : '?';
+  return `${resolved}${sep}updated=${Date.now()}`;
+};
+
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('excelmind_token');
 };

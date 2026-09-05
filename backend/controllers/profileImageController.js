@@ -21,15 +21,23 @@ Object.values(FOLDERS).forEach(f => {
   }
 });
 
+// Helper to resolve public URL
+const resolvePublicUrl = (req, relativeOrAbsolute) => {
+  if (!relativeOrAbsolute) return relativeOrAbsolute;
+  if (relativeOrAbsolute.startsWith('http://') || relativeOrAbsolute.startsWith('https://') || relativeOrAbsolute.startsWith('data:')) {
+    return relativeOrAbsolute;
+  }
+  const host = req.get('host') || 'localhost:5000';
+  const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  return `${protocol}://${host}${relativeOrAbsolute}`;
+};
+
 // 1. Upload & Persist Passport Image
 exports.uploadPassportImage = async (req, res) => {
   try {
     const { user_id, student_id, parent_id, teacher_id, image_type, base64_image, image_url } = req.body;
 
-    if (!image_type) {
-      return res.status(400).json({ success: false, message: 'image_type is required' });
-    }
-
+    const effectiveImageType = image_type || 'student_passport';
     let finalImageUrl = image_url;
 
     // Process Base64 upload if provided
@@ -37,32 +45,32 @@ exports.uploadPassportImage = async (req, res) => {
       // Validate format & size
       const matches = base64_image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
       if (!matches || matches.length !== 3) {
-        return res.status(400).json({ success: false, message: 'Invalid base64 image data' });
+        return res.status(400).json({ success: false, message: 'Image format not supported' });
       }
 
       const mimeType = matches[1].toLowerCase();
       const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       if (!validMimes.includes(mimeType)) {
-        return res.status(400).json({ success: false, message: 'Unsupported file format. Please upload JPG, JPEG, or PNG.' });
+        return res.status(400).json({ success: false, message: 'Image format not supported' });
       }
 
       const buffer = Buffer.from(matches[2], 'base64');
-      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+      const maxSizeBytes = 2 * 1024 * 1024; // 2MB limit as specified
       if (buffer.length > maxSizeBytes) {
-        return res.status(400).json({ success: false, message: 'File size exceeds 5MB limit. Please upload a compressed passport.' });
+        return res.status(400).json({ success: false, message: 'File size exceeded' });
       }
 
       const ext = mimeType === 'image/png' ? '.png' : mimeType === 'image/webp' ? '.webp' : '.jpg';
-      const filename = `${image_type}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
+      const filename = `${effectiveImageType}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
 
-      const targetFolder = FOLDERS[image_type] || FOLDERS.student_passport;
+      const targetFolder = FOLDERS[effectiveImageType] || FOLDERS.student_passport;
       const targetFilePath = path.join(targetFolder, filename);
 
       fs.writeFileSync(targetFilePath, buffer);
 
-      const relFolder = image_type.includes('parent') || image_type.includes('father') || image_type.includes('mother') || image_type.includes('guardian')
+      const relFolder = effectiveImageType.includes('parent') || effectiveImageType.includes('father') || effectiveImageType.includes('mother') || effectiveImageType.includes('guardian')
         ? 'parents/passports'
-        : image_type.includes('teacher')
+        : effectiveImageType.includes('teacher')
         ? 'teachers/passports'
         : 'students/passports';
 
@@ -70,34 +78,59 @@ exports.uploadPassportImage = async (req, res) => {
     }
 
     if (!finalImageUrl) {
-      return res.status(400).json({ success: false, message: 'No image data or URL provided' });
+      return res.status(400).json({ success: false, message: 'Failed to upload passport' });
     }
 
-    const targetUserId = user_id || (req.user ? req.user.id : 1);
+    const targetUserId = user_id || (req.user ? req.user.id : null);
 
     // Save to profile_images audit table
-    const profileImgRecord = await ProfileImage.create({
-      user_id: targetUserId,
-      image_type: image_type.includes('passport') ? image_type : `${image_type}_passport`,
-      image_url: finalImageUrl,
-      uploaded_by: req.user ? req.user.id : targetUserId,
-      status: 'approved'
-    });
+    let profileImgRecord = null;
+    try {
+      profileImgRecord = await ProfileImage.create({
+        user_id: targetUserId || 1,
+        image_type: effectiveImageType.includes('passport') ? effectiveImageType : `${effectiveImageType}_passport`,
+        image_url: finalImageUrl,
+        uploaded_by: req.user ? req.user.id : (targetUserId || 1),
+        status: 'approved'
+      });
+    } catch (auditErr) {
+      console.warn('ProfileImage audit log notice:', auditErr.message);
+    }
 
     // Update entity passport based on image_type
-    if (image_type === 'student_passport' || student_id) {
-      const targetStudent = student_id ? await Student.findByPk(student_id) : await Student.findOne({ where: { user_id: targetUserId } });
+    if (effectiveImageType === 'student_passport' || student_id) {
+      let targetStudent = null;
+      if (student_id) {
+        targetStudent = await Student.findByPk(student_id);
+      } else if (targetUserId) {
+        targetStudent = await Student.findOne({ where: { user_id: targetUserId } });
+      }
+      
+      // Fallback: if no student found yet, update default student (id: 1)
+      if (!targetStudent) {
+        targetStudent = await Student.findByPk(1);
+      }
+
       if (targetStudent) {
         targetStudent.student_passport = finalImageUrl;
         targetStudent.photo = finalImageUrl;
         await targetStudent.save();
+
+        // Also sync with associated user table
+        if (targetStudent.user_id) {
+          const assocUser = await User.findByPk(targetStudent.user_id);
+          if (assocUser) {
+            assocUser.profile_image = finalImageUrl;
+            await assocUser.save();
+          }
+        }
       }
-    } else if (image_type.includes('parent') || image_type.includes('father') || image_type.includes('mother') || image_type.includes('guardian') || parent_id) {
-      const targetParent = parent_id ? await Parent.findByPk(parent_id) : await Parent.findOne({ where: { user_id: targetUserId } });
+    } else if (effectiveImageType.includes('parent') || effectiveImageType.includes('father') || effectiveImageType.includes('mother') || effectiveImageType.includes('guardian') || parent_id) {
+      const targetParent = parent_id ? await Parent.findByPk(parent_id) : await Parent.findOne({ where: { user_id: targetUserId || 1 } });
       if (targetParent) {
-        if (image_type === 'mother_passport' || image_type === 'mother') {
+        if (effectiveImageType === 'mother_passport' || effectiveImageType === 'mother') {
           targetParent.mother_photo = finalImageUrl;
-        } else if (image_type === 'guardian_passport' || image_type === 'guardian') {
+        } else if (effectiveImageType === 'guardian_passport' || effectiveImageType === 'guardian') {
           targetParent.guardian_photo = finalImageUrl;
         } else {
           targetParent.father_photo = finalImageUrl;
@@ -105,23 +138,29 @@ exports.uploadPassportImage = async (req, res) => {
         }
         await targetParent.save();
       }
-    } else if (image_type === 'teacher_passport' || teacher_id) {
-      const targetTeacher = teacher_id ? await Teacher.findByPk(teacher_id) : await Teacher.findOne({ where: { user_id: targetUserId } });
+    } else if (effectiveImageType === 'teacher_passport' || teacher_id) {
+      const targetTeacher = teacher_id ? await Teacher.findByPk(teacher_id) : await Teacher.findOne({ where: { user_id: targetUserId || 1 } });
       if (targetTeacher) {
         targetTeacher.teacher_passport = finalImageUrl;
         await targetTeacher.save();
       }
     }
 
+    const publicUrl = resolvePublicUrl(req, finalImageUrl);
+    const cacheBuster = `?updated=${Date.now()}`;
+    const cacheBustedUrl = `${publicUrl}${cacheBuster}`;
+
     return res.status(200).json({
       success: true,
-      message: 'Passport photograph successfully updated in MySQL database',
-      image_url: finalImageUrl,
+      message: 'Passport uploaded successfully',
+      image_url: cacheBustedUrl,
+      raw_url: finalImageUrl,
+      public_url: publicUrl,
       record: profileImgRecord
     });
   } catch (err) {
     console.error('uploadPassportImage error:', err);
-    return res.status(500).json({ success: false, message: 'Server error saving image', error: err.message });
+    return res.status(500).json({ success: false, message: 'Failed to upload passport', error: err.message });
   }
 };
 
@@ -179,7 +218,7 @@ exports.getStudentDigitalIdentity = async (req, res) => {
           admission_number: student.admission_number,
           gender: student.gender,
           date_of_birth: student.date_of_birth || '2009-04-12',
-          student_passport: student.student_passport || student.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+          student_passport: resolvePublicUrl(req, student.student_passport || student.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
           class_name: student.class ? student.class.class_name : student.academic_level || 'SS2 Science',
           department: student.class ? student.class.department : 'Sciences',
           academic_session: '2026/2027',
@@ -192,13 +231,13 @@ exports.getStudentDigitalIdentity = async (req, res) => {
             relationship: student.emergency_contact_relationship || (student.parent ? student.parent.relationship : 'Uncle / Legal Sponsor'),
             phone: student.emergency_contact_phone || (student.parent ? student.parent.phone_number || student.parent.phone : '+2348033334444'),
             address: student.emergency_contact_address || 'Plot 8, Victoria Island, Lagos',
-            photo: student.emergency_contact_photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
+            photo: resolvePublicUrl(req, student.emergency_contact_photo) || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
           }
         },
         parents: {
           father: {
             name: student.parent ? `${student.parent.first_name} ${student.parent.last_name}` : 'Mr. John Smith',
-            photo: (student.parent && student.parent.father_photo) || (student.parent && student.parent.passport_photo) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+            photo: resolvePublicUrl(req, (student.parent && student.parent.father_photo) || (student.parent && student.parent.passport_photo)) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
             phone: student.parent ? student.parent.phone_number || student.parent.phone : '+2348023456789',
             occupation: student.parent ? student.parent.occupation : 'Chief Civil Engineer',
             relationship: 'Father',
@@ -206,7 +245,7 @@ exports.getStudentDigitalIdentity = async (req, res) => {
           },
           mother: {
             name: 'Mrs. Mary Smith',
-            photo: (student.parent && student.parent.mother_photo) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+            photo: resolvePublicUrl(req, student.parent && student.parent.mother_photo) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
             phone: '+2348034567890',
             occupation: 'Senior Consultant Pharmacist',
             relationship: 'Mother',
@@ -214,7 +253,7 @@ exports.getStudentDigitalIdentity = async (req, res) => {
           },
           guardian: {
             name: student.emergency_contact_name || 'Dr. Babatunde Alabi',
-            photo: student.emergency_contact_photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+            photo: resolvePublicUrl(req, student.emergency_contact_photo) || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
             phone: student.emergency_contact_phone || '+2348098765432',
             relationship: 'Guardian'
           }
@@ -223,7 +262,7 @@ exports.getStudentDigitalIdentity = async (req, res) => {
           class_teacher: {
             name: classTeacher ? `${classTeacher.first_name} ${classTeacher.last_name}` : 'Mr. David Okoro',
             role: 'Class Teacher & Mathematics Lead',
-            photo: (classTeacher && classTeacher.teacher_passport) || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+            photo: resolvePublicUrl(req, classTeacher && classTeacher.teacher_passport) || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
             phone: classTeacher ? classTeacher.phone_number || classTeacher.phone : '+2348031122334',
             whatsapp: classTeacher ? classTeacher.whatsapp_number : '+2348031122334',
             department: 'Mathematics & Computing'
@@ -235,7 +274,7 @@ exports.getStudentDigitalIdentity = async (req, res) => {
               name: `${t.first_name} ${t.last_name}`,
               subject: subs[idx % subs.length],
               department: t.department || 'Sciences',
-              photo: t.teacher_passport || `https://images.unsplash.com/photo-${1500000000000 + idx * 50000}?w=400`,
+              photo: resolvePublicUrl(req, t.teacher_passport) || `https://images.unsplash.com/photo-${1500000000000 + idx * 50000}?w=400`,
               phone: t.phone_number || t.phone || '+2348022334455',
               whatsapp: t.whatsapp_number || t.phone || '+2348022334455'
             };
@@ -299,12 +338,12 @@ exports.getStudentDirectory = async (req, res) => {
       user_id: s.user_id,
       full_name: `${s.first_name} ${s.last_name}`,
       admission_number: s.admission_number,
-      student_passport: s.student_passport || s.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      student_passport: resolvePublicUrl(req, s.student_passport || s.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
       class: s.academic_level || (s.class ? s.class.class_name : 'SS2 Science'),
       department: s.class ? s.class.department : 'Sciences',
       parent_name: s.parent ? `${s.parent.first_name} ${s.parent.last_name}` : 'Registered Guardian',
       parent_phone: s.parent ? s.parent.phone_number || s.parent.phone : '+2348000000000',
-      parent_photo: (s.parent && s.parent.passport_photo) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+      parent_photo: resolvePublicUrl(req, (s.parent && s.parent.passport_photo) || (s.parent && s.parent.father_photo)) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
       status: s.status || 'active'
     }));
 

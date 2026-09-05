@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { imageApi } from '../../services/api';
+import { imageApi, resolveImageUrl } from '../../services/api';
 import { ProfileViewer } from './ProfileViewer';
 import { ImageUploader } from './ImageUploader';
 
@@ -326,12 +326,15 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
                     {/* Square 1:1 Passport Photo Frame */}
                     <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm shrink-0 bg-slate-100 dark:bg-slate-800">
                       <img
-                        src={student.student_passport}
+                        key={student.student_passport}
+                        src={resolveImageUrl(student.student_passport)}
                         alt={student.full_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                          const target = e.target as HTMLImageElement;
+                          if (!target.src.includes('unsplash')) {
+                            target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                          }
                         }}
                       />
                       <button
@@ -454,9 +457,16 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({ onNavigateTo
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={student.student_passport}
+                          key={student.student_passport}
+                          src={resolveImageUrl(student.student_passport)}
                           alt={student.full_name}
                           className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('unsplash')) {
+                              target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                            }
+                          }}
                         />
                         <div>
                           <span className="font-bold text-slate-900 dark:text-slate-100 block">

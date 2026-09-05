@@ -11,3 +11,6 @@ coverage/
 backend/backups/*.sql
 *.sql
 !backend/backups/.gitkeep
+backend/uploads/*
+!backend/uploads/**/.gitkeep
+
