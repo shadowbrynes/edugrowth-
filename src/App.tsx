@@ -10,6 +10,7 @@ import { CURRENT_STUDENT } from './data/excelmindData';
 // Header & Navigation
 import { ExcelMindHeader } from './components/excelmind/ExcelMindHeader';
 import { ExcelMindSidebar } from './components/excelmind/ExcelMindSidebar';
+import { EducationalBackground } from './components/excelmind/EducationalBackground';
 
 // Student Core Modules
 import { StudentDashboardView } from './components/excelmind/StudentDashboardView';
@@ -121,7 +122,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1229] text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
+    <div className="relative min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
+      {/* Visual Educational Learning Atmosphere Background */}
+      <EducationalBackground />
       
       {/* 1. Global Header Bar */}
       <ExcelMindHeader

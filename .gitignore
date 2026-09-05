@@ -9,4 +9,5 @@ coverage/
 
 .vercel
 backend/backups/*.sql
+*.sql
 !backend/backups/.gitkeep

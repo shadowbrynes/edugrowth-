@@ -56,9 +56,9 @@ app.get('/api/health', async (req, res) => {
   res.status(200).json({
     status: 'online',
     platform: 'ExcelMind Academic Companion API',
-    database: process.env.DB_NAME || 'excelmind_academic',
+    database: process.env.DATABASE_NAME || process.env.DB_DATABASE || process.env.DB_NAME || 'excelmind_academic',
     databaseStatus: dbStatus,
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DATABASE_HOST || process.env.DB_HOST || 'excelmind-db.cwhwi6e6yyee.us-east-1.rds.amazonaws.com',
     timestamp: new Date().toISOString()
   });
 });
@@ -97,7 +97,9 @@ app.use((err, req, res, next) => {
 // Database Initialization & Server Start
 async function startServer() {
   try {
-    console.log(`[ExcelMind DB]: Connecting to MySQL on ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}...`);
+    const currentHost = process.env.DATABASE_HOST || process.env.DB_HOST || 'excelmind-db.cwhwi6e6yyee.us-east-1.rds.amazonaws.com';
+    const currentPort = process.env.DATABASE_PORT || process.env.DB_PORT || 3306;
+    console.log(`[ExcelMind DB]: Connecting to MySQL on ${currentHost}:${currentPort}...`);
     await sequelize.authenticate();
     console.log('[ExcelMind DB]: ✓ MySQL Database connection established successfully.');
 
@@ -105,7 +107,9 @@ async function startServer() {
     await sequelize.sync({ alter: false });
     console.log('[ExcelMind DB]: ✓ Sequelize models synchronized with database tables.');
   } catch (dbErr) {
-    console.warn(`[ExcelMind DB Notice]: Could not connect to MySQL at ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}.`);
+    const currentHost = process.env.DATABASE_HOST || process.env.DB_HOST || 'excelmind-db.cwhwi6e6yyee.us-east-1.rds.amazonaws.com';
+    const currentPort = process.env.DATABASE_PORT || process.env.DB_PORT || 3306;
+    console.warn(`[ExcelMind DB Notice]: Could not connect to MySQL at ${currentHost}:${currentPort}.`);
     console.warn('Reason:', dbErr.message);
   }
 

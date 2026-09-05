@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test:rds": "node test_rds_connection.js",
+    "migrate:rds": "node migrate_to_rds.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
