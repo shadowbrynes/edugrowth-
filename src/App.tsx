@@ -145,7 +145,7 @@ export default function App() {
       />
 
       {/* 2. Main Layout Container: Sidebar + Content Canvas */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      <div className="flex-1 flex max-w-7xl w-full mx-auto items-start">
         
         {/* Left Responsive Navigation Sidebar (Hidden during Auth Screens) */}
         {!authScreen && (
@@ -261,7 +261,23 @@ export default function App() {
               )}
 
               {/* ADMINISTRATOR ROLE VIEW */}
-              {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'admin' && <AdminPortalView />}
+              {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'admin' && (
+                activeModule === 'curriculum' ? (
+                  <CurriculumAutomationView />
+                ) : activeModule === 'results' ? (
+                  <PerformanceAnalyticsView student={CURRENT_STUDENT} />
+                ) : activeModule === 'messages' ? (
+                  <AcademicCommunicationView />
+                ) : activeModule === 'profile' || activeModule === 'settings' ? (
+                  <ProfileSettingsView
+                    student={CURRENT_STUDENT}
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={toggleDarkMode}
+                  />
+                ) : (
+                  <AdminPortalView />
+                )
+              )}
 
           {/* STUDENT ROLE VIEWS (11 modules) */}
           {activeModule !== 'academic_centre' && activeModule !== 'student_directory' && currentRole === 'student' && (
