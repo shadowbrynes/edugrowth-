@@ -80,11 +80,27 @@ export const apiRequest = async <T = any>(endpoint: string, options: RequestInit
       headers
     });
 
-    const data = await response.json();
-    return { success: response.ok && data.success !== false, data, status: response.status };
+    let data: any = null;
+    try {
+      const text = await response.text();
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
+    }
+
+    return {
+      success: response.ok && data?.success !== false,
+      data,
+      status: response.status
+    };
   } catch (err: any) {
-    console.warn(`[ExcelMind API]: Backend request to ${endpoint} failed (${err.message}). Using local state fallback.`);
-    return { success: false, error: err.message, isOffline: true };
+    const isAborted = err.name === 'AbortError';
+    console.warn(`[ExcelMind API]: Backend request to ${endpoint} failed (${err.message}). ${isAborted ? 'Request was aborted or timed out.' : 'Using local state fallback.'}`);
+    return {
+      success: false,
+      error: isAborted ? 'Request timed out' : err.message,
+      isOffline: !isAborted
+    };
   }
 };
 
@@ -293,11 +309,18 @@ export const aiApi = {
     category?: string;
     imageAttachment?: string;
     subject?: string;
-  }) => apiRequest('/ai/tutor/query', { method: 'POST', body: JSON.stringify(data) }),
+  }, options?: { signal?: AbortSignal }) =>
+    apiRequest('/ai/tutor/query', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      signal: options?.signal
+    }),
   tutorContext: (studentId?: number | string) =>
     apiRequest(`/ai/tutor/context/${studentId || 1}`),
   tutorWaecPrep: (data: { student_id?: number; subject?: string }) =>
-    apiRequest('/ai/tutor/waec-prep', { method: 'POST', body: JSON.stringify(data) })
+    apiRequest('/ai/tutor/waec-prep', { method: 'POST', body: JSON.stringify(data) }),
+  clearSession: (studentId?: number | string) =>
+    apiRequest('/ai/tutor/clear-session', { method: 'POST', body: JSON.stringify({ student_id: studentId || 1 }) })
 };
 
 // ==========================================

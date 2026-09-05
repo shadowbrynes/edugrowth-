@@ -11,5 +11,6 @@ router.get('/recommendations/:student_id', aiController.getRecommendations);
 router.post('/tutor/query', aiController.tutorQuery);
 router.get('/tutor/context/:student_id', aiController.tutorContext);
 router.post('/tutor/waec-prep', aiController.tutorWaecPrep);
+router.post('/tutor/clear-session', aiController.clearSession);
 
 module.exports = router;

@@ -39,6 +39,7 @@ import { TeacherLogin } from './pages/auth/TeacherLogin';
 import { ParentRegister } from './pages/auth/ParentRegister';
 import { ParentLogin } from './pages/auth/ParentLogin';
 import { clearAuthToken, getAuthToken, authApi } from './services/api';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>(() => {
@@ -64,7 +65,11 @@ export default function App() {
     return null;
   });
 
-  const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
+  const [activeModule, setActiveModule] = useState<ActiveModule>(() => {
+    const saved = localStorage.getItem('excelmind_active_module');
+    if (saved) return saved as ActiveModule;
+    return 'dashboard';
+  });
   const [authScreen, setAuthScreen] = useState<'login' | 'forgot_password' | 'teacher_register' | 'parent_register' | 'teacher_login' | 'parent_login' | null>(null);
   const [selectedSession, setSelectedSession] = useState<string>('2025/2026 Term 1');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -75,6 +80,12 @@ export default function App() {
   // Selected course and exam IDs for cross-module jumping
   const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>(undefined);
   const [selectedExamId, setSelectedExamId] = useState<string | undefined>(undefined);
+
+  const handleSelectModule = (mod: ActiveModule) => {
+    setActiveModule(mod);
+    localStorage.setItem('excelmind_active_module', mod);
+    setIsMobileMenuOpen(false);
+  };
 
   // Step 8: Validate user session against MySQL on startup
   useEffect(() => {
@@ -119,6 +130,7 @@ export default function App() {
     localStorage.setItem('excelmind_role', role);
     // When switching role, default back to relevant dashboard
     setActiveModule('dashboard');
+    localStorage.setItem('excelmind_active_module', 'dashboard');
   };
 
   return (
@@ -139,6 +151,7 @@ export default function App() {
           clearAuthToken();
           localStorage.removeItem('excelmind_role');
           localStorage.removeItem('excelmind_user');
+          localStorage.removeItem('excelmind_active_module');
           setCurrentUser(null);
           setAuthScreen('login');
         }}
@@ -151,10 +164,7 @@ export default function App() {
         {!authScreen && (
           <ExcelMindSidebar
             activeModule={activeModule}
-            onSelectModule={(mod) => {
-              setActiveModule(mod);
-              setIsMobileMenuOpen(false);
-            }}
+            onSelectModule={handleSelectModule}
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
             currentRole={currentRole}
@@ -233,7 +243,11 @@ export default function App() {
 
           {/* MAIN PLATFORM WORKSPACES */}
           {!authScreen && (
-            <>
+            <ErrorBoundary
+              fallbackTitle="ExcelMind Workspace Safe Mode"
+              fallbackMessage="A temporary error occurred in the workspace. Your login session is active and data is preserved."
+              onReset={() => handleSelectModule('dashboard')}
+            >
               {/* ACADEMIC RECORDS MANAGEMENT ACTION CENTRE (All Roles) */}
               {activeModule === 'academic_centre' && (
                 <AcademicRecordsCentreView currentRole={currentRole} />
@@ -285,7 +299,7 @@ export default function App() {
               {activeModule === 'dashboard' && (
                 <StudentDashboardView
                   student={CURRENT_STUDENT}
-                  onNavigate={setActiveModule}
+                  onNavigate={handleSelectModule}
                   onSelectCourse={setSelectedCourseId}
                   onSelectExam={setSelectedExamId}
                 />
@@ -332,7 +346,7 @@ export default function App() {
               )}
             </>
           )}
-          </>
+            </ErrorBoundary>
           )}
 
         </main>
