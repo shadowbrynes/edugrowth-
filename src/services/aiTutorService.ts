@@ -20,6 +20,8 @@ export interface NormalizedAiResponse {
   answer: string;
   subject: string;
   level?: string;
+  questionType?: string;
+  confidence?: number | string;
 }
 
 export interface TutorQueryResult {
@@ -545,8 +547,10 @@ export const aiTutorService = {
             success: true,
             data: {
               answer: String(backendAnswer),
-              subject: String(data.subject || options?.subject || detectedSub || 'Physics'),
-              level: String(data.level || 'SS3')
+              subject: String(data.subject || options?.subject || detectedSub || 'General Knowledge'),
+              level: String(data.level || 'SS3'),
+              questionType: data.questionType ? String(data.questionType) : undefined,
+              confidence: data.confidence !== undefined ? data.confidence : 0.95
             }
           };
         }

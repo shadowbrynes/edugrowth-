@@ -179,12 +179,13 @@ export const AiTutorViewInner: React.FC = () => {
 
   // Benchmark prompts requested by user
   const benchmarkPrompts = [
-    { label: "What is electricity?", prompt: "What is electricity?" },
-    { label: "Laws of electricity", prompt: "What are the laws of electricity?" },
+    { label: "What is Physics?", prompt: "What is Physics?" },
     { label: "What is Newton's law?", prompt: "What is Newton's law?" },
+    { label: "What is Faraday's law?", prompt: "What is Faraday's law?" },
+    { label: "What is speed in physics?", prompt: "What is speed in physics?" },
     { label: "What is a constitution?", prompt: "What is a constitution?" },
-    { label: "What is Genesis 10:6?", prompt: "What is Genesis 10:6?" },
     { label: "Who is a parent?", prompt: "Who is a parent?" },
+    { label: "Genesis 10:6", prompt: "What is Genesis chapter 10 verse 6?" },
     { label: "Solve 2x + 5 = 15", prompt: "Solve 2x + 5 = 15." }
   ];
 

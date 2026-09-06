@@ -88,9 +88,9 @@ exports.getRecommendations = async (req, res) => {
   }
 };
 
-const aiTutorEngine = require('../services/aiTutorEngine');
+const openaiTutorService = require('../services/openaiTutorService');
 
-// 5. Query Intelligent Curriculum-Aware AI Tutor
+// 5. Query Real OpenAI-Powered AI Tutor
 exports.tutorQuery = async (req, res) => {
   const startTime = Date.now();
   const { student_id, question, category, imageAttachment, subject } = req.body || {};
@@ -107,12 +107,14 @@ exports.tutorQuery = async (req, res) => {
         success: false,
         answer: 'Please provide a question to ask the AI Tutor.',
         subject: subject || 'General Knowledge',
+        questionType: 'general',
+        level: 'SS3',
         confidence: 0,
         message: 'question or imageAttachment is required'
       });
     }
 
-    const result = await aiTutorEngine.processQuery({
+    const result = await openaiTutorService.processQuery({
       studentId: resolvedStudentId,
       question,
       category,
@@ -121,27 +123,33 @@ exports.tutorQuery = async (req, res) => {
     });
 
     const elapsed = Date.now() - startTime;
-    const answer = result.answer || 'No answer was generated. Please try again.';
+    const answer = result.answer || 'The AI Tutor is temporarily unavailable. Please try again.';
     const detectedSubject = result.subject || 'Physics';
+    const questionType = result.questionType || 'explanation';
     const studentLevel = result.level || 'SS3';
+    const confidence = result.confidence !== undefined ? result.confidence : 0.95;
 
     // Audit Logging: API response status
     console.log(`[AI Tutor Audit] Status: 200 OK | Student ID: ${resolvedStudentId} | Subject: ${detectedSubject} | Level: ${studentLevel} | Duration: ${elapsed}ms`);
 
-    // Clean AI Response Format
+    // Clean Structured AI Response Format
     return res.status(200).json({
       answer,
       subject: detectedSubject,
-      level: studentLevel
+      questionType,
+      level: studentLevel,
+      confidence
     });
   } catch (err) {
     const elapsed = Date.now() - startTime;
     console.error(`[AI Tutor Audit] Status: 500 Handled | Student ID: ${resolvedStudentId} | Duration: ${elapsed}ms | Error:`, err.message);
 
     return res.status(200).json({
-      answer: 'AI Tutor is temporarily unavailable. Please try again.',
+      answer: 'The AI Tutor is temporarily unavailable. Please try again.',
       subject: subject || 'General Knowledge',
-      level: 'SS3'
+      questionType: 'general',
+      level: 'SS3',
+      confidence: 0
     });
   }
 };
@@ -152,7 +160,7 @@ exports.tutorContext = async (req, res) => {
     const { student_id } = req.params;
     const resolvedStudentId = student_id || (req.user?.student_id || req.user?.id || 1);
 
-    const context = await aiTutorEngine.getStudentContext(resolvedStudentId);
+    const context = await openaiTutorService.getStudentContext(resolvedStudentId);
     return res.status(200).json({ success: true, context });
   } catch (err) {
     console.error('tutorContext error:', err);
@@ -166,7 +174,7 @@ exports.tutorWaecPrep = async (req, res) => {
     const { student_id, subject } = req.body;
     const resolvedStudentId = student_id || (req.user?.student_id || req.user?.id || 1);
 
-    const result = await aiTutorEngine.processQuery({
+    const result = await openaiTutorService.processQuery({
       studentId: resolvedStudentId,
       question: 'Prepare me for WAEC examination with 7-day revision plan and weak area analysis',
       category: 'Prepare for Exam',
@@ -185,7 +193,7 @@ exports.clearSession = async (req, res) => {
   try {
     const { student_id } = req.body || {};
     const resolvedStudentId = student_id || (req.user?.student_id || req.user?.id || 1);
-    const result = aiTutorEngine.clearSession(resolvedStudentId);
+    const result = openaiTutorService.clearSession(resolvedStudentId);
     return res.status(200).json(result);
   } catch (err) {
     console.error('clearSession error:', err);
