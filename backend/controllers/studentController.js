@@ -24,10 +24,28 @@ exports.getStudentProfile = async (req, res) => {
   }
 };
 
-// 2. Get student by ID
+// 2. Get student by ID (Strict Role-Based Access Control)
 exports.getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
+    const userRole = (req.user?.role || '').toLowerCase();
+
+    // 1. Student Access: ONLY THEIR OWN DATA
+    if (userRole === 'student' && req.studentId && Number(id) !== Number(req.studentId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access Denied: Data isolation policy restricts students strictly to their own directory records.'
+      });
+    }
+
+    // 2. Parent Access: ONLY THEIR VERIFIED CHILD
+    if (userRole === 'parent' && req.parentLinkedStudentIds && !req.parentLinkedStudentIds.includes(Number(id))) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access Denied: You are not authorized to view records for this student. Access restricted strictly to your verified child ward.'
+      });
+    }
+
     const student = await Student.findByPk(id, {
       include: [
         { model: User, as: 'user', attributes: ['first_name', 'last_name', 'email', 'phone', 'profile_image'] },
@@ -40,6 +58,18 @@ exports.getStudentById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
+    // 3. Teacher Access: ONLY ASSIGNED DATA (students enrolled in assigned classes)
+    if (userRole === 'teacher') {
+      const assigned = req.assignedClassIds || [];
+      if (!student.class_id || !assigned.includes(Number(student.class_id))) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: You are not authorized to view student records outside your assigned classes.'
+        });
+      }
+    }
+
+    // 4. Admin Access: FULL INSTITUTION ACCESS
     return res.status(200).json({ success: true, student });
   } catch (err) {
     console.error('getStudentById error:', err);
@@ -47,10 +77,28 @@ exports.getStudentById = async (req, res) => {
   }
 };
 
-// 3. Admin/Teacher: List all students
+// 3. List students with strict role-based data isolation
 exports.getAllStudents = async (req, res) => {
   try {
+    const userRole = (req.user?.role || '').toLowerCase();
+    const whereClause = {};
+
+    // 1. Student: ONLY THEIR OWN DATA
+    if (userRole === 'student') {
+      whereClause.id = req.studentId || -1;
+    }
+    // 2. Parent: ONLY THEIR CHILD
+    else if (userRole === 'parent') {
+      whereClause.id = req.parentLinkedStudentIds || [];
+    }
+    // 3. Teacher: ONLY ASSIGNED DATA
+    else if (userRole === 'teacher') {
+      whereClause.class_id = req.assignedClassIds || [];
+    }
+    // 4. Administrator: FULL INSTITUTION ACCESS (whereClause remains empty)
+
     const students = await Student.findAll({
+      where: whereClause,
       include: [
         { model: User, as: 'user', attributes: ['first_name', 'last_name', 'email', 'phone', 'profile_image'] },
         { model: Class, as: 'class' },

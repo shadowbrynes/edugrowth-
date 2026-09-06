@@ -2,18 +2,18 @@ const express = require('express');
 const router = express.Router();
 const resultController = require('../controllers/resultController');
 const authMiddleware = require('../middleware/authMiddleware');
-const { requireRole, studentIsolation, parentIsolation, teacherClassControl } = require('../middleware/rbacMiddleware');
+const { requireRole, teacherClassControl, enforceStudentDataIsolation } = require('../middleware/rbacMiddleware');
 
-// Institutional results overview - Admin only
-router.get('/', authMiddleware, requireRole('admin'), resultController.getAllResults);
+// Institutional results overview - filtered strictly by role at database level
+router.get('/', authMiddleware, enforceStudentDataIsolation, resultController.getAllResults);
 
-// Individual student results - protected by student and parent isolation
-router.get('/student/:id', authMiddleware, studentIsolation, parentIsolation, resultController.getStudentResults);
+// Individual student results - protected by unified enforceStudentDataIsolation
+router.get('/student/:id', authMiddleware, enforceStudentDataIsolation, resultController.getStudentResults);
 
 // Academic score entry - Teachers (assigned class only) and Admins
 router.post('/', authMiddleware, requireRole('teacher', 'admin'), teacherClassControl, resultController.saveAcademicScore);
 
-// Report card - student and parent isolation
-router.get('/report-card/:student_id', authMiddleware, studentIsolation, parentIsolation, resultController.getReportCard);
+// Report card - protected by unified enforceStudentDataIsolation
+router.get('/report-card/:student_id', authMiddleware, enforceStudentDataIsolation, resultController.getReportCard);
 
 module.exports = router;

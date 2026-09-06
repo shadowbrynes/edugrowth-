@@ -13,14 +13,14 @@ const calculateGrade = (score) => {
 // 1. Get student academic transcript results
 exports.getStudentResults = async (req, res) => {
   try {
-    const studentId = req.params.id || (req.user ? req.user.id : 1);
+    const studentId = req.params.id || req.studentId || (req.user ? req.user.id : 1);
 
     const results = await AcademicResult.findAll({
       where: { student_id: studentId },
       include: [
-        { model: Subject, as: 'subject', attributes: ['subject_name', 'subject_code', 'department'] }
+        { model: Subject, as: 'subject', attributes: ['subject_name', 'subject_code', 'department_id'] }
       ],
-      order: [['created_at', 'DESC']]
+      order: [['result_id', 'DESC']]
     });
 
     const totalScoreSum = results.reduce((acc, r) => acc + Number(r.total_score), 0);
@@ -38,10 +38,37 @@ exports.getStudentResults = async (req, res) => {
   }
 };
 
-// 2. Get all results for class/school
+// 2. Get all results with strict role-based data isolation
 exports.getAllResults = async (req, res) => {
   try {
+    const userRole = (req.user?.role || '').toLowerCase();
+    const whereClause = {};
+
+    // 1. Student: ONLY THEIR OWN RESULTS
+    if (userRole === 'student') {
+      whereClause.student_id = req.studentId || -1;
+    }
+    // 2. Parent: ONLY THEIR VERIFIED CHILD
+    else if (userRole === 'parent') {
+      whereClause.student_id = req.parentLinkedStudentIds || [];
+    }
+    // 3. Teacher: ONLY ASSIGNED DATA (students in assigned classes)
+    else if (userRole === 'teacher') {
+      const assignedClassIds = req.assignedClassIds || [];
+      if (assignedClassIds.length > 0) {
+        const classStudents = await Student.findAll({
+          where: { class_id: assignedClassIds },
+          attributes: ['id']
+        });
+        whereClause.student_id = classStudents.map(s => s.id);
+      } else {
+        whereClause.student_id = -1;
+      }
+    }
+    // 4. Admin: FULL ACCESS (whereClause remains empty)
+
     const results = await AcademicResult.findAll({
+      where: whereClause,
       include: [
         { model: Subject, as: 'subject', attributes: ['subject_name', 'subject_code'] },
         {
@@ -50,7 +77,7 @@ exports.getAllResults = async (req, res) => {
           include: [{ model: User, as: 'user', attributes: ['first_name', 'last_name', 'email'] }]
         }
       ],
-      order: [['created_at', 'DESC']]
+      order: [['result_id', 'DESC']]
     });
 
     return res.status(200).json({ success: true, count: results.length, results });
@@ -157,7 +184,7 @@ exports.saveAcademicScore = async (req, res) => {
 // 4. Generate or fetch student report card
 exports.getReportCard = async (req, res) => {
   try {
-    const { student_id } = req.params;
+    const student_id = req.params.student_id || req.studentId;
     const term = req.query.term || 'Term 1';
 
     const subjectResults = await AcademicResult.findAll({

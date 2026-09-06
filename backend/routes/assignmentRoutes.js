@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const assignmentController = require('../controllers/assignmentController');
+const authMiddleware = require('../middleware/authMiddleware');
+const { requireRole, teacherClassControl } = require('../middleware/rbacMiddleware');
 
-router.get('/', assignmentController.getAllAssignments);
-router.post('/', assignmentController.createAssignment);
-router.post('/submit', assignmentController.submitAssignment);
-router.post('/grade', assignmentController.gradeSubmission);
-router.put('/grade/:submission_id', assignmentController.gradeSubmission);
+router.get('/', authMiddleware, assignmentController.getAllAssignments);
+router.post('/', authMiddleware, requireRole('teacher', 'admin'), teacherClassControl, assignmentController.createAssignment);
+router.post('/submit', authMiddleware, assignmentController.submitAssignment);
+router.post('/grade', authMiddleware, requireRole('teacher', 'admin'), teacherClassControl, assignmentController.gradeSubmission);
+router.put('/grade/:submission_id', authMiddleware, requireRole('teacher', 'admin'), teacherClassControl, assignmentController.gradeSubmission);
 
 module.exports = router;

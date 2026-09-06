@@ -237,16 +237,24 @@ class InterventionService {
    */
   async startIntervention(interventionId, studentId = 1) {
     const sId = Number(studentId) || 1;
-    const iId = Number(interventionId);
+    const isNumericId = !isNaN(Number(interventionId)) && interventionId !== null && interventionId !== '';
+    const iId = isNumericId ? Number(interventionId) : null;
 
     try {
-      let intervention = await LearningIntervention.findOne({
-        where: { id: iId, student_id: sId }
-      });
+      let intervention = null;
+      if (iId) {
+        intervention = await LearningIntervention.findOne({
+          where: { id: iId, student_id: sId }
+        });
 
-      if (!intervention) {
-        // Find by ID alone if student_id is flexible
-        intervention = await LearningIntervention.findByPk(iId);
+        if (!intervention) {
+          // Find by ID alone if student_id is flexible
+          intervention = await LearningIntervention.findByPk(iId);
+        }
+      } else if (typeof interventionId === 'string') {
+        intervention = await LearningIntervention.findOne({
+          where: { action_type: interventionId, student_id: sId }
+        });
       }
 
       if (intervention) {
@@ -294,16 +302,24 @@ class InterventionService {
    */
   async completeIntervention(interventionId, studentId = 1, scoreAfter = 85) {
     const sId = Number(studentId) || 1;
-    const iId = Number(interventionId);
+    const isNumericId = !isNaN(Number(interventionId)) && interventionId !== null && interventionId !== '';
+    const iId = isNumericId ? Number(interventionId) : null;
     const resolvedScoreAfter = Math.min(100, Math.max(0, Number(scoreAfter) || 85));
 
     try {
-      let intervention = await LearningIntervention.findOne({
-        where: { id: iId, student_id: sId }
-      });
+      let intervention = null;
+      if (iId) {
+        intervention = await LearningIntervention.findOne({
+          where: { id: iId, student_id: sId }
+        });
 
-      if (!intervention) {
-        intervention = await LearningIntervention.findByPk(iId);
+        if (!intervention) {
+          intervention = await LearningIntervention.findByPk(iId);
+        }
+      } else if (typeof interventionId === 'string') {
+        intervention = await LearningIntervention.findOne({
+          where: { action_type: interventionId, student_id: sId }
+        });
       }
 
       if (intervention) {

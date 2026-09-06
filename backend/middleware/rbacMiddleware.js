@@ -195,7 +195,7 @@ const teacherClassControl = async (req, res, next) => {
 
     // If an explicit class_id is passed, verify authorization
     const targetClassId = req.params.class_id || req.query.class_id || req.body.class_id;
-    if (targetClassId && assignedClassIds.size > 0) {
+    if (targetClassId) {
       if (!assignedClassIds.has(Number(targetClassId))) {
         return res.status(403).json({
           success: false,
@@ -206,9 +206,9 @@ const teacherClassControl = async (req, res, next) => {
 
     // If a student_id is targeted (e.g. For scoring or grading), verify student belongs to teacher's classes
     const targetStudentId = req.params.student_id || req.body.student_id;
-    if (targetStudentId && assignedClassIds.size > 0) {
+    if (targetStudentId) {
       const student = await Student.findByPk(targetStudentId);
-      if (student && student.class_id && !assignedClassIds.has(Number(student.class_id))) {
+      if (!student || !student.class_id || !assignedClassIds.has(Number(student.class_id))) {
         return res.status(403).json({
           success: false,
           message: 'Access Denied: You are not authorized to enter scores or grade assignments for this student outside your assigned classes.'
@@ -223,9 +223,144 @@ const teacherClassControl = async (req, res, next) => {
   }
 };
 
+/**
+ * 5. Strict Student Directory & Data Isolation Middleware
+ * Enforces the institutional security privacy model across all student directories:
+ * - Administrators: FULL INSTITUTION ACCESS
+ * - Students: ONLY THEIR OWN DATA
+ * - Parents: ONLY THEIR VERIFIED CHILD
+ * - Teachers: ONLY ASSIGNED DATA (students enrolled in their classes)
+ */
+const enforceStudentDataIsolation = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: Authentication token required.'
+      });
+    }
+
+    const userRole = (req.user.role || '').toLowerCase();
+
+    // 1. ADMINISTRATOR: FULL INSTITUTION ACCESS
+    if (userRole === 'admin') {
+      return next();
+    }
+
+    // Identify target student if specified in params, query, or body
+    const targetStudentId = req.params.student_id || req.params.id || req.query.student_id || req.body?.student_id;
+
+    // 2. STUDENT: ONLY THEIR OWN DATA
+    if (userRole === 'student') {
+      const student = await Student.findOne({ where: { user_id: req.user.id } });
+      if (!student) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: No student record linked to this authenticated account.'
+        });
+      }
+
+      req.student = student;
+      req.studentId = student.id;
+      req.studentClassId = student.class_id;
+
+      if (targetStudentId && Number(targetStudentId) !== Number(student.id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: You are only permitted to access your own student records.'
+        });
+      }
+
+      return next();
+    }
+
+    // 3. PARENT: ONLY THEIR CHILD
+    if (userRole === 'parent') {
+      const parent = await Parent.findOne({ where: { user_id: req.user.id } });
+      if (!parent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: No parent profile linked to this authenticated account.'
+        });
+      }
+
+      const relationships = await ParentStudent.findAll({ where: { parent_id: parent.id } });
+      const directStudents = await Student.findAll({ where: { parent_id: parent.id }, attributes: ['id'] });
+      const linkedIds = new Set([
+        ...relationships.map(r => Number(r.student_id)),
+        ...directStudents.map(s => Number(s.id))
+      ]);
+
+      req.parent = parent;
+      req.parentLinkedStudentIds = Array.from(linkedIds);
+
+      if (targetStudentId && !linkedIds.has(Number(targetStudentId))) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: You are not authorized to view records for this student. Access restricted strictly to your verified child ward.'
+        });
+      }
+
+      return next();
+    }
+
+    // 4. TEACHER: ONLY ASSIGNED DATA
+    if (userRole === 'teacher') {
+      const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
+      if (!teacher) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access Denied: No teacher profile linked to this authenticated account.'
+        });
+      }
+
+      const managedClasses = await Class.findAll({ where: { class_teacher_id: teacher.id }, attributes: ['id'] });
+      const timetableClasses = await Timetable.findAll({ where: { teacher_id: teacher.id }, attributes: ['class_id'] });
+      const assignmentClasses = await Assignment.findAll({ where: { teacher_id: teacher.id }, attributes: ['class_id'] });
+
+      const assignedClassIds = new Set([
+        ...managedClasses.map(c => Number(c.id)),
+        ...timetableClasses.map(t => Number(t.class_id)).filter(Boolean),
+        ...assignmentClasses.map(a => Number(a.class_id)).filter(Boolean)
+      ]);
+
+      req.teacher = teacher;
+      req.assignedClassIds = Array.from(assignedClassIds);
+
+      if (targetStudentId) {
+        const student = await Student.findByPk(targetStudentId);
+        if (!student) {
+          return res.status(404).json({ success: false, message: 'Student record not found.' });
+        }
+        if (!student.class_id || !assignedClassIds.has(Number(student.class_id))) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access Denied: You are not authorized to access student records outside your assigned classes.'
+          });
+        }
+      }
+
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: 'Access Denied: Role lacks authorization to access student directory records.'
+    });
+  } catch (err) {
+    console.error('[Student Directory Security Error]:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server security error enforcing role-based access control',
+      error: err.message
+    });
+  }
+};
+
 module.exports = {
   requireRole,
   studentIsolation,
   parentIsolation,
-  teacherClassControl
+  teacherClassControl,
+  enforceStudentDataIsolation
 };
