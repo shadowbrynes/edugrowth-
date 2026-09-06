@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AI_LEARNING_COACH_RECOMMENDATIONS,
   REVISION_PLAN_DATA,
@@ -6,13 +6,78 @@ import {
   PARENT_AI_REPORT_DATA,
   CURRENT_STUDENT
 } from '../../data/excelmindData';
+import { interventionApi } from '../../services/api';
+import {
+  InterventionWorkspaceModal,
+  InterventionItem
+} from './InterventionWorkspaceModal';
 
 export const AiLearningCoachView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'coach' | 'revision' | 'gamification' | 'offline' | 'parentReport'>('coach');
   const [offlineSyncActive, setOfflineSyncActive] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
+  // Personalized Dynamic Interventions State
+  const [interventions, setInterventions] = useState<InterventionItem[]>([]);
+  const [loadingInterventions, setLoadingInterventions] = useState(true);
+  const [selectedIntervention, setSelectedIntervention] = useState<InterventionItem | null>(null);
+  const [studentXP, setStudentXP] = useState(CURRENT_STUDENT.rewardPoints);
+
   const [revisionWeeks, setRevisionWeeks] = useState(REVISION_PLAN_DATA.weeks);
+
+  useEffect(() => {
+    async function loadInterventions() {
+      try {
+        const res = await interventionApi.getStudentInterventions(CURRENT_STUDENT.id || 1);
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          setInterventions(res.data);
+        } else {
+          setInterventions(
+            AI_LEARNING_COACH_RECOMMENDATIONS.map((rec, idx) => ({
+              id: rec.id || idx + 1,
+              student_id: CURRENT_STUDENT.id || 1,
+              subject: rec.subject,
+              topic: rec.topic,
+              priority_level: rec.priority,
+              reason: rec.diagnosis,
+              recommended_action: rec.suggestedAction,
+              action_type: idx === 0 ? 'remedial_video' : idx === 1 ? 'worked_examples' : 'olympiad',
+              status: 'recommended',
+              score_before: rec.studentCompletion === 30 ? 58 : rec.studentCompletion === 65 ? 65 : 88,
+              mastery_target: idx === 0 ? 80 : idx === 1 ? 85 : 95,
+              recommended_time_minutes: idx === 0 ? 15 : idx === 1 ? 20 : 25,
+              diagnosis: rec.diagnosis,
+              action_plan: rec.actionPlan
+            }))
+          );
+        }
+      } catch (err) {
+        console.warn('Load interventions notice:', err);
+      } finally {
+        setLoadingInterventions(false);
+      }
+    }
+    loadInterventions();
+  }, []);
+
+  const handleLaunchIntervention = async (rec: InterventionItem) => {
+    try {
+      await interventionApi.startIntervention(rec.id, CURRENT_STUDENT.id || 1);
+      setInterventions((prev) =>
+        prev.map((item) => (item.id === rec.id ? { ...item, status: 'started' } : item))
+      );
+    } catch (e) {
+      console.warn('Intervention start error:', e);
+    }
+    setSelectedIntervention(rec);
+  };
+
+  const handleInterventionCompleted = (updated: InterventionItem) => {
+    setInterventions((prev) =>
+      prev.map((item) => (item.id === updated.id ? updated : item))
+    );
+    setStudentXP((prev) => prev + 150);
+  };
 
   const toggleRevisionItem = (weekIndex: number, subjectIndex: number) => {
     const updated = [...revisionWeeks];
@@ -59,7 +124,7 @@ export const AiLearningCoachView: React.FC = () => {
             <div className="text-center">
               <span className="text-[10px] font-mono text-purple-300 uppercase block font-bold">Reward XP</span>
               <span className="text-2xl font-black text-amber-400">
-                {CURRENT_STUDENT.rewardPoints}
+                {studentXP}
               </span>
             </div>
           </div>
@@ -119,69 +184,103 @@ export const AiLearningCoachView: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {AI_LEARNING_COACH_RECOMMENDATIONS.map((rec) => (
-                <div
-                  key={rec.id}
-                  className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
-                        {rec.subject}
-                      </span>
-                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        rec.priority === 'high'
-                          ? 'bg-rose-100 text-rose-800'
-                          : rec.priority === 'medium'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {rec.priority.toUpperCase()} PRIORITY
-                      </span>
-                    </div>
+              {interventions.map((rec) => {
+                const masteryScore = rec.status === 'completed' && rec.score_after !== undefined ? rec.score_after : rec.score_before;
+                const isCompleted = rec.status === 'completed';
+                const isStarted = rec.status === 'started';
 
-                    <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">
-                      {rec.topic}
-                    </h4>
-
-                    {/* Progress indicator */}
-                    <div>
-                      <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
-                        <span>Pacing Completion:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{rec.studentCompletion}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            rec.studentCompletion < 50
-                              ? 'bg-rose-500'
-                              : rec.studentCompletion < 75
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
-                          }`}
-                          style={{ width: `${rec.studentCompletion}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                      "{rec.diagnosis}"
-                    </p>
-
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs border border-slate-200/60 dark:border-slate-700 space-y-1">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 block">AI Prescribed Plan:</span>
-                      <p className="text-slate-600 dark:text-slate-300">{rec.actionPlan}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => alert(`Starting action: ${rec.suggestedAction}`)}
-                    className="w-full py-2.5 bg-[#111B5E] hover:bg-blue-900 text-white text-xs font-bold rounded-xl shadow transition cursor-pointer"
+                return (
+                  <div
+                    key={rec.id}
+                    className={`bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-sm space-y-4 flex flex-col justify-between transition ${
+                      isCompleted
+                        ? 'border-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-500/20'
+                        : 'border-slate-200/80 dark:border-slate-800'
+                    }`}
                   >
-                    {rec.suggestedAction}
-                  </button>
-                </div>
-              ))}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                          {rec.subject}
+                        </span>
+                        {isCompleted ? (
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">verified</span>
+                            <span>MASTERED ({rec.score_after}%)</span>
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                            rec.priority_level === 'high'
+                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                              : rec.priority_level === 'medium'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                          }`}>
+                            {isStarted ? 'IN PROGRESS' : `${String(rec.priority_level).toUpperCase()} PRIORITY`}
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">
+                        {rec.topic}
+                      </h4>
+
+                      {/* Progress indicator */}
+                      <div>
+                        <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
+                          <span>Target Mastery: {rec.mastery_target}%</span>
+                          <span className={`font-bold ${isCompleted ? 'text-emerald-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                            {masteryScore}%
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              masteryScore < 60
+                                ? 'bg-rose-500'
+                                : masteryScore < 80
+                                ? 'bg-amber-500'
+                                : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${Math.min(100, masteryScore)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                        "{rec.diagnosis || rec.reason}"
+                      </p>
+
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs border border-slate-200/60 dark:border-slate-700 space-y-1">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 block">AI Prescribed Plan:</span>
+                        <p className="text-slate-600 dark:text-slate-300">{rec.action_plan || rec.reason}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleLaunchIntervention(rec)}
+                      className={`w-full py-2.5 text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer ${
+                        isCompleted
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : isStarted
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white animate-pulse'
+                          : 'bg-[#111B5E] hover:bg-blue-900 text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        {isCompleted ? 'verified' : isStarted ? 'resume' : 'play_arrow'}
+                      </span>
+                      <span>
+                        {isCompleted
+                          ? `Review Completed Module (${rec.score_after}%)`
+                          : isStarted
+                          ? `Resume: ${rec.recommended_action}`
+                          : rec.recommended_action}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -455,6 +554,16 @@ export const AiLearningCoachView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Interactive AI Learning Intervention Workspace Modal */}
+      {selectedIntervention && (
+        <InterventionWorkspaceModal
+          intervention={selectedIntervention}
+          studentId={CURRENT_STUDENT.id || 1}
+          onClose={() => setSelectedIntervention(null)}
+          onInterventionCompleted={handleInterventionCompleted}
+        />
       )}
 
     </div>

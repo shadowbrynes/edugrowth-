@@ -324,6 +324,26 @@ export const aiApi = {
 };
 
 // ==========================================
+// 7b. PERSONALIZED LEARNING INTERVENTION API
+// ==========================================
+export const interventionApi = {
+  getStudentInterventions: (studentId: number | string = 1) =>
+    apiRequest(`/interventions/student/${studentId}`),
+  getInterventionById: (id: number | string) =>
+    apiRequest(`/interventions/${id}`),
+  startIntervention: (id: number | string, studentId: number | string = 1) =>
+    apiRequest(`/interventions/${id}/start`, {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId })
+    }),
+  completeIntervention: (id: number | string, scoreAfter: number, studentId: number | string = 1) =>
+    apiRequest(`/interventions/${id}/complete`, {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, score_after: scoreAfter })
+    })
+};
+
+// ==========================================
 // 8. NOTIFICATIONS API (MySQL notifications)
 // ==========================================
 export const notificationApi = {

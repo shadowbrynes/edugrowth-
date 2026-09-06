@@ -18,6 +18,7 @@ const curriculumRoutes = require('./routes/curriculumRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const interventionRoutes = require('./routes/interventionRoutes');
 const backupRoutes = require('./routes/backupRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 
@@ -76,6 +77,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/interventions', interventionRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/images', imageRoutes);
 

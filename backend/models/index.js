@@ -46,6 +46,7 @@ const QuestionBank = require('./QuestionBank');
 const StudentAnswer = require('./StudentAnswer');
 const CBTResult = require('./CBTResult');
 const PerformanceAnalytics = require('./PerformanceAnalytics');
+const LearningIntervention = require('./LearningIntervention');
 
 // --- Associations ---
 
@@ -68,6 +69,10 @@ Student.belongsTo(Parent, { foreignKey: 'parent_id', as: 'parent' });
 // Class <-> Student (1:N)
 Class.hasMany(Student, { foreignKey: 'class_id', as: 'students' });
 Student.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+
+// Student <-> LearningIntervention (1:N)
+Student.hasMany(LearningIntervention, { foreignKey: 'student_id', as: 'interventions' });
+LearningIntervention.belongsTo(Student, { foreignKey: 'student_id', as: 'student' });
 
 // Teacher <-> Class (1:N)
 Teacher.hasMany(Class, { foreignKey: 'class_teacher_id', as: 'managed_classes' });
@@ -240,6 +245,7 @@ module.exports = {
   QuestionBank,
   StudentAnswer,
   CBTResult,
-  PerformanceAnalytics
+  PerformanceAnalytics,
+  LearningIntervention
 };
 
