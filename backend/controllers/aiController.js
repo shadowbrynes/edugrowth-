@@ -134,7 +134,7 @@ exports.tutorQuery = async (req, res) => {
       subject: detectedSubject,
       confidence,
       responseType: result.responseType || 'explanation',
-      curriculumLabel: result.curriculumLabel || `Aligned with NERDC / WAEC Syllabus • ${detectedSubject}`,
+      curriculumLabel: result.curriculumLabel || undefined,
       response: {
         text: answer,
         answer,
@@ -142,7 +142,7 @@ exports.tutorQuery = async (req, res) => {
         confidence,
         accuracyScore: (result.response?.accuracyScore || 0.99),
         sections: result.response?.sections || {},
-        curriculumLabel: result.curriculumLabel || `Aligned with NERDC / WAEC Syllabus • ${detectedSubject}`
+        curriculumLabel: result.curriculumLabel || undefined
       },
       studentContext: result.studentContext
     });

@@ -125,20 +125,19 @@ export const AiTutorViewInner: React.FC = () => {
   const initialWelcomeMessage: ChatMessageAI = {
     id: 'ai-init',
     sender: 'ai',
-    text: "Hello! I am your ExcelMind AI Tutor. I teach like an experienced teacher—understanding your exact intention before answering.\n\nWhether you need a scientific definition ('What is Physics?'), a social concept ('Who is a parent?'), a constitutional breakdown ('What is a constitution?'), a historical biography ('Who was Albert Einstein?'), a step-by-step calculation ('Solve 2x + 5 = 15'), or scripture insight ('What is Genesis 10:6?'), I am here to guide your studies.",
+    text: "Hello! I am your ExcelMind AI Tutor. My primary responsibility is to teach you clearly and accurately.\n\nI answer your questions directly like an experienced teacher—whether you need a scientific explanation (\"What is Newton's Law?\", \"What is Physics?\"), a social definition (\"Who is a parent?\"), a step-by-step mathematical solution (\"Solve 2x + 5 = 15\"), a biological process (\"Explain photosynthesis\"), or a scripture lookup (\"What is written in Genesis 10:6?\"). Ask me anything!",
     timestamp: 'Just now',
     accuracyScore: 0.99,
     confidence: 99,
-    curriculumLabel: 'Aligned with NERDC / WAEC Syllabus',
     subject: 'Academic Tutor',
     sections: {
-      simpleExplanation: "I am an intelligent educational assistant for Nigerian students following NERDC, WAEC, NECO, and JAMB curriculum standards.",
-      detailedExplanation: "I understand student intent before answering, never generate circular definitions, and provide rich, structured explanations tailored to your class level.",
+      definition: "I am an educational AI tutor designed to teach students clearly and accurately, answering the actual question first.",
+      explanation: "I provide direct definitions, simple explanations, practical real-world examples, and step-by-step mathematical solutions without circular boilerplate.",
       keyPoints: [
-        "Identifies question intent: Definition, Explanation, Calculation, Biography, or Scripture.",
-        "Generates genuine, substantive explanations without circular phrases.",
-        "Labels curriculum alignment after generating the answer.",
-        "Answers naturally and clearly like an experienced classroom teacher."
+        "Answers the actual question first without circular filler.",
+        "Clear, structured educational explanations with real-world examples.",
+        "Step-by-step mathematical solutions with verification.",
+        "Direct scripture lookups and social definitions."
       ]
     }
   };
@@ -193,13 +192,13 @@ export const AiTutorViewInner: React.FC = () => {
 
   // Benchmark prompts requested by user
   const benchmarkPrompts = [
+    { label: "What is Newton's Law?", prompt: "What is Newton's Law?" },
     { label: 'What is Physics?', prompt: 'What is Physics?' },
     { label: 'Who is a parent?', prompt: 'Who is a parent?' },
-    { label: 'What is a constitution?', prompt: 'What is a constitution?' },
     { label: 'Explain photosynthesis', prompt: 'Explain photosynthesis.' },
+    { label: 'Genesis 10:6', prompt: 'What is written in Genesis 10:6?' },
     { label: 'Solve 2x + 5 = 15', prompt: 'Solve 2x + 5 = 15.' },
-    { label: 'Who was Albert Einstein?', prompt: 'Who was Albert Einstein?' },
-    { label: 'What is Genesis 10:6?', prompt: 'What is Genesis chapter 10 verse 6?' }
+    { label: 'What is a constitution?', prompt: 'What is a constitution?' }
   ];
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -640,68 +639,29 @@ export const AiTutorViewInner: React.FC = () => {
                       </>
                     )}
 
-                    {/* D. "WHO IS..." DEFINITION CARDS */}
+                    {/* D. DIRECT EDUCATIONAL CONCEPT CARDS (Definitions, Explanations, Examples, Exam Points) */}
                     {!m.sections.person &&
                       !m.sections.scriptureReference &&
-                      !m.sections.finalAnswer &&
-                      m.sections.definition &&
-                      m.sections.example && (
+                      !m.sections.finalAnswer && (
                         <>
-                          <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                            <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>📖</span> <span>Definition</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                              {String(m.sections.definition)}
-                            </p>
-                          </div>
-
-                          {m.sections.explanation && (
-                            <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                              <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>🔍</span> <span>Explanation</span>
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                                {String(m.sections.explanation)}
-                              </p>
-                            </div>
-                          )}
-
-                          <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
-                            <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>💡</span> <span>Example</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                              {String(m.sections.example)}
-                            </p>
-                          </div>
-                        </>
-                      )}
-
-                    {/* E. GENERAL ACADEMIC & CIVIC CONCEPT CARDS */}
-                    {!m.sections.person &&
-                      !m.sections.scriptureReference &&
-                      !m.sections.finalAnswer &&
-                      (!m.sections.definition || !m.sections.example) && (
-                        <>
-                          {(m.sections.simpleExplanation || m.sections.definition) && (
+                          {m.sections.definition && (
                             <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
                               <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>📖</span> <span>Simple explanation</span>
+                                <span>📖</span> <span>Direct definition</span>
                               </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                                {String(m.sections.simpleExplanation || m.sections.definition)}
+                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed font-medium">
+                                {String(m.sections.definition)}
                               </p>
                             </div>
                           )}
 
-                          {(m.sections.detailedExplanation || m.sections.explanation) && (
+                          {(m.sections.explanation || m.sections.simpleExplanation) && (
                             <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
                               <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>🔬</span> <span>Detailed explanation</span>
+                                <span>🔍</span> <span>Simple explanation</span>
                               </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] leading-relaxed">
-                                {String(m.sections.detailedExplanation || m.sections.explanation)}
+                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                                {String(m.sections.explanation || m.sections.simpleExplanation)}
                               </p>
                             </div>
                           )}
@@ -709,7 +669,7 @@ export const AiTutorViewInner: React.FC = () => {
                           {(m.sections.examples || m.sections.example) && (
                             <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
                               <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>💡</span> <span>Example</span>
+                                <span>💡</span> <span>Examples</span>
                               </span>
                               <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
                                 {String(m.sections.examples || m.sections.example)}
@@ -720,7 +680,7 @@ export const AiTutorViewInner: React.FC = () => {
                           {m.sections.examinationRelevance && (
                             <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900">
                               <span className="font-black text-rose-800 dark:text-rose-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>🎯</span> <span>Examination Relevance</span>
+                                <span>🎯</span> <span>Examination points</span>
                               </span>
                               <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
                                 {String(m.sections.examinationRelevance)}
