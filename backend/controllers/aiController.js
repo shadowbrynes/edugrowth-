@@ -139,9 +139,6 @@ exports.tutorQuery = async (req, res) => {
         text: answer,
         answer,
         subject: detectedSubject,
-        confidence,
-        accuracyScore: (result.response?.accuracyScore || 0.99),
-        sections: result.response?.sections || {},
         curriculumLabel: result.curriculumLabel || undefined
       },
       studentContext: result.studentContext
@@ -157,23 +154,11 @@ exports.tutorQuery = async (req, res) => {
       answer: 'AI Tutor is temporarily unavailable. Please try again.',
       subject: subject || 'General Knowledge',
       confidence: 0,
-      curriculumLabel: 'Aligned with NERDC / WAEC Syllabus',
       error: 'AI Tutor is temporarily unavailable. Please try again.',
       response: {
         text: 'AI Tutor is temporarily unavailable. Please try again.',
         answer: 'AI Tutor is temporarily unavailable. Please try again.',
-        subject: subject || 'General Knowledge',
-        confidence: 0,
-        accuracyScore: 0,
-        sections: {
-          simpleExplanation: 'AI Tutor is temporarily unavailable. Please try again.',
-          detailedExplanation: 'Our academic intelligence engine experienced a temporary processing delay. Your student session and learning data are completely safe.',
-          keyPoints: [
-            'Please verify your internet connection and submit your question again.',
-            'Your student session remains active without interruption.',
-            'You can also select another subject filter or ask a benchmark question.'
-          ]
-        }
+        subject: subject || 'General Knowledge'
       }
     });
   }

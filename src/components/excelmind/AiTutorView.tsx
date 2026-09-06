@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { aiApi } from '../../services/api';
-import { ErrorBoundary } from '../common/ErrorBoundary';
 import { AiTutorErrorBoundary } from './AiTutorErrorBoundary';
 import { aiTutorService, NormalizedAiResponse } from '../../services/aiTutorService';
 
@@ -15,131 +14,122 @@ interface ChatMessageAI {
   categoryLabel?: string;
   subject?: string;
   curriculumLabel?: string;
-  confidence?: number;
-  accuracyScore?: number;
-  sections?: {
-    // Scripture Format
-    scriptureReference?: string;
-    verse?: string;
-    meaning?: string;
-
-    // Biography Format
-    person?: string;
-    identity?: string;
-    majorAchievements?: string;
-    significance?: string;
-
-    // Who is... Format
-    definition?: string;
-    explanation?: string;
-    example?: string;
-
-    // Academic / Civic Format
-    simpleExplanation?: string;
-    detailedExplanation?: string;
-    examples?: string;
-    examinationRelevance?: string;
-    keyPoints?: string[];
-
-    // Calculation Format
-    given?: string;
-    formula?: string;
-    solutionSteps?: string;
-    finalAnswer?: string;
-  };
 }
 
-// Helper to safely sanitize any section fields and prevent non-primitive React children crashes
-const sanitizeSections = (sections: any): ChatMessageAI['sections'] | undefined => {
-  if (!sections || typeof sections !== 'object') return undefined;
+/**
+ * Natural Educational Response Renderer
+ * Renders educational explanations naturally with headings, structured bullets,
+ * formulas, quotes, and paragraphs without forcing into rigid template cards.
+ */
+const EducationalTextRenderer: React.FC<{ text: string }> = ({ text }) => {
+  if (!text) return null;
 
-  const safeString = (val: any): string | undefined => {
-    if (val === null || val === undefined) return undefined;
-    if (typeof val === 'string') return val;
-    if (typeof val === 'number' || typeof val === 'boolean') return String(val);
-    if (Array.isArray(val)) {
-      return val.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))).join('\n');
-    }
-    return undefined;
-  };
+  const blocks = text.split(/\n\s*\n/);
 
-  const safeArray = (val: any): string[] => {
-    if (!val) return [];
-    if (Array.isArray(val)) {
-      return val.map((v) => (typeof v === 'string' ? v : typeof v === 'object' ? JSON.stringify(v) : String(v)));
-    }
-    if (typeof val === 'string') {
-      return val
-        .split('\n')
-        .map((s) => s.replace(/^[-•*]\s*/, '').trim())
-        .filter(Boolean);
-    }
-    return [];
-  };
+  return (
+    <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed text-slate-800 dark:text-slate-200">
+      {blocks.map((block, idx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
 
-  const clean: ChatMessageAI['sections'] = {};
-  if (safeString(sections.scriptureReference)) clean.scriptureReference = safeString(sections.scriptureReference);
-  if (safeString(sections.verse)) clean.verse = safeString(sections.verse);
-  if (safeString(sections.meaning)) clean.meaning = safeString(sections.meaning);
+        // Formula / Equation block
+        if (trimmed.startsWith('Formula:') || trimmed.startsWith('Chemical Equation:')) {
+          return (
+            <div key={idx} className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 font-mono text-xs text-indigo-950 dark:text-indigo-200 font-semibold whitespace-pre-wrap shadow-xs">
+              {trimmed}
+            </div>
+          );
+        }
 
-  if (safeString(sections.person)) clean.person = safeString(sections.person);
-  if (safeString(sections.identity)) clean.identity = safeString(sections.identity);
-  if (safeString(sections.majorAchievements)) clean.majorAchievements = safeString(sections.majorAchievements);
-  if (safeString(sections.significance)) clean.significance = safeString(sections.significance);
+        // Scripture quote
+        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+          return (
+            <div key={idx} className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-100 font-serif italic text-xs sm:text-sm shadow-xs">
+              {trimmed}
+            </div>
+          );
+        }
 
-  if (safeString(sections.definition)) clean.definition = safeString(sections.definition);
-  if (safeString(sections.explanation)) clean.explanation = safeString(sections.explanation);
-  if (safeString(sections.example)) clean.example = safeString(sections.example);
+        // Bulleted or numbered lines
+        const lines = trimmed.split('\n');
+        const hasBullets = lines.some((l) => /^(\s*[-•*]|\s*\d+\.)\s+/.test(l));
 
-  if (safeString(sections.simpleExplanation)) clean.simpleExplanation = safeString(sections.simpleExplanation);
-  if (safeString(sections.detailedExplanation)) clean.detailedExplanation = safeString(sections.detailedExplanation);
-  if (safeString(sections.examples)) clean.examples = safeString(sections.examples);
-  if (safeString(sections.examinationRelevance || sections.examinationFocus)) clean.examinationRelevance = safeString(sections.examinationRelevance || sections.examinationFocus);
+        if (hasBullets) {
+          return (
+            <div key={idx} className="space-y-1.5 pt-0.5">
+              {lines.map((line, lIdx) => {
+                const lineTrimmed = line.trim();
+                const isBullet = /^(\s*[-•*]|\s*\d+\.)\s+/.test(line);
+                const isSubHeader = lineTrimmed.endsWith(':') && !isBullet;
 
-  if (safeString(sections.given)) clean.given = safeString(sections.given);
-  if (safeString(sections.formula)) clean.formula = safeString(sections.formula);
-  if (safeString(sections.solutionSteps)) clean.solutionSteps = safeString(sections.solutionSteps);
-  if (safeString(sections.finalAnswer)) clean.finalAnswer = safeString(sections.finalAnswer);
+                if (isSubHeader) {
+                  return (
+                    <h4 key={lIdx} className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm pt-1.5 pb-0.5 font-mono">
+                      {lineTrimmed}
+                    </h4>
+                  );
+                }
 
-  const points = safeArray(sections.keyPoints);
-  if (points.length > 0) clean.keyPoints = points;
+                if (isBullet) {
+                  const bulletMatch = lineTrimmed.match(/^(\s*[-•*]|\s*\d+\.)\s+/);
+                  const marker = bulletMatch ? bulletMatch[0].trim() : '•';
+                  const bulletContent = lineTrimmed.replace(/^(\s*[-•*]|\s*\d+\.)\s+/, '');
+                  return (
+                    <div key={lIdx} className="flex items-start gap-2 pl-1 sm:pl-2">
+                      <span className="text-blue-600 dark:text-blue-400 font-bold shrink-0 text-xs mt-0.5">
+                        {marker === '-' || marker === '*' ? '•' : marker}
+                      </span>
+                      <span className="flex-1 whitespace-pre-wrap">{bulletContent}</span>
+                    </div>
+                  );
+                }
 
-  return Object.keys(clean).length > 0 ? clean : undefined;
+                return (
+                  <p key={lIdx} className="whitespace-pre-wrap">
+                    {lineTrimmed}
+                  </p>
+                );
+              })}
+            </div>
+          );
+        }
+
+        // Section header
+        if (trimmed.endsWith(':') && trimmed.length < 80) {
+          return (
+            <h4 key={idx} className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm pt-1 font-mono">
+              {trimmed}
+            </h4>
+          );
+        }
+
+        // Regular educational paragraph
+        return (
+          <p key={idx} className="whitespace-pre-wrap leading-relaxed">
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
 };
 
 export const AiTutorViewInner: React.FC = () => {
   const [studentContext, setStudentContext] = useState<any>({
     id: 1,
-    name: 'John Doe',
-    classLevel: 'SS3 Gold Sci & Tech',
+    name: 'Student',
+    classLevel: 'SS3',
     department: 'Science',
-    school: 'ExcelMind Academy',
-    session: '2026/2027 Session',
-    subjects: ['Physics', 'Chemistry', 'Biology', 'General Mathematics', 'English Language', 'Civic Education'],
-    weakSubjects: [{ subject: 'Physics', score: 45, weakTopics: ['Mechanics', 'Linear Motion', "Newton's Laws"] }],
-    averageScore: 78
+    school: 'ExcelMind Academy'
   });
 
   const [selectedSubject, setSelectedSubject] = useState<string>('Auto-Detect');
-
   const initialWelcomeMessage: ChatMessageAI = {
     id: 'ai-init',
     sender: 'ai',
-    text: "Hello! I am your ExcelMind AI Tutor. My primary responsibility is to teach you clearly and accurately.\n\nI answer your questions directly like an experienced teacher—whether you need a scientific explanation (\"What is Newton's Law?\", \"What is Physics?\"), a social definition (\"Who is a parent?\"), a step-by-step mathematical solution (\"Solve 2x + 5 = 15\"), a biological process (\"Explain photosynthesis\"), or a scripture lookup (\"What is written in Genesis 10:6?\"). Ask me anything!",
+    text: "Hello! I am your ExcelMind AI Tutor.\n\nI answer your questions directly like an experienced teacher—whether you need a scientific explanation (\"What is Faraday's law of electricity?\", \"What is Newton's Law?\", \"What is Physics?\"), a social definition (\"Who is a parent?\"), a biological process (\"Explain photosynthesis\"), a civic question (\"What is a constitution?\"), a step-by-step mathematical solution (\"Solve 2x + 5 = 15\"), or a scripture lookup (\"What is Genesis chapter 10 verse 6?\").\n\nAsk me anything!",
     timestamp: 'Just now',
-    accuracyScore: 0.99,
-    confidence: 99,
-    subject: 'Academic Tutor',
-    sections: {
-      definition: "I am an educational AI tutor designed to teach students clearly and accurately, answering the actual question first.",
-      explanation: "I provide direct definitions, simple explanations, practical real-world examples, and step-by-step mathematical solutions without circular boilerplate.",
-      keyPoints: [
-        "Answers the actual question first without circular filler.",
-        "Clear, structured educational explanations with real-world examples.",
-        "Step-by-step mathematical solutions with verification.",
-        "Direct scripture lookups and social definitions."
-      ]
-    }
+    subject: 'Academic Tutor'
   };
 
   const [messages, setMessages] = useState<ChatMessageAI[]>([initialWelcomeMessage]);
@@ -192,11 +182,12 @@ export const AiTutorViewInner: React.FC = () => {
 
   // Benchmark prompts requested by user
   const benchmarkPrompts = [
+    { label: "Faraday's Laws", prompt: "What is Faraday's law of electricity?" },
     { label: "What is Newton's Law?", prompt: "What is Newton's Law?" },
     { label: 'What is Physics?', prompt: 'What is Physics?' },
     { label: 'Who is a parent?', prompt: 'Who is a parent?' },
     { label: 'Explain photosynthesis', prompt: 'Explain photosynthesis.' },
-    { label: 'Genesis 10:6', prompt: 'What is written in Genesis 10:6?' },
+    { label: 'Genesis 10:6', prompt: 'What is Genesis chapter 10 verse 6?' },
     { label: 'Solve 2x + 5 = 15', prompt: 'Solve 2x + 5 = 15.' },
     { label: 'What is a constitution?', prompt: 'What is a constitution?' }
   ];
@@ -238,29 +229,18 @@ export const AiTutorViewInner: React.FC = () => {
       );
 
       const detectedSub = String(rawResp?.subject || rawResp?.response?.subject || sub || 'Academic Studies');
-      const rawConfidence =
-        rawResp?.confidence ??
-        (rawResp?.response?.accuracyScore ? Math.round(rawResp.response.accuracyScore * 100) : 95);
-      const confidence = typeof rawConfidence === 'number' ? rawConfidence : 95;
-
-      const rawSections = rawResp?.response?.sections || rawResp?.sections;
-      const cleanSections = sanitizeSections(rawSections);
-
       const resolvedText = answerText.trim() || 'Educational explanation provided.';
 
       const aiMsg: ChatMessageAI = {
         id: `ai-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         sender: 'ai',
         text: resolvedText,
-        confidence,
-        accuracyScore: confidence / 100,
         timestamp: 'Just now',
         responseType: String(rawResp?.responseType || 'explanation'),
         category: rawResp?.category,
         categoryLabel: rawResp?.categoryLabel,
         subject: detectedSub,
-        curriculumLabel: rawResp?.curriculumLabel ? String(rawResp.curriculumLabel) : undefined,
-        sections: cleanSections
+        curriculumLabel: rawResp?.curriculumLabel ? String(rawResp.curriculumLabel) : undefined
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
@@ -271,8 +251,6 @@ export const AiTutorViewInner: React.FC = () => {
           id: `ai-${Date.now()}`,
           sender: 'ai',
           text: 'AI Tutor is temporarily unavailable. Please try again.',
-          confidence: 90,
-          accuracyScore: 0.9,
           timestamp: 'Just now',
           subject: sub || 'Academic Studies'
         }
@@ -304,8 +282,7 @@ export const AiTutorViewInner: React.FC = () => {
       setAttachedImage(null);
       setIsThinking(true);
 
-      // Dedicated Fault-Tolerant AI Service Call:
-      // Enforces 5s timeout & cancellation; falls back seamlessly to client engine if unreachable.
+      // Dedicated Fault-Tolerant AI Service Call
       const res = await aiTutorService.askTutor(textQuery, {
         studentId: studentContext?.id || 1,
         subject: sub,
@@ -343,7 +320,7 @@ export const AiTutorViewInner: React.FC = () => {
               ExcelMind AI Academic Tutor
             </h1>
             <p className="text-xs sm:text-sm text-indigo-200 max-w-2xl">
-              Natural language understanding that teaches like an experienced educator. Dynamic formats for definitions, explanations, calculations, biographies, and scripture without circular generic answers.
+              Natural language understanding that teaches like an experienced educator. Dynamic answers for definitions, scientific laws, calculations, biographies, and scripture without circular template filler.
             </p>
           </div>
 
@@ -421,7 +398,7 @@ export const AiTutorViewInner: React.FC = () => {
           </div>
         )}
 
-        {/* Reassuring In-Chat Error & Retry Banner */}
+        {/* In-Chat Error Banner */}
         {errorMessage && (
           <div className="p-3 mx-4 my-2 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex items-center justify-between gap-3 text-xs text-amber-900 dark:text-amber-200 shadow-sm animate-fadeIn">
             <div className="flex items-center gap-2">
@@ -465,15 +442,14 @@ export const AiTutorViewInner: React.FC = () => {
                     : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none'
                 }`}
               >
-                {/* Accuracy & Curriculum Alignment Badge */}
+                {/* AI Subject Tag Header (NO Confidence: 99% badge) */}
                 {m.sender === 'ai' && (
                   <div className="flex flex-wrap items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700 gap-2">
-                    <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">verified</span>
-                      <span>
-                        Confidence: {typeof m.confidence === 'number' ? `${m.confidence}%` : '95%'}
-                      </span>
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs">school</span>
+                      <span>{String(m.subject || 'Academic Studies')}</span>
                     </span>
+
                     <div className="flex flex-wrap items-center gap-2">
                       {m.categoryLabel && (
                         <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-900">
@@ -485,9 +461,6 @@ export const AiTutorViewInner: React.FC = () => {
                           {String(m.curriculumLabel)}
                         </span>
                       )}
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
-                        {String(m.subject || 'Academic Studies')}
-                      </span>
                     </div>
                   </div>
                 )}
@@ -506,221 +479,11 @@ export const AiTutorViewInner: React.FC = () => {
                   </div>
                 )}
 
-                {/* Formatted Educational Cards */}
-                {m.sections ? (
-                  <div className="space-y-3 pt-1">
-                    {/* A. SCRIPTURE FORMAT CARDS */}
-                    {m.sections.scriptureReference && (
-                      <>
-                        <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 shadow-sm">
-                          <span className="font-black text-amber-900 dark:text-amber-200 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                            <span>📖</span> <span>Scripture Reference</span>
-                          </span>
-                          <p className="text-amber-950 dark:text-amber-100 font-bold text-sm font-mono leading-relaxed">
-                            {String(m.sections.scriptureReference)}
-                          </p>
-                        </div>
-
-                        {m.sections.verse && (
-                          <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                            <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>📜</span> <span>Verse</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-medium leading-relaxed italic text-xs sm:text-[13px]">
-                              "{String(m.sections.verse)}"
-                            </p>
-                          </div>
-                        )}
-
-                        {m.sections.meaning && (
-                          <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                            <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>💡</span> <span>Meaning</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                              {String(m.sections.meaning)}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* B. HISTORICAL FIGURE / BIOGRAPHY CARDS */}
-                    {m.sections.person && (
-                      <>
-                        <div className="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 shadow-sm">
-                          <span className="font-black text-purple-900 dark:text-purple-200 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                            <span>👤</span> <span>Historical Figure</span>
-                          </span>
-                          <p className="text-purple-950 dark:text-purple-100 font-bold text-sm leading-relaxed">
-                            {String(m.sections.person)}
-                          </p>
-                        </div>
-
-                        {m.sections.identity && (
-                          <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                            <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>📖</span> <span>Overview</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                              {String(m.sections.identity)}
-                            </p>
-                          </div>
-                        )}
-
-                        {m.sections.majorAchievements && (
-                          <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                            <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>🏆</span> <span>Major Contributions & Discoveries</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] leading-relaxed">
-                              {String(m.sections.majorAchievements)}
-                            </p>
-                          </div>
-                        )}
-
-                        {m.sections.significance && (
-                          <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
-                            <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>💡</span> <span>Historical Significance</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                              {String(m.sections.significance)}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* C. MATHEMATICS CALCULATION CARDS */}
-                    {m.sections.finalAnswer && (
-                      <>
-                        {m.sections.given && (
-                          <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
-                            <span className="font-black text-slate-800 dark:text-slate-200 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>📋</span> <span>Given</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] leading-relaxed">
-                              {String(m.sections.given)}
-                            </p>
-                          </div>
-                        )}
-
-                        {m.sections.formula && (
-                          <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                            <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>📐</span> <span>Formula</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] font-bold leading-relaxed">
-                              {String(m.sections.formula)}
-                            </p>
-                          </div>
-                        )}
-
-                        {m.sections.solutionSteps && (
-                          <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                            <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                              <span>🧮</span> <span>Solution steps</span>
-                            </span>
-                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono text-[11px] leading-relaxed">
-                              {String(m.sections.solutionSteps)}
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 shadow-sm">
-                          <span className="font-black text-emerald-800 dark:text-emerald-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                            <span>🎯</span> <span>Final answer</span>
-                          </span>
-                          <p className="text-emerald-900 dark:text-emerald-200 whitespace-pre-line font-mono text-base font-black leading-relaxed">
-                            {String(m.sections.finalAnswer)}
-                          </p>
-                        </div>
-                      </>
-                    )}
-
-                    {/* D. DIRECT EDUCATIONAL CONCEPT CARDS (Definitions, Explanations, Examples, Exam Points) */}
-                    {!m.sections.person &&
-                      !m.sections.scriptureReference &&
-                      !m.sections.finalAnswer && (
-                        <>
-                          {m.sections.definition && (
-                            <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900">
-                              <span className="font-black text-blue-800 dark:text-blue-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>📖</span> <span>Direct definition</span>
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed font-medium">
-                                {String(m.sections.definition)}
-                              </p>
-                            </div>
-                          )}
-
-                          {(m.sections.explanation || m.sections.simpleExplanation) && (
-                            <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900">
-                              <span className="font-black text-indigo-800 dark:text-indigo-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>🔍</span> <span>Simple explanation</span>
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                                {String(m.sections.explanation || m.sections.simpleExplanation)}
-                              </p>
-                            </div>
-                          )}
-
-                          {(m.sections.examples || m.sections.example) && (
-                            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
-                              <span className="font-black text-amber-800 dark:text-amber-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>💡</span> <span>Examples</span>
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                                {String(m.sections.examples || m.sections.example)}
-                              </p>
-                            </div>
-                          )}
-
-                          {m.sections.examinationRelevance && (
-                            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900">
-                              <span className="font-black text-rose-800 dark:text-rose-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                                <span>🎯</span> <span>Examination points</span>
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                                {String(m.sections.examinationRelevance)}
-                              </p>
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                    {/* Key points bullet list if present */}
-                    {Array.isArray(m.sections.keyPoints) && m.sections.keyPoints.length > 0 && (
-                      <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700">
-                        <span className="font-black text-slate-800 dark:text-slate-200 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
-                          <span>📌</span> <span>Key points</span>
-                        </span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
-                          {m.sections.keyPoints.map((pt, i) => (
-                            <li key={i} className="whitespace-pre-line leading-relaxed">
-                              {typeof pt === 'string' ? pt : JSON.stringify(pt)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Fallback to m.text if none of the above specific cards matched */}
-                    {!m.sections.person &&
-                      !m.sections.scriptureReference &&
-                      !m.sections.finalAnswer &&
-                      !m.sections.definition &&
-                      !m.sections.simpleExplanation && (
-                        <p className="font-medium whitespace-pre-line break-words text-slate-900 dark:text-slate-100 leading-relaxed">
-                          {String(m.text || 'Educational explanation provided.')}
-                        </p>
-                      )}
-                  </div>
+                {/* Natural Educational Response Renderer */}
+                {m.sender === 'ai' ? (
+                  <EducationalTextRenderer text={m.text} />
                 ) : (
-                  <p className="font-medium whitespace-pre-line break-words text-slate-900 dark:text-slate-100 leading-relaxed">
-                    {String(m.text || 'No answer content generated.')}
-                  </p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
                 )}
 
                 <span className="text-[10px] text-slate-400 block text-right font-mono">
@@ -805,7 +568,7 @@ export const AiTutorViewInner: React.FC = () => {
                 handleSendPrompt(inputPrompt);
               }
             }}
-            placeholder={`Ask any question (e.g. "What is Physics?", "Who was Albert Einstein?", "What is Genesis 10:6?")...`}
+            placeholder={`Ask any question (e.g. "What is Faraday's law of electricity?", "What is Physics?", "Who is a parent?")...`}
             className="flex-1 text-xs p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner"
           />
 
