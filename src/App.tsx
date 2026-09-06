@@ -19,7 +19,7 @@ import { LearningHubView } from './components/excelmind/LearningHubView';
 import { CbtExamView } from './components/excelmind/CbtExamView';
 import { PerformanceAnalyticsView } from './components/excelmind/PerformanceAnalyticsView';
 import { AcademicCommunicationView } from './components/excelmind/AcademicCommunicationView';
-import { AiTutorView } from './components/excelmind/AiTutorView';
+import { AiTutorWrapper as AiTutorView } from './components/excelmind/AiTutorWrapper';
 import { CurriculumAutomationView } from './components/excelmind/CurriculumAutomationView';
 import { AiLearningCoachView } from './components/excelmind/AiLearningCoachView';
 import { AcademicRecordsCentreView } from './components/excelmind/AcademicRecordsCentreView';

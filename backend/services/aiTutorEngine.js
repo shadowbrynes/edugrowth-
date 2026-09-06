@@ -371,9 +371,29 @@ class AITutorEngine {
     // Step 5: Format response text dynamically based on intent
     responseObj.text = this.formatDynamicText(responseObj, nlu.intent);
 
-    // Step 6: Post-generation curriculum alignment metadata label
-    // Note: Curriculum alignment ONLY labels the answer after it is generated; it never controls it!
-    const curriculumLabel = `Aligned with NERDC / WAEC Syllabus • ${responseObj.subject || nlu.subject}`;
+    // Step 6: Category-aware metadata label (Phase 4 & 5 compliance)
+    // Never force every question into NERDC / WAEC / Civic Education / Science
+    let curriculumLabel = undefined;
+    let categoryClassification = 'CATEGORY_A';
+    let categoryLabel = 'Academic Question';
+
+    if (nlu.intent === 'scripture') {
+      categoryClassification = 'CATEGORY_C';
+      categoryLabel = 'Bible / Scripture Question';
+      curriculumLabel = 'Biblical Scripture • Religious Studies';
+    } else if (nlu.intent === 'guidance' || nlu.topic?.toLowerCase() === 'parent') {
+      categoryClassification = 'CATEGORY_D';
+      categoryLabel = 'General Student Question';
+      curriculumLabel = 'Student Guidance & Social Concepts';
+    } else if (question.toLowerCase().includes('waec') || question.toLowerCase().includes('neco') || question.toLowerCase().includes('syllabus')) {
+      categoryClassification = 'CATEGORY_B';
+      categoryLabel = 'Curriculum & Examination Question';
+      curriculumLabel = `Aligned with NERDC / WAEC Syllabus • ${responseObj.subject || nlu.subject}`;
+    } else {
+      categoryClassification = 'CATEGORY_A';
+      categoryLabel = 'Academic Question';
+      curriculumLabel = `Academic Studies • ${responseObj.subject || nlu.subject}`;
+    }
 
     // Persist to MySQL database (non-blocking)
     this.persistInteraction({
@@ -391,6 +411,8 @@ class AITutorEngine {
       studentContext,
       subject: responseObj.subject || nlu.subject,
       category,
+      categoryClassification,
+      categoryLabel,
       responseType: nlu.intent,
       curriculumLabel,
       confidence: 95,
@@ -400,6 +422,8 @@ class AITutorEngine {
         answer: responseObj.text,
         subject: responseObj.subject || nlu.subject,
         confidence: 95,
+        category: categoryClassification,
+        categoryLabel,
         sections: responseObj,
         curriculumLabel,
         accuracyScore: 0.99

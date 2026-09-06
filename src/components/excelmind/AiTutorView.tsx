@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { aiApi } from '../../services/api';
 import { ErrorBoundary } from '../common/ErrorBoundary';
-import { generateClientAiAnswer } from '../../services/clientAiTutor';
+import { AiTutorErrorBoundary } from './AiTutorErrorBoundary';
+import { aiTutorService, NormalizedAiResponse } from '../../services/aiTutorService';
 
 interface ChatMessageAI {
   id: string;
@@ -10,6 +11,8 @@ interface ChatMessageAI {
   imageAttachment?: string;
   timestamp: string;
   responseType?: string;
+  category?: string;
+  categoryLabel?: string;
   subject?: string;
   curriculumLabel?: string;
   confidence?: number;
@@ -35,6 +38,7 @@ interface ChatMessageAI {
     simpleExplanation?: string;
     detailedExplanation?: string;
     examples?: string;
+    examinationRelevance?: string;
     keyPoints?: string[];
 
     // Calculation Format
@@ -90,6 +94,7 @@ const sanitizeSections = (sections: any): ChatMessageAI['sections'] | undefined 
   if (safeString(sections.simpleExplanation)) clean.simpleExplanation = safeString(sections.simpleExplanation);
   if (safeString(sections.detailedExplanation)) clean.detailedExplanation = safeString(sections.detailedExplanation);
   if (safeString(sections.examples)) clean.examples = safeString(sections.examples);
+  if (safeString(sections.examinationRelevance || sections.examinationFocus)) clean.examinationRelevance = safeString(sections.examinationRelevance || sections.examinationFocus);
 
   if (safeString(sections.given)) clean.given = safeString(sections.given);
   if (safeString(sections.formula)) clean.formula = safeString(sections.formula);
@@ -223,30 +228,17 @@ export const AiTutorViewInner: React.FC = () => {
     setLastPrompt('');
   };
 
-  // Dedicated execution wrapper per specifications
-  const askTutor = async (question: string, customSub?: string, img?: string | null) => {
-    return await aiApi.tutorQuery(
-      {
-        student_id: studentContext?.id || 1,
-        question,
-        category: 'Ask Question',
-        imageAttachment: img || undefined,
-        subject: customSub
-      },
-      { signal: abortControllerRef.current?.signal }
-    );
-  };
-
   const displayResponse = (rawResp: any, question: string, sub?: string) => {
     try {
-      const answerText =
-        (typeof rawResp?.answer === 'string' ? rawResp.answer : '') ||
-        (typeof rawResp?.response?.text === 'string' ? rawResp.response.text : '') ||
-        (typeof rawResp?.response?.answer === 'string' ? rawResp.response.answer : '') ||
+      const answerText = String(
+        rawResp?.answer ||
+        rawResp?.response?.text ||
+        rawResp?.response?.answer ||
         (typeof rawResp?.response === 'string' ? rawResp.response : '') ||
-        '';
+        'Educational explanation provided.'
+      );
 
-      const detectedSub = String(rawResp?.subject || rawResp?.response?.subject || sub || 'General Knowledge');
+      const detectedSub = String(rawResp?.subject || rawResp?.response?.subject || sub || 'Academic Studies');
       const rawConfidence =
         rawResp?.confidence ??
         (rawResp?.response?.accuracyScore ? Math.round(rawResp.response.accuracyScore * 100) : 95);
@@ -255,7 +247,7 @@ export const AiTutorViewInner: React.FC = () => {
       const rawSections = rawResp?.response?.sections || rawResp?.sections;
       const cleanSections = sanitizeSections(rawSections);
 
-      const resolvedText = answerText.trim() || 'Educational explanation provided according to the academic syllabus.';
+      const resolvedText = answerText.trim() || 'Educational explanation provided.';
 
       const aiMsg: ChatMessageAI = {
         id: `ai-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -265,51 +257,33 @@ export const AiTutorViewInner: React.FC = () => {
         accuracyScore: confidence / 100,
         timestamp: 'Just now',
         responseType: String(rawResp?.responseType || 'explanation'),
+        category: rawResp?.category,
+        categoryLabel: rawResp?.categoryLabel,
         subject: detectedSub,
-        curriculumLabel: String(rawResp?.curriculumLabel || `Aligned with NERDC / WAEC Syllabus • ${detectedSub}`),
+        curriculumLabel: rawResp?.curriculumLabel ? String(rawResp.curriculumLabel) : undefined,
         sections: cleanSections
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
       console.error('[AI Tutor displayResponse Safe Catch]:', err);
-      // Guaranteed safe message
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: 'Educational explanation provided according to your academic syllabus.',
+          text: 'AI Tutor is temporarily unavailable. Please try again.',
           confidence: 90,
           accuracyScore: 0.9,
           timestamp: 'Just now',
-          subject: sub || 'General Knowledge'
+          subject: sub || 'Academic Studies'
         }
       ]);
     }
   };
 
-  const displayError = (errorMessageText: string, question: string, sub?: string) => {
-    try {
-      setErrorMessage(errorMessageText);
-      const clientAns = generateClientAiAnswer(question, sub);
-      displayResponse(clientAns, question, clientAns.subject);
-    } catch (e) {
-      console.error('[AI Tutor displayError Safe Catch]:', e);
-    }
-  };
-
-  /**
-   * Safe Submit Function Wrapper
-   * Guarantees that:
-   * 1. The application NEVER crashes or displays a blank page.
-   * 2. User session / authentication is NEVER altered or lost.
-   * 3. An educational answer is ALWAYS returned and rendered cleanly.
-   * 4. If the backend fails or times out (mixed content on Vercel, offline, or slow network),
-   *    the intelligent client-side AI tutor seamlessly answers immediately.
-   */
   const handleSendPrompt = async (promptToSend: string, customSubject?: string) => {
     try {
-      const textQuery = (promptToSend || '').trim();
+      const textQuery = String(promptToSend ?? '').trim();
       if (!textQuery && !attachedImage) return;
 
       const currentImage = attachedImage;
@@ -326,56 +300,27 @@ export const AiTutorViewInner: React.FC = () => {
         timestamp: 'Just now'
       };
 
-      // Immediately display student question
       setMessages((prev) => [...prev, userMsg]);
       setInputPrompt('');
       setAttachedImage(null);
       setIsThinking(true);
 
-      // Dedicated Safe Execution Pipeline:
-      // Try backend with a fast 4s timeout. If unavailable (like on Vercel without a backend or offline),
-      // seamlessly resolve with our rich clientAiTutor engine.
-      let answered = false;
-      try {
-        const timeoutPromise = new Promise<{ success: false; timeout: true }>((resolve) =>
-          setTimeout(() => resolve({ success: false, timeout: true }), 4000)
-        );
-        const apiPromise = askTutor(textQuery, sub, currentImage);
-        const res: any = await Promise.race([apiPromise, timeoutPromise]);
+      // Dedicated Fault-Tolerant AI Service Call:
+      // Enforces 5s timeout & cancellation; falls back seamlessly to client engine if unreachable.
+      const res = await aiTutorService.askTutor(textQuery, {
+        studentId: studentContext?.id || 1,
+        subject: sub,
+        imageAttachment: currentImage
+      });
 
-        if (res && res.success && (res.data?.answer || res.data?.response?.text || res.data?.response?.answer)) {
-          displayResponse(res.data, textQuery, sub);
-          answered = true;
-        }
-      } catch (networkErr) {
-        console.warn('[AI Tutor Safe Wrapper Notice]: Backend unreachable, engaging instant offline client tutor.', networkErr);
-      }
-
-      if (!answered) {
-        // Instant guaranteed client-side answer
-        const clientResp = generateClientAiAnswer(textQuery, sub);
-        displayResponse(clientResp, textQuery, clientResp.subject);
+      if (res && res.data) {
+        displayResponse(res.data, textQuery, res.data.subject);
+      } else {
+        setErrorMessage('AI Tutor is temporarily unavailable. Please try again.');
       }
     } catch (globalErr) {
-      console.error('[AI Tutor Safe Wrapper]: Critical catch to protect user session and page stability:', globalErr);
-      // In all edge cases, provide a friendly teacher response and never crash
-      try {
-        const fallback = generateClientAiAnswer(promptToSend, customSubject);
-        displayResponse(fallback, promptToSend, fallback.subject);
-      } catch (fatalErr) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            sender: 'ai',
-            text: 'I am here to guide your studies. Please ask your question or select a topic from the test queries above.',
-            confidence: 90,
-            accuracyScore: 0.9,
-            timestamp: 'Just now',
-            subject: 'General Knowledge'
-          }
-        ]);
-      }
+      console.error('[AI Tutor Safe Wrapper Catch]:', globalErr);
+      setErrorMessage('AI Tutor is temporarily unavailable. Please try again.');
     } finally {
       setIsThinking(false);
     }
@@ -531,13 +476,18 @@ export const AiTutorViewInner: React.FC = () => {
                       </span>
                     </span>
                     <div className="flex flex-wrap items-center gap-2">
+                      {m.categoryLabel && (
+                        <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-900">
+                          {String(m.categoryLabel)}
+                        </span>
+                      )}
                       {m.curriculumLabel && (
                         <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900">
                           {String(m.curriculumLabel)}
                         </span>
                       )}
                       <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
-                        {String(m.subject || 'General Knowledge')}
+                        {String(m.subject || 'Academic Studies')}
                       </span>
                     </div>
                   </div>
@@ -766,6 +716,17 @@ export const AiTutorViewInner: React.FC = () => {
                               </p>
                             </div>
                           )}
+
+                          {m.sections.examinationRelevance && (
+                            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900">
+                              <span className="font-black text-rose-800 dark:text-rose-300 block mb-1 uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+                                <span>🎯</span> <span>Examination Relevance</span>
+                              </span>
+                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                                {String(m.sections.examinationRelevance)}
+                              </p>
+                            </div>
+                          )}
                         </>
                       )}
 
@@ -907,12 +868,9 @@ export const AiTutorViewInner: React.FC = () => {
 };
 
 export const AiTutorView: React.FC = () => (
-  <ErrorBoundary
-    fallbackTitle="ExcelMind AI Tutor View Protected"
-    fallbackMessage="ExcelMind encountered a temporary error. Please refresh or try again."
-  >
+  <AiTutorErrorBoundary>
     <AiTutorViewInner />
-  </ErrorBoundary>
+  </AiTutorErrorBoundary>
 );
 
 export default AiTutorView;
