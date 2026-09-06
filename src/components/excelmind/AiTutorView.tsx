@@ -9,11 +9,8 @@ interface ChatMessageAI {
   text: string;
   imageAttachment?: string;
   timestamp: string;
-  responseType?: string;
-  category?: string;
-  categoryLabel?: string;
   subject?: string;
-  curriculumLabel?: string;
+  level?: string;
 }
 
 /**
@@ -182,14 +179,13 @@ export const AiTutorViewInner: React.FC = () => {
 
   // Benchmark prompts requested by user
   const benchmarkPrompts = [
-    { label: "Faraday's Laws", prompt: "What is Faraday's law of electricity?" },
-    { label: "What is Newton's Law?", prompt: "What is Newton's Law?" },
-    { label: 'What is Physics?', prompt: 'What is Physics?' },
-    { label: 'Who is a parent?', prompt: 'Who is a parent?' },
-    { label: 'Explain photosynthesis', prompt: 'Explain photosynthesis.' },
-    { label: 'Genesis 10:6', prompt: 'What is Genesis chapter 10 verse 6?' },
-    { label: 'Solve 2x + 5 = 15', prompt: 'Solve 2x + 5 = 15.' },
-    { label: 'What is a constitution?', prompt: 'What is a constitution?' }
+    { label: "What is electricity?", prompt: "What is electricity?" },
+    { label: "Laws of electricity", prompt: "What are the laws of electricity?" },
+    { label: "What is Newton's law?", prompt: "What is Newton's law?" },
+    { label: "What is a constitution?", prompt: "What is a constitution?" },
+    { label: "What is Genesis 10:6?", prompt: "What is Genesis 10:6?" },
+    { label: "Who is a parent?", prompt: "Who is a parent?" },
+    { label: "Solve 2x + 5 = 15", prompt: "Solve 2x + 5 = 15." }
   ];
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,6 +225,7 @@ export const AiTutorViewInner: React.FC = () => {
       );
 
       const detectedSub = String(rawResp?.subject || rawResp?.response?.subject || sub || 'Academic Studies');
+      const detectedLevel = rawResp?.level || rawResp?.response?.level || 'Secondary';
       const resolvedText = answerText.trim() || 'Educational explanation provided.';
 
       const aiMsg: ChatMessageAI = {
@@ -236,11 +233,8 @@ export const AiTutorViewInner: React.FC = () => {
         sender: 'ai',
         text: resolvedText,
         timestamp: 'Just now',
-        responseType: String(rawResp?.responseType || 'explanation'),
-        category: rawResp?.category,
-        categoryLabel: rawResp?.categoryLabel,
         subject: detectedSub,
-        curriculumLabel: rawResp?.curriculumLabel ? String(rawResp.curriculumLabel) : undefined
+        level: String(detectedLevel)
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
@@ -450,18 +444,11 @@ export const AiTutorViewInner: React.FC = () => {
                       <span>{String(m.subject || 'Academic Studies')}</span>
                     </span>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      {m.categoryLabel && (
-                        <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-900">
-                          {String(m.categoryLabel)}
-                        </span>
-                      )}
-                      {m.curriculumLabel && (
-                        <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900">
-                          {String(m.curriculumLabel)}
-                        </span>
-                      )}
-                    </div>
+                    {m.level && (
+                      <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                        {String(m.level)}
+                      </span>
+                    )}
                   </div>
                 )}
 

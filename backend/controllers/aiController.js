@@ -121,45 +121,27 @@ exports.tutorQuery = async (req, res) => {
     });
 
     const elapsed = Date.now() - startTime;
-    const answer = result.answer || result.response?.text || result.response?.answer || 'No answer was generated. Please try again.';
-    const confidence = result.confidence || 95;
-    const detectedSubject = result.subject || subject || 'General Knowledge';
+    const answer = result.answer || 'No answer was generated. Please try again.';
+    const detectedSubject = result.subject || 'Physics';
+    const studentLevel = result.level || 'SS3';
 
     // Audit Logging: API response status
-    console.log(`[AI Tutor Audit] Status: 200 OK | Student ID: ${resolvedStudentId} | Subject: ${detectedSubject} | Confidence: ${confidence}% | Duration: ${elapsed}ms`);
+    console.log(`[AI Tutor Audit] Status: 200 OK | Student ID: ${resolvedStudentId} | Subject: ${detectedSubject} | Level: ${studentLevel} | Duration: ${elapsed}ms`);
 
+    // Clean AI Response Format
     return res.status(200).json({
-      success: true,
       answer,
       subject: detectedSubject,
-      confidence,
-      responseType: result.responseType || 'explanation',
-      curriculumLabel: result.curriculumLabel || undefined,
-      response: {
-        text: answer,
-        answer,
-        subject: detectedSubject,
-        curriculumLabel: result.curriculumLabel || undefined
-      },
-      studentContext: result.studentContext
+      level: studentLevel
     });
   } catch (err) {
     const elapsed = Date.now() - startTime;
-    // Log internal error to server console, do not expose stack trace or raw errors to students
     console.error(`[AI Tutor Audit] Status: 500 Handled | Student ID: ${resolvedStudentId} | Duration: ${elapsed}ms | Error:`, err.message);
 
-    // Provide safe, user-friendly fallback response so frontend never crashes and session remains intact
     return res.status(200).json({
-      success: false,
       answer: 'AI Tutor is temporarily unavailable. Please try again.',
       subject: subject || 'General Knowledge',
-      confidence: 0,
-      error: 'AI Tutor is temporarily unavailable. Please try again.',
-      response: {
-        text: 'AI Tutor is temporarily unavailable. Please try again.',
-        answer: 'AI Tutor is temporarily unavailable. Please try again.',
-        subject: subject || 'General Knowledge'
-      }
+      level: 'SS3'
     });
   }
 };
